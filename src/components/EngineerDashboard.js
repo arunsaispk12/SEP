@@ -266,25 +266,26 @@ const EngineerDashboard = () => {
         }
 
         .dashboard-header h2 {
-          color: #1f2937;
-          font-size: 2rem;
+          color: #f1f5f9;
+          font-size: clamp(1.5rem, 4vw, 2rem);
           font-weight: 700;
           margin-bottom: 8px;
           letter-spacing: -0.025em;
         }
 
         .dashboard-header p {
-          color: #6b7280;
+          color: #94a3b8;
           font-size: 1rem;
           margin: 0;
         }
 
         .engineer-card {
-          background: white;
+          background: rgba(22, 27, 34, 0.85);
           border-radius: 16px;
           padding: 24px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-          border: 1px solid #f1f5f9;
+          box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          backdrop-filter: blur(20px);
           transition: all 0.3s ease;
           position: relative;
           overflow: hidden;
@@ -292,7 +293,8 @@ const EngineerDashboard = () => {
 
         .engineer-card:hover {
           transform: translateY(-4px);
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+          box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+          border-color: rgba(123, 97, 255, 0.3);
         }
 
         .engineer-card::before {
@@ -311,7 +313,7 @@ const EngineerDashboard = () => {
           gap: 16px;
           margin-bottom: 20px;
           padding-bottom: 16px;
-          border-bottom: 1px solid #f1f5f9;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .engineer-avatar {
@@ -336,7 +338,7 @@ const EngineerDashboard = () => {
           margin: 0 0 4px 0;
           font-size: 1.25rem;
           font-weight: 600;
-          color: #1f2937;
+          color: #f1f5f9;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -411,14 +413,14 @@ const EngineerDashboard = () => {
 
         .cases-header h4 {
           margin: 0;
-          color: #1f2937;
+          color: #e2e8f0;
           font-size: 1.125rem;
           font-weight: 600;
         }
 
         .cases-count {
-          background: #f1f5f9;
-          color: #475569;
+          background: rgba(123, 97, 255, 0.15);
+          color: #a78bfa;
           padding: 4px 12px;
           border-radius: 20px;
           font-size: 0.875rem;
@@ -446,18 +448,19 @@ const EngineerDashboard = () => {
         }
 
         .case-item {
-          background: #f8fafc;
+          background: rgba(13, 17, 23, 0.5);
           border-radius: 12px;
           padding: 16px;
           margin-bottom: 12px;
-          border: 1px solid #e2e8f0;
+          border: 1px solid rgba(255, 255, 255, 0.07);
           transition: all 0.2s ease;
         }
 
         .case-item:hover {
-          background: #f1f5f9;
+          background: rgba(13, 17, 23, 0.7);
           transform: translateY(-1px);
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+          border-color: rgba(123, 97, 255, 0.2);
         }
 
         .case-header {
@@ -470,7 +473,7 @@ const EngineerDashboard = () => {
 
         .case-title {
           font-weight: 600;
-          color: #1e293b;
+          color: #e2e8f0;
           font-size: 0.95rem;
           flex: 1;
           line-height: 1.4;
@@ -478,11 +481,12 @@ const EngineerDashboard = () => {
 
         .status-select {
           padding: 6px 10px;
-          border: 1px solid #d1d5db;
+          border: 1px solid rgba(148, 163, 184, 0.2);
           border-radius: 8px;
           font-size: 0.8rem;
           font-weight: 500;
-          background: white;
+          background: rgba(22, 27, 34, 0.9);
+          color: #e2e8f0;
           cursor: pointer;
           transition: all 0.2s ease;
           min-width: 120px;
@@ -490,23 +494,23 @@ const EngineerDashboard = () => {
 
         .status-select:focus {
           outline: none;
-          border-color: #667eea;
-          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+          border-color: #7B61FF;
+          box-shadow: 0 0 0 3px rgba(123, 97, 255, 0.2);
         }
 
         .status-select.status-pending {
-          border-color: #fbbf24;
-          background: rgba(251, 191, 36, 0.05);
+          border-color: rgba(251, 191, 36, 0.5);
+          background: rgba(251, 191, 36, 0.08);
         }
 
         .status-select.status-in-progress {
-          border-color: #06b6d4;
-          background: rgba(6, 182, 212, 0.05);
+          border-color: rgba(6, 182, 212, 0.5);
+          background: rgba(6, 182, 212, 0.08);
         }
 
         .status-select.status-completed {
-          border-color: #10b981;
-          background: rgba(16, 185, 129, 0.05);
+          border-color: rgba(16, 185, 129, 0.5);
+          background: rgba(16, 185, 129, 0.08);
         }
 
         .case-details {

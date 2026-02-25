@@ -83,22 +83,23 @@ const AdminPanel = () => {
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
           }
           .denied-content {
             text-align: center;
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(22, 27, 34, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             padding: 40px;
             border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
             max-width: 400px;
           }
           .denied-content h2 {
-            color: #dc2626;
+            color: #f87171;
             margin-bottom: 16px;
           }
           .denied-content p {
-            color: #64748b;
+            color: #94a3b8;
             margin-bottom: 8px;
           }
         `}</style>
@@ -378,20 +379,22 @@ const AdminPanel = () => {
       <style jsx>{`
         .admin-panel {
           min-height: 100vh;
-          background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
           padding: 20px;
         }
 
         .admin-header {
-          background: rgba(255, 255, 255, 0.95);
+          background: rgba(22, 27, 34, 0.85);
           backdrop-filter: blur(15px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           padding: 24px;
           border-radius: 16px;
           margin-bottom: 24px;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
           display: flex;
           justify-content: space-between;
           align-items: center;
+          flex-wrap: wrap;
+          gap: 12px;
         }
 
         .header-content {
@@ -402,33 +405,35 @@ const AdminPanel = () => {
 
         .header-content h1 {
           margin: 0;
-          color: #1f2937;
-          font-size: 2rem;
+          color: #f1f5f9;
+          font-size: clamp(1.4rem, 4vw, 2rem);
           font-weight: 700;
         }
 
         .header-content p {
           margin: 4px 0 0 0;
-          color: #64748b;
+          color: #94a3b8;
         }
 
         .admin-info {
-          color: #64748b;
+          color: #94a3b8;
           font-weight: 500;
         }
 
         .admin-content {
           display: grid;
-          grid-template-columns: 300px 1fr;
+          grid-template-columns: 280px 1fr;
           gap: 24px;
         }
 
         .admin-nav {
-          background: rgba(255, 255, 255, 0.95);
+          background: rgba(22, 27, 34, 0.85);
           backdrop-filter: blur(15px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           padding: 20px;
           border-radius: 16px;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+          height: fit-content;
         }
 
         .nav-item {
@@ -436,96 +441,113 @@ const AdminPanel = () => {
           align-items: center;
           gap: 12px;
           width: 100%;
-          padding: 16px 20px;
+          padding: 14px 16px;
           border: none;
           background: transparent;
           border-radius: 12px;
-          color: #64748b;
+          color: #94a3b8;
           font-weight: 500;
           cursor: pointer;
           transition: all 0.3s ease;
-          margin-bottom: 8px;
+          margin-bottom: 6px;
+          min-height: 44px;
         }
 
         .nav-item:hover {
-          background: rgba(102, 126, 234, 0.1);
-          color: #667eea;
+          background: rgba(123, 97, 255, 0.1);
+          color: #a78bfa;
           transform: translateX(4px);
         }
 
         .nav-item.active {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #7b61ff 0%, #06b6d4 100%);
           color: white;
-          box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+          box-shadow: 0 4px 16px rgba(123, 97, 255, 0.3);
         }
 
         .admin-main {
-          background: rgba(255, 255, 255, 0.95);
+          background: rgba(22, 27, 34, 0.85);
           backdrop-filter: blur(15px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           padding: 24px;
           border-radius: 16px;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         .stats-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 20px;
+          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+          gap: 16px;
           margin-bottom: 40px;
         }
 
         .stat-card {
-          background: white;
-          padding: 24px;
+          background: rgba(13, 17, 23, 0.5);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          padding: 20px;
           border-radius: 12px;
           display: flex;
           align-items: center;
           gap: 16px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
           transition: all 0.3s ease;
         }
 
         .stat-card:hover {
           transform: translateY(-2px);
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+          border-color: rgba(123, 97, 255, 0.3);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
         }
 
         .stat-icon {
-          color: #667eea;
-          background: rgba(102, 126, 234, 0.1);
+          color: #a78bfa;
+          background: rgba(123, 97, 255, 0.15);
           padding: 12px;
           border-radius: 12px;
+          flex-shrink: 0;
         }
 
         .stat-number {
-          font-size: 2rem;
+          font-size: 1.8rem;
           font-weight: 700;
-          color: #1f2937;
+          color: #f1f5f9;
           margin-bottom: 4px;
         }
 
+        .stat-label {
+          color: #94a3b8;
+          font-size: 0.85rem;
+        }
+
         .recent-activity h3 {
-          color: #1f2937;
+          color: #f1f5f9;
           margin-bottom: 20px;
         }
 
         .activity-list {
           display: flex;
           flex-direction: column;
-          gap: 16px;
+          gap: 12px;
         }
 
         .activity-item {
           display: flex;
           align-items: center;
           gap: 12px;
-          padding: 16px;
-          background: #f8fafc;
+          padding: 14px 16px;
+          background: rgba(13, 17, 23, 0.4);
+          border: 1px solid rgba(255, 255, 255, 0.06);
           border-radius: 8px;
         }
 
+        .activity-content p {
+          color: #e2e8f0;
+          margin: 0 0 4px 0;
+          font-size: 0.9rem;
+        }
+
         .activity-icon {
-          color: #667eea;
+          color: #a78bfa;
+          flex-shrink: 0;
         }
 
         .activity-time {
@@ -538,16 +560,36 @@ const AdminPanel = () => {
           justify-content: space-between;
           align-items: center;
           margin-bottom: 24px;
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+
+        .users-header h3 {
+          color: #f1f5f9;
+          margin: 0;
+        }
+
+        .users-header p {
+          color: #94a3b8;
+          margin: 4px 0 0 0;
+          font-size: 0.9rem;
+        }
+
+        .header-actions {
+          display: flex;
+          gap: 12px;
+          align-items: center;
+          flex-wrap: wrap;
         }
 
         .search-box {
           display: flex;
           align-items: center;
           gap: 8px;
-          background: #f8fafc;
+          background: rgba(13, 17, 23, 0.5);
+          border: 1px solid rgba(255, 255, 255, 0.1);
           padding: 8px 12px;
           border-radius: 8px;
-          border: 1px solid #e2e8f0;
         }
 
         .search-box input {
@@ -555,13 +597,24 @@ const AdminPanel = () => {
           background: transparent;
           outline: none;
           flex: 1;
+          color: #e2e8f0;
+          min-width: 160px;
+        }
+
+        .search-box input::placeholder {
+          color: #64748b;
+        }
+
+        .search-box svg {
+          color: #64748b;
+          flex-shrink: 0;
         }
 
         .btn-primary {
           display: flex;
           align-items: center;
           gap: 8px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #7b61ff 0%, #06b6d4 100%);
           color: white;
           border: none;
           padding: 10px 16px;
@@ -569,74 +622,85 @@ const AdminPanel = () => {
           font-weight: 500;
           cursor: pointer;
           transition: all 0.3s ease;
+          min-height: 44px;
         }
 
         .btn-primary:hover {
           transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+          box-shadow: 0 4px 12px rgba(123, 97, 255, 0.4);
         }
 
         .users-table {
-          background: white;
+          background: rgba(13, 17, 23, 0.4);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 12px;
           overflow: hidden;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .table-header {
           display: grid;
           grid-template-columns: 2fr 2fr 1fr 1fr 1fr;
           gap: 16px;
-          padding: 16px 20px;
-          background: #f8fafc;
+          padding: 14px 20px;
+          background: rgba(13, 17, 23, 0.6);
           font-weight: 600;
-          color: #64748b;
+          color: #94a3b8;
+          font-size: 0.85rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
         }
 
         .table-row {
           display: grid;
           grid-template-columns: 2fr 2fr 1fr 1fr 1fr;
           gap: 16px;
-          padding: 16px 20px;
-          border-bottom: 1px solid #f1f5f9;
+          padding: 14px 20px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
           transition: background-color 0.2s ease;
+          color: #e2e8f0;
+          align-items: center;
+        }
+
+        .table-row:last-child {
+          border-bottom: none;
         }
 
         .table-row:hover {
-          background: #f8fafc;
+          background: rgba(123, 97, 255, 0.05);
         }
 
         .role-badge, .status-badge {
           padding: 4px 8px;
           border-radius: 12px;
-          font-size: 0.8rem;
-          font-weight: 500;
+          font-size: 0.75rem;
+          font-weight: 600;
           text-transform: uppercase;
+          display: inline-block;
         }
 
         .role-badge.admin {
-          background: rgba(239, 68, 68, 0.1);
-          color: #dc2626;
+          background: rgba(239, 68, 68, 0.15);
+          color: #f87171;
         }
 
         .role-badge.manager {
-          background: rgba(245, 158, 11, 0.1);
-          color: #d97706;
+          background: rgba(245, 158, 11, 0.15);
+          color: #fbbf24;
         }
 
         .role-badge.engineer {
-          background: rgba(34, 197, 94, 0.1);
-          color: #16a34a;
+          background: rgba(34, 197, 94, 0.15);
+          color: #4ade80;
         }
 
         .status-badge.active {
-          background: rgba(34, 197, 94, 0.1);
-          color: #16a34a;
+          background: rgba(34, 197, 94, 0.15);
+          color: #4ade80;
         }
 
         .status-badge.inactive {
-          background: rgba(239, 68, 68, 0.1);
-          color: #dc2626;
+          background: rgba(239, 68, 68, 0.15);
+          color: #f87171;
         }
 
         .action-buttons {
@@ -650,18 +714,23 @@ const AdminPanel = () => {
           border-radius: 6px;
           cursor: pointer;
           transition: all 0.2s ease;
-          background: rgba(102, 126, 234, 0.1);
-          color: #667eea;
+          background: rgba(123, 97, 255, 0.15);
+          color: #a78bfa;
+          min-height: 32px;
+          min-width: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .btn-icon:hover {
-          background: #667eea;
+          background: #7b61ff;
           color: white;
         }
 
         .btn-icon.danger {
-          background: rgba(239, 68, 68, 0.1);
-          color: #dc2626;
+          background: rgba(239, 68, 68, 0.15);
+          color: #f87171;
         }
 
         .btn-icon.danger:hover {
@@ -669,28 +738,54 @@ const AdminPanel = () => {
           color: white;
         }
 
+        .cases-content h3,
+        .system-content h3 {
+          color: #f1f5f9;
+          margin-bottom: 8px;
+        }
+
+        .cases-content > p,
+        .system-content > p {
+          color: #94a3b8;
+          margin-bottom: 20px;
+        }
+
         .cases-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
           gap: 16px;
         }
 
         .case-admin-card {
-          background: white;
+          background: rgba(13, 17, 23, 0.5);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           padding: 16px;
           border-radius: 8px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          transition: border-color 0.2s;
+        }
+
+        .case-admin-card:hover {
+          border-color: rgba(123, 97, 255, 0.3);
+        }
+
+        .case-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 8px;
+          gap: 8px;
         }
 
         .case-admin-card h4 {
-          margin: 0 0 8px 0;
-          color: #1f2937;
+          margin: 0;
+          color: #f1f5f9;
+          font-size: 0.95rem;
         }
 
         .case-admin-card p {
-          color: #64748b;
+          color: #94a3b8;
           margin-bottom: 12px;
-          font-size: 0.9rem;
+          font-size: 0.875rem;
         }
 
         .case-meta {
@@ -698,73 +793,89 @@ const AdminPanel = () => {
           gap: 16px;
           font-size: 0.8rem;
           color: #64748b;
+          flex-wrap: wrap;
         }
 
         .settings-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 20px;
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          gap: 16px;
         }
 
         .setting-card {
-          background: white;
+          background: rgba(13, 17, 23, 0.5);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           padding: 20px;
           border-radius: 12px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          transition: border-color 0.2s;
+        }
+
+        .setting-card:hover {
+          border-color: rgba(123, 97, 255, 0.3);
         }
 
         .setting-card h4 {
           margin: 0 0 8px 0;
-          color: #1f2937;
+          color: #f1f5f9;
         }
 
         .setting-card p {
-          color: #64748b;
+          color: #94a3b8;
           margin-bottom: 16px;
+          font-size: 0.875rem;
         }
 
         .btn-secondary {
-          background: #f8fafc;
-          color: #64748b;
-          border: 1px solid #e2e8f0;
+          background: rgba(123, 97, 255, 0.1);
+          color: #a78bfa;
+          border: 1px solid rgba(123, 97, 255, 0.3);
           padding: 8px 16px;
           border-radius: 6px;
           cursor: pointer;
           transition: all 0.2s ease;
+          min-height: 36px;
+          font-weight: 500;
         }
 
         .btn-secondary:hover {
-          background: #e2e8f0;
-          border-color: #cbd5e1;
+          background: rgba(123, 97, 255, 0.2);
+          border-color: #a78bfa;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
           .admin-content {
             grid-template-columns: 1fr;
           }
 
-          .admin-nav {
-            order: 2;
+          .table-header,
+          .table-row {
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .admin-panel {
+            padding: 12px;
+          }
+
+          .admin-header {
+            padding: 16px;
           }
 
           .users-header {
             flex-direction: column;
-            gap: 16px;
             align-items: stretch;
-          }
-
-          .search-box {
-            width: 100%;
           }
 
           .table-header,
           .table-row {
             grid-template-columns: 1fr;
-            gap: 8px;
+            gap: 6px;
           }
 
           .table-row {
-            padding: 12px 16px;
+            padding: 12px 14px;
           }
         }
       `}</style>

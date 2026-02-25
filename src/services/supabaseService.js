@@ -105,8 +105,7 @@ class SupabaseService {
       .select(`
         *,
         location:location_id(name),
-        assigned_engineer:assigned_engineer_id(name),
-        creator:created_by(name)
+        assigned_engineer:assigned_engineer_id(name)
       `)
       .order('created_at', { ascending: false });
 
@@ -120,8 +119,7 @@ class SupabaseService {
       .select(`
         *,
         location:location_id(name),
-        assigned_engineer:assigned_engineer_id(name),
-        creator:created_by(name)
+        assigned_engineer:assigned_engineer_id(name)
       `)
       .eq('id', id)
       .single();
@@ -168,8 +166,7 @@ class SupabaseService {
       .select(`
         *,
         location:location_id(name),
-        assigned_engineer:assigned_engineer_id(name),
-        creator:created_by(name)
+        assigned_engineer:assigned_engineer_id(name)
       `)
       .eq('assigned_engineer_id', engineerId)
       .order('created_at', { ascending: false });
@@ -184,8 +181,7 @@ class SupabaseService {
       .select(`
         *,
         location:location_id(name),
-        assigned_engineer:assigned_engineer_id(name),
-        creator:created_by(name)
+        assigned_engineer:assigned_engineer_id(name)
       `)
       .eq('status', status)
       .order('created_at', { ascending: false });
@@ -200,8 +196,7 @@ class SupabaseService {
       .select(`
         *,
         location:location_id(name),
-        assigned_engineer:assigned_engineer_id(name),
-        creator:created_by(name)
+        assigned_engineer:assigned_engineer_id(name)
       `)
       .eq('priority', priority)
       .order('created_at', { ascending: false });

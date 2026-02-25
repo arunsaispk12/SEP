@@ -44,7 +44,8 @@ const initialState = {
   cases: [],
   schedules: [],
   leaves: [],
-  locations: ['Hyderabad', 'Bangalore', 'Coimbatore', 'Chennai'],
+  locations: ['Hyderabad Office', 'Bangalore Office', 'Coimbatore Office', 'Chennai Office'],
+  locationObjects: [],
   googleCalendarConnected: false,
   loading: false,
   error: null
@@ -224,6 +225,7 @@ export function EngineerProvider({ children }) {
             end: schedule.end_time
           })),
           leaves,
+          locationObjects: locations,
           locations: locations.map(location => location.name)
         };
 
@@ -348,7 +350,7 @@ export function EngineerProvider({ children }) {
       if (isSupabaseConfigured()) {
         const newCase = await supabaseService.createCase({
           ...caseData,
-          status: 'pending'
+          status: caseData.status || 'open'
         });
         dispatch({ type: 'ADD_CASE', payload: newCase });
       } else {
@@ -527,6 +529,7 @@ export function EngineerProvider({ children }) {
 
   const value = useMemo(() => ({
     ...state,
+    locationObjects: state.locationObjects || [],
     addCase,
     updateCase,
     updateEngineer,

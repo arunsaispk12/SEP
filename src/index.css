@@ -123,7 +123,7 @@ code {
   display: block;
   margin-bottom: 5px;
   font-weight: 600;
-  color: #333;
+  color: #cbd5e1;
 }
 
 .form-group input,
@@ -179,7 +179,7 @@ code {
 }
 
 .engineer-card h3 {
-  color: #333;
+  color: #f1f5f9;
   margin-bottom: 10px;
   font-size: 1.3rem;
 }
@@ -225,7 +225,7 @@ code {
 
 .case-title {
   font-weight: 600;
-  color: #333;
+  color: #e2e8f0;
   margin-bottom: 5px;
 }
 
@@ -300,7 +300,7 @@ code {
 
 .modal-header h2 {
   margin: 0;
-  color: #333;
+  color: #f1f5f9;
 }
 
 .close-btn {
@@ -410,12 +410,465 @@ code {
   .engineer-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .header h1 {
     font-size: 2rem;
   }
-  
+
   .container {
     padding: 10px;
   }
 }
+
+/* ===== Dark scrollbars ===== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(13, 17, 23, 0.4);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(123, 97, 255, 0.4);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(123, 97, 255, 0.7);
+}
+
+/* ===== Global dark select ===== */
+select {
+  background: rgba(22, 27, 34, 0.9);
+  color: #e2e8f0;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  min-height: 44px;
+}
+select option {
+  background: #161B22;
+  color: #e2e8f0;
+}
+select:focus {
+  outline: none;
+  border-color: #7B61FF;
+  box-shadow: 0 0 0 3px rgba(123, 97, 255, 0.2);
+}
+
+/* ===== Mobile touch targets ===== */
+@media (max-width: 768px) {
+  button,
+  [role="button"],
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px;
+  }
+}
+
+/* ===== react-big-calendar dark theme ===== */
+.rbc-calendar {
+  background: transparent !important;
+  color: #e2e8f0 !important;
+}
+.rbc-header {
+  background: rgba(22, 27, 34, 0.8) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  padding: 10px 8px;
+  color: #a78bfa;
+  font-weight: 600;
+}
+.rbc-month-view,
+.rbc-time-view,
+.rbc-agenda-view {
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.rbc-month-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+.rbc-date-cell {
+  padding: 4px 8px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #94a3b8;
+}
+.rbc-date-cell.rbc-off-range {
+  background: rgba(13, 17, 23, 0.5) !important;
+  color: #475569;
+}
+.rbc-date-cell a {
+  color: inherit;
+}
+.rbc-today {
+  background: rgba(123, 97, 255, 0.12) !important;
+}
+.rbc-off-range-bg {
+  background: rgba(13, 17, 23, 0.35) !important;
+}
+.rbc-row-bg {
+  background: rgba(22, 27, 34, 0.3);
+}
+.rbc-show-more {
+  color: #7B61FF;
+  background: transparent;
+}
+.rbc-toolbar {
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.rbc-toolbar button {
+  background: rgba(51, 65, 85, 0.8) !important;
+  color: #e2e8f0 !important;
+  border: 1px solid rgba(148, 163, 184, 0.2) !important;
+  padding: 10px 18px;
+  border-radius: 10px;
+  min-height: 44px;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  font-weight: 500;
+  cursor: pointer;
+}
+.rbc-toolbar button:hover {
+  background: rgba(123, 97, 255, 0.2) !important;
+  border-color: rgba(123, 97, 255, 0.4) !important;
+  color: white !important;
+}
+.rbc-toolbar button.rbc-active {
+  background: linear-gradient(135deg, #7B61FF 0%, #00D4FF 100%) !important;
+  border-color: transparent !important;
+  color: white !important;
+  box-shadow: 0 4px 16px rgba(123, 97, 255, 0.3);
+}
+.rbc-toolbar-label {
+  font-size: clamp(1rem, 3vw, 1.25rem);
+  font-weight: 600;
+  color: #e2e8f0 !important;
+}
+.rbc-time-content {
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+.rbc-time-slot {
+  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+  color: #64748b;
+}
+.rbc-timeslot-group {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+.rbc-time-gutter .rbc-timeslot-group {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+.rbc-current-time-indicator {
+  background: #00D4FF;
+  height: 2px;
+}
+.rbc-agenda-table {
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #e2e8f0;
+}
+.rbc-agenda-table tbody > tr > td {
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  padding: 12px;
+}
+.rbc-agenda-table thead {
+  background: rgba(22, 27, 34, 0.8);
+}
+.rbc-agenda-date-cell,
+.rbc-agenda-time-cell {
+  color: #94a3b8;
+}
+.rbc-label {
+  color: #64748b;
+}
+@media (max-width: 640px) {
+  .rbc-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .rbc-toolbar .rbc-btn-group {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+  }
+  .rbc-toolbar-label {
+    text-align: center;
+    order: -1;
+  }
+  .rbc-toolbar button {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  .rbc-header {
+    font-size: 11px;
+    padding: 6px 2px;
+  }
+}
+
+/* ============================================================
+   LIGHT THEME — html:not(.dark) overrides
+   Higher specificity (0,2,1) beats component <style jsx> (0,1,0)
+   ============================================================ */
+
+html:not(.dark) body {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+/* -- Global forms, modals, selects -- */
+html:not(.dark) .form-group label { color: #475569; }
+html:not(.dark) .form-group input,
+html:not(.dark) .form-group select,
+html:not(.dark) .form-group textarea {
+  background: white;
+  color: #1e293b;
+  border-color: #e2e8f0;
+}
+html:not(.dark) .form-group input:focus,
+html:not(.dark) .form-group select:focus,
+html:not(.dark) .form-group textarea:focus { background: white; }
+html:not(.dark) select {
+  background: white;
+  color: #1e293b;
+  border-color: #e2e8f0;
+}
+html:not(.dark) select option { background: white; color: #1e293b; }
+html:not(.dark) .modal-content { background: rgba(255,255,255,0.98); }
+html:not(.dark) .modal-header h2 { color: #1e293b; }
+html:not(.dark) .close-btn { color: #64748b; }
+html:not(.dark) .close-btn:hover { color: #1e293b; }
+html:not(.dark) .card { background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.08); }
+html:not(.dark) .calendar-container { background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.08); }
+
+/* -- Shared component classes (cards, stats, search, tables) -- */
+html:not(.dark) .stat-card {
+  background: rgba(255,255,255,0.9) !important;
+  border-color: rgba(0,0,0,0.08) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+}
+html:not(.dark) .stat-number { color: #1e293b !important; }
+html:not(.dark) .stat-label { color: #64748b !important; }
+html:not(.dark) .search-box {
+  background: white !important;
+  border-color: #e2e8f0 !important;
+}
+html:not(.dark) .search-box input { color: #1e293b !important; }
+html:not(.dark) .search-box svg { color: #94a3b8 !important; }
+html:not(.dark) .filter-select,
+html:not(.dark) .status-select,
+html:not(.dark) .assign-select {
+  background: white !important;
+  color: #1e293b !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* -- AdminPanel -- */
+html:not(.dark) .admin-header {
+  background: rgba(255,255,255,0.95) !important;
+  border-color: rgba(0,0,0,0.08) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08) !important;
+}
+html:not(.dark) .header-content h1 { color: #1e293b !important; }
+html:not(.dark) .header-content p { color: #64748b !important; }
+html:not(.dark) .admin-info { color: #64748b !important; }
+html:not(.dark) .admin-nav {
+  background: rgba(255,255,255,0.95) !important;
+  border-color: rgba(0,0,0,0.08) !important;
+}
+html:not(.dark) .nav-item { color: #64748b !important; }
+html:not(.dark) .nav-item:hover { background: rgba(123,97,255,0.08) !important; color: #7b61ff !important; }
+html:not(.dark) .admin-main {
+  background: rgba(255,255,255,0.95) !important;
+  border-color: rgba(0,0,0,0.08) !important;
+}
+html:not(.dark) .recent-activity h3 { color: #1e293b !important; }
+html:not(.dark) .activity-item {
+  background: #f1f5f9 !important;
+  border-color: rgba(0,0,0,0.06) !important;
+}
+html:not(.dark) .activity-content p { color: #374151 !important; }
+html:not(.dark) .users-header h3 { color: #1e293b !important; }
+html:not(.dark) .users-header p { color: #64748b !important; }
+html:not(.dark) .users-table {
+  background: white !important;
+  border-color: rgba(0,0,0,0.08) !important;
+}
+html:not(.dark) .table-header {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+}
+html:not(.dark) .table-row {
+  color: #374151 !important;
+  border-color: rgba(0,0,0,0.06) !important;
+}
+html:not(.dark) .table-row:hover { background: rgba(123,97,255,0.04) !important; }
+html:not(.dark) .case-admin-card {
+  background: white !important;
+  border-color: rgba(0,0,0,0.08) !important;
+}
+html:not(.dark) .case-admin-card h4 { color: #1e293b !important; }
+html:not(.dark) .case-admin-card p { color: #64748b !important; }
+html:not(.dark) .case-meta { color: #94a3b8 !important; }
+html:not(.dark) .setting-card {
+  background: white !important;
+  border-color: rgba(0,0,0,0.08) !important;
+}
+html:not(.dark) .setting-card h4 { color: #1e293b !important; }
+html:not(.dark) .setting-card p { color: #64748b !important; }
+html:not(.dark) .admin-panel .btn-secondary {
+  background: #e2e8f0 !important;
+  color: #475569 !important;
+  border-color: rgba(0,0,0,0.15) !important;
+}
+html:not(.dark) .cases-content h3,
+html:not(.dark) .system-content h3 { color: #1e293b !important; }
+html:not(.dark) .cases-content > p,
+html:not(.dark) .system-content > p { color: #64748b !important; }
+
+/* -- GoogleCalendarSync -- */
+html:not(.dark) .sync-header { border-color: rgba(0,0,0,0.1) !important; }
+html:not(.dark) .sync-title h2 { color: #1e293b !important; }
+html:not(.dark) .sync-disabled {
+  background: #fef2f2 !important;
+  border-color: #fecaca !important;
+  color: #dc2626 !important;
+}
+html:not(.dark) .sync-disabled h3 { color: #dc2626 !important; }
+html:not(.dark) .sync-disabled p { color: #6b7280 !important; }
+html:not(.dark) .sync-section h3 { color: #1e293b !important; }
+html:not(.dark) .connection-card {
+  background: white !important;
+  border-color: rgba(0,0,0,0.1) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+}
+html:not(.dark) .connection-disconnected h4 { color: #1e293b !important; }
+html:not(.dark) .connection-disconnected p { color: #6b7280 !important; }
+html:not(.dark) .user-avatar {
+  background: #f3f4f6 !important;
+  border-color: rgba(0,0,0,0.1) !important;
+  color: #9333ea !important;
+}
+html:not(.dark) .user-details h4 { color: #1e293b !important; }
+html:not(.dark) .user-details p { color: #6b7280 !important; }
+html:not(.dark) .last-sync { color: #6b7280 !important; }
+html:not(.dark) .stat-item {
+  background: #f8fafc !important;
+  border-color: rgba(0,0,0,0.08) !important;
+}
+html:not(.dark) .stat-value { color: #1e293b !important; }
+html:not(.dark) .sync-settings {
+  background: white !important;
+  border-color: rgba(0,0,0,0.1) !important;
+}
+html:not(.dark) .setting-group { border-color: rgba(0,0,0,0.06) !important; }
+html:not(.dark) .setting-label { color: #1e293b !important; }
+html:not(.dark) .setting-description { color: #6b7280 !important; }
+html:not(.dark) .setting-label input[type="number"] {
+  background: white !important;
+  color: #1e293b !important;
+  border-color: #d1d5db !important;
+}
+html:not(.dark) .profile-management {
+  background: white !important;
+  border-color: rgba(0,0,0,0.1) !important;
+}
+html:not(.dark) .profile-card {
+  background: #f8fafc !important;
+  border-color: rgba(0,0,0,0.08) !important;
+}
+html:not(.dark) .profile-header h4 { color: #1e293b !important; }
+html:not(.dark) .info-item { color: #6b7280 !important; }
+
+/* -- EngineerDashboard -- */
+html:not(.dark) .dashboard-header h2 { color: #1e293b !important; }
+html:not(.dark) .dashboard-header p { color: #64748b !important; }
+html:not(.dark) .engineer-card {
+  background: rgba(255,255,255,0.95) !important;
+  border-color: rgba(0,0,0,0.08) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08) !important;
+}
+html:not(.dark) .engineer-header { border-color: rgba(0,0,0,0.08) !important; }
+html:not(.dark) .engineer-info h3 { color: #1e293b !important; }
+html:not(.dark) .cases-header h4 { color: #374151 !important; }
+html:not(.dark) .cases-count {
+  background: rgba(123,97,255,0.08) !important;
+  color: #7b61ff !important;
+}
+html:not(.dark) .case-item {
+  background: #f1f5f9 !important;
+  border-color: rgba(0,0,0,0.06) !important;
+}
+html:not(.dark) .case-item:hover { background: #e2e8f0 !important; }
+html:not(.dark) .case-title { color: #1e293b !important; }
+
+/* -- CaseManager -- */
+html:not(.dark) .case-manager-header h2 { color: #1e293b !important; }
+html:not(.dark) .case-card {
+  background: rgba(255,255,255,0.95) !important;
+  border-color: rgba(0,0,0,0.08) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+}
+html:not(.dark) .case-title-section h3 { color: #1e293b !important; }
+html:not(.dark) .case-description { color: #64748b !important; }
+html:not(.dark) .case-assignment { border-color: rgba(0,0,0,0.08) !important; }
+
+/* -- ScheduleCalendar -- */
+html:not(.dark) .calendar-wrapper {
+  background: rgba(255,255,255,0.9) !important;
+  border-color: rgba(0,0,0,0.08) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08) !important;
+}
+html:not(.dark) .calendar-header h2 { color: #1e293b !important; }
+
+/* -- Calendar (react-big-calendar) light mode -- */
+html:not(.dark) .rbc-calendar { color: #374151 !important; background: transparent !important; }
+html:not(.dark) .rbc-header {
+  background: #e2e8f0 !important;
+  color: #7b61ff !important;
+  border-color: rgba(0,0,0,0.1) !important;
+}
+html:not(.dark) .rbc-month-view,
+html:not(.dark) .rbc-time-view,
+html:not(.dark) .rbc-agenda-view { border-color: rgba(0,0,0,0.1) !important; }
+html:not(.dark) .rbc-month-row { border-color: rgba(0,0,0,0.06) !important; }
+html:not(.dark) .rbc-date-cell { color: #475569 !important; border-color: rgba(0,0,0,0.06) !important; }
+html:not(.dark) .rbc-date-cell.rbc-off-range { background: #f8fafc !important; color: #94a3b8 !important; }
+html:not(.dark) .rbc-today { background: rgba(123,97,255,0.08) !important; }
+html:not(.dark) .rbc-off-range-bg { background: #f8fafc !important; }
+html:not(.dark) .rbc-row-bg { background: white !important; }
+html:not(.dark) .rbc-toolbar button {
+  background: #e2e8f0 !important;
+  color: #374151 !important;
+  border-color: rgba(0,0,0,0.1) !important;
+}
+html:not(.dark) .rbc-toolbar button:hover {
+  background: rgba(123,97,255,0.1) !important;
+  color: #7b61ff !important;
+  border-color: rgba(123,97,255,0.3) !important;
+}
+html:not(.dark) .rbc-toolbar-label { color: #1e293b !important; }
+html:not(.dark) .rbc-time-content { border-color: rgba(0,0,0,0.08) !important; }
+html:not(.dark) .rbc-time-slot { border-color: rgba(0,0,0,0.04) !important; color: #94a3b8 !important; }
+html:not(.dark) .rbc-timeslot-group { border-color: rgba(0,0,0,0.04) !important; }
+html:not(.dark) .rbc-agenda-table { border-color: rgba(0,0,0,0.1) !important; color: #374151 !important; }
+html:not(.dark) .rbc-agenda-table tbody > tr > td { border-color: rgba(0,0,0,0.06) !important; }
+html:not(.dark) .rbc-agenda-table thead { background: #f1f5f9 !important; }
+html:not(.dark) .rbc-agenda-date-cell,
+html:not(.dark) .rbc-agenda-time-cell { color: #64748b !important; }
+html:not(.dark) .rbc-label { color: #94a3b8 !important; }
+html:not(.dark) .rbc-current-time-indicator { background: #7b61ff !important; }
+
+/* -- Navbar (light) -- */
+html:not(.dark) nav.fixed {
+  background: rgba(255,255,255,0.92) !important;
+  border-color: rgba(0,0,0,0.1) !important;
+}
+
+/* -- Sidebar (light) -- */
+html:not(.dark) .sidebar-panel {
+  background: rgba(255,255,255,0.95) !important;
+  border-color: rgba(0,0,0,0.1) !important;
+}
+
+/* -- Light scrollbar -- */
+html:not(.dark) ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+html:not(.dark) ::-webkit-scrollbar-thumb { background: rgba(123,97,255,0.3); }

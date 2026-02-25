@@ -455,7 +455,9 @@ const GoogleCalendarSync = () => {
           align-items: center;
           margin-bottom: 30px;
           padding-bottom: 20px;
-          border-bottom: 2px solid #e5e7eb;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          flex-wrap: wrap;
+          gap: 12px;
         }
 
         .sync-title {
@@ -466,7 +468,7 @@ const GoogleCalendarSync = () => {
 
         .sync-title h2 {
           margin: 0;
-          color: #1f2937;
+          color: #f1f5f9;
           font-size: 24px;
           font-weight: 700;
         }
@@ -490,20 +492,21 @@ const GoogleCalendarSync = () => {
         .sync-disabled {
           text-align: center;
           padding: 60px 20px;
-          background: #fef2f2;
-          border: 1px solid #fecaca;
+          background: rgba(220, 38, 38, 0.1);
+          border: 1px solid rgba(220, 38, 38, 0.3);
           border-radius: 12px;
-          color: #dc2626;
+          color: #f87171;
         }
 
         .sync-disabled h3 {
           margin: 20px 0 10px 0;
           font-size: 20px;
+          color: #f87171;
         }
 
         .sync-disabled p {
           margin: 0;
-          color: #6b7280;
+          color: #94a3b8;
         }
 
         .sync-section {
@@ -512,32 +515,36 @@ const GoogleCalendarSync = () => {
 
         .sync-section h3 {
           margin: 0 0 15px 0;
-          color: #1f2937;
+          color: #f1f5f9;
           font-size: 18px;
           font-weight: 600;
         }
 
         .connection-card {
-          background: white;
-          border: 1px solid #e5e7eb;
+          background: rgba(22, 27, 34, 0.85);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 12px;
           padding: 30px;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
         }
 
         .connection-disconnected {
           text-align: center;
         }
 
+        .connection-disconnected svg {
+          color: #a78bfa;
+        }
+
         .connection-disconnected h4 {
           margin: 20px 0 10px 0;
-          color: #1f2937;
+          color: #f1f5f9;
           font-size: 18px;
         }
 
         .connection-disconnected p {
           margin: 0 0 30px 0;
-          color: #6b7280;
+          color: #94a3b8;
         }
 
         .connect-btn {
@@ -545,18 +552,19 @@ const GoogleCalendarSync = () => {
           align-items: center;
           gap: 8px;
           padding: 12px 24px;
-          background: #3b82f6;
+          background: linear-gradient(135deg, #7b61ff 0%, #06b6d4 100%);
           color: white;
           border: none;
           border-radius: 8px;
           font-weight: 600;
           cursor: pointer;
           transition: all 0.2s;
+          min-height: 44px;
         }
 
         .connect-btn:hover:not(:disabled) {
-          background: #2563eb;
           transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(123, 97, 255, 0.4);
         }
 
         .connect-btn:disabled {
@@ -568,6 +576,7 @@ const GoogleCalendarSync = () => {
           display: flex;
           justify-content: space-between;
           align-items: center;
+          gap: 16px;
         }
 
         .user-info {
@@ -580,11 +589,14 @@ const GoogleCalendarSync = () => {
           width: 50px;
           height: 50px;
           border-radius: 50%;
-          background: #f3f4f6;
+          background: rgba(123, 97, 255, 0.15);
+          border: 1px solid rgba(255, 255, 255, 0.1);
           display: flex;
           align-items: center;
           justify-content: center;
           overflow: hidden;
+          color: #a78bfa;
+          flex-shrink: 0;
         }
 
         .user-avatar img {
@@ -595,13 +607,13 @@ const GoogleCalendarSync = () => {
 
         .user-details h4 {
           margin: 0 0 5px 0;
-          color: #1f2937;
+          color: #f1f5f9;
           font-size: 16px;
         }
 
         .user-details p {
           margin: 0;
-          color: #6b7280;
+          color: #94a3b8;
           font-size: 14px;
         }
 
@@ -610,23 +622,28 @@ const GoogleCalendarSync = () => {
           align-items: center;
           gap: 8px;
           padding: 8px 16px;
-          background: #ef4444;
-          color: white;
-          border: none;
+          background: rgba(239, 68, 68, 0.15);
+          color: #f87171;
+          border: 1px solid rgba(239, 68, 68, 0.3);
           border-radius: 6px;
           font-weight: 500;
           cursor: pointer;
           transition: all 0.2s;
+          min-height: 40px;
+          flex-shrink: 0;
         }
 
         .disconnect-btn:hover {
           background: #dc2626;
+          color: white;
+          border-color: #dc2626;
         }
 
         .sync-controls {
           display: flex;
           align-items: center;
           gap: 20px;
+          flex-wrap: wrap;
         }
 
         .sync-btn {
@@ -634,17 +651,20 @@ const GoogleCalendarSync = () => {
           align-items: center;
           gap: 8px;
           padding: 10px 20px;
-          background: #10b981;
-          color: white;
-          border: none;
+          background: rgba(16, 185, 129, 0.15);
+          color: #34d399;
+          border: 1px solid rgba(16, 185, 129, 0.3);
           border-radius: 6px;
           font-weight: 600;
           cursor: pointer;
           transition: all 0.2s;
+          min-height: 44px;
         }
 
         .sync-btn:hover:not(:disabled) {
-          background: #059669;
+          background: #10b981;
+          color: white;
+          border-color: #10b981;
         }
 
         .sync-btn:disabled {
@@ -656,53 +676,61 @@ const GoogleCalendarSync = () => {
           display: flex;
           align-items: center;
           gap: 8px;
-          color: #6b7280;
+          color: #94a3b8;
           font-size: 14px;
         }
 
         .sync-stats {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-          gap: 20px;
+          gap: 16px;
         }
 
         .stat-item {
           text-align: center;
           padding: 20px;
-          background: white;
-          border: 1px solid #e5e7eb;
+          background: rgba(13, 17, 23, 0.5);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 8px;
         }
 
         .stat-value {
           font-size: 24px;
           font-weight: 700;
-          color: #1f2937;
+          color: #f1f5f9;
           margin-bottom: 5px;
         }
 
         .stat-value.success {
-          color: #10b981;
+          color: #34d399;
         }
 
         .stat-value.error {
-          color: #ef4444;
+          color: #f87171;
         }
 
         .stat-label {
           font-size: 14px;
-          color: #6b7280;
+          color: #94a3b8;
         }
 
         .sync-settings {
-          background: white;
-          border: 1px solid #e5e7eb;
+          background: rgba(22, 27, 34, 0.85);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 12px;
           padding: 20px;
         }
 
         .setting-group {
           margin-bottom: 20px;
+          padding-bottom: 20px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .setting-group:last-child {
+          margin-bottom: 0;
+          padding-bottom: 0;
+          border-bottom: none;
         }
 
         .setting-label {
@@ -710,41 +738,45 @@ const GoogleCalendarSync = () => {
           align-items: center;
           gap: 10px;
           font-weight: 600;
-          color: #1f2937;
+          color: #e2e8f0;
           cursor: pointer;
         }
 
         .setting-label input[type="checkbox"] {
           width: 18px;
           height: 18px;
-          accent-color: #3b82f6;
+          accent-color: #7b61ff;
         }
 
         .setting-label input[type="number"] {
           width: 80px;
           padding: 4px 8px;
-          border: 1px solid #d1d5db;
+          border: 1px solid rgba(255, 255, 255, 0.15);
           border-radius: 4px;
           margin-left: 10px;
+          background: rgba(13, 17, 23, 0.5);
+          color: #e2e8f0;
+          outline: none;
         }
 
         .setting-description {
-          margin: 5px 0 0 28px;
-          color: #6b7280;
+          margin: 6px 0 0 28px;
+          color: #94a3b8;
           font-size: 14px;
         }
 
         .profile-management {
-          background: white;
-          border: 1px solid #e5e7eb;
+          background: rgba(22, 27, 34, 0.85);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 12px;
           padding: 20px;
         }
 
         .profile-card {
-          border: 1px solid #e5e7eb;
+          border: 1px solid rgba(255, 255, 255, 0.06);
           border-radius: 8px;
           padding: 20px;
+          background: rgba(13, 17, 23, 0.3);
         }
 
         .profile-header {
@@ -752,11 +784,12 @@ const GoogleCalendarSync = () => {
           align-items: center;
           gap: 10px;
           margin-bottom: 15px;
+          color: #a78bfa;
         }
 
         .profile-header h4 {
           margin: 0;
-          color: #1f2937;
+          color: #f1f5f9;
           font-size: 16px;
         }
 
@@ -769,8 +802,13 @@ const GoogleCalendarSync = () => {
           display: flex;
           align-items: center;
           gap: 10px;
-          color: #6b7280;
+          color: #94a3b8;
           font-size: 14px;
+        }
+
+        .info-item svg {
+          color: #a78bfa;
+          flex-shrink: 0;
         }
 
         .spinning {
@@ -789,7 +827,7 @@ const GoogleCalendarSync = () => {
 
           .sync-header {
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
             align-items: flex-start;
           }
 
@@ -805,6 +843,12 @@ const GoogleCalendarSync = () => {
             gap: 10px;
           }
 
+          .sync-stats {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+
+        @media (max-width: 480px) {
           .sync-stats {
             grid-template-columns: 1fr;
           }

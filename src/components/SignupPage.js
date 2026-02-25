@@ -149,23 +149,14 @@ const [quickMode] = useState(true);
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log('Signup form submitted with data:', {
-      ...formData,
-      password: '***',
-      confirmPassword: '***'
-    });
-
     if (!validateForm()) {
-      console.log('Form validation failed');
       toast.error('Please fix the errors below');
       return;
     }
 
-    console.log('Form validation passed');
     setIsSubmitting(true);
 
     try {
-      console.log('Calling signUp from AuthContext...');
       const success = await signUp(
         formData.email,
         formData.password,
@@ -173,7 +164,7 @@ const [quickMode] = useState(true);
           name: formData.name,
           role: formData.role,
           location_id: formData.location_id,
-          phone: '+91 99999 99999', // Default phone for simplified signup
+          phone: formData.phone || '',
           bio: '',
           skills: [],
           certifications: [],
@@ -184,10 +175,7 @@ const [quickMode] = useState(true);
         }
       );
 
-      console.log('SignUp result:', success);
-
       if (success) {
-        console.log('Signup successful, resetting form and redirecting...');
         // Form will be reset by the auth context
         setFormData({
           name: '',

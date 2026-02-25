@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import { useEngineerContext } from '../context/EngineerContext';
+import { useAuth } from '../context/AuthContext';
 import { Plus, Search, User, MapPin, Clock, AlertCircle, RotateCcw } from 'lucide-react';
 import scheduleCaseSyncService from '../services/scheduleCaseSync';
 import toast from 'react-hot-toast';
 
 const CaseManager = () => {
-  const { 
-    cases, 
-    engineers, 
-    addCase, 
+  const {
+    cases,
+    engineers,
+    addCase,
     updateCase,
-    getEngineerById 
+    getEngineerById,
+    locationObjects
   } = useEngineerContext();
+  const { user } = useAuth();
   
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,22 +27,28 @@ const CaseManager = () => {
     location: '',
     priority: 'medium',
     assignedEngineer: '',
-    status: 'pending'
+    status: 'open'
   });
 
-  const locations = ['Hyderabad', 'Bangalore', 'Coimbatore', 'Chennai'];
   const priorities = [
     { value: 'low', label: 'Low', color: '#28a745' },
     { value: 'medium', label: 'Medium', color: '#ffc107' },
     { value: 'high', label: 'High', color: '#dc3545' }
   ];
-  const statuses = ['pending', 'in-progress', 'completed'];
+  const statuses = [
+    { value: 'open', label: 'Open' },
+    { value: 'in_progress', label: 'In Progress' },
+    { value: 'completed', label: 'Completed' },
+    { value: 'on_hold', label: 'On Hold' },
+    { value: 'cancelled', label: 'Cancelled' }
+  ];
 
   // Filter cases based on search and filters
   const filteredCases = cases.filter(case_ => {
-    const matchesSearch = case_.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         case_.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         case_.location.toLowerCase().includes(searchTerm.toLowerCase());
+    const locationName = case_.location || '';
+    const matchesSearch = (case_.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (case_.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         locationName.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || case_.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || case_.priority === priorityFilter;
@@ -49,7 +58,17 @@ const CaseManager = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    addCase(formData);
+    const locationObj = (locationObjects || []).find(l => l.name === formData.location);
+    const caseData = {
+      title: formData.title,
+      description: formData.description,
+      location_id: locationObj?.id || null,
+      priority: formData.priority,
+      status: formData.status || 'open',
+      assigned_engineer_id: formData.assignedEngineer || null,
+      created_by: user?.id
+    };
+    addCase(caseData);
     resetForm();
   };
 
@@ -60,7 +79,7 @@ const CaseManager = () => {
       location: '',
       priority: 'medium',
       assignedEngineer: '',
-      status: 'pending'
+      status: 'open'
     });
     setShowModal(false);
   };
@@ -84,9 +103,9 @@ const CaseManager = () => {
 
   const handleAssignCase = async (caseId, engineerId) => {
     try {
-      await updateCase(caseId, { 
+      await updateCase(caseId, {
         assigned_engineer_id: engineerId,
-        status: 'in-progress'
+        status: 'assigned'
       });
     } catch (error) {
       console.error('Error assigning case:', error);
@@ -105,9 +124,10 @@ const CaseManager = () => {
     switch (status) {
       case 'completed':
         return <Clock className="status-icon completed" />;
-      case 'in-progress':
+      case 'in_progress':
         return <AlertCircle className="status-icon in-progress" />;
-      case 'pending':
+      case 'open':
+      case 'assigned':
         return <Clock className="status-icon pending" />;
       default:
         return <Clock className="status-icon" />;
@@ -122,10 +142,10 @@ const CaseManager = () => {
 
   const getCaseStats = () => {
     const total = cases.length;
-    const pending = cases.filter(c => c.status === 'pending').length;
-    const inProgress = cases.filter(c => c.status === 'in-progress').length;
+    const pending = cases.filter(c => c.status === 'open' || c.status === 'assigned').length;
+    const inProgress = cases.filter(c => c.status === 'in_progress').length;
     const completed = cases.filter(c => c.status === 'completed').length;
-    
+
     return { total, pending, inProgress, completed };
   };
 
@@ -193,9 +213,11 @@ const CaseManager = () => {
             className="filter-select"
           >
             <option value="all">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="in-progress">In Progress</option>
+            <option value="open">Open</option>
+            <option value="in_progress">In Progress</option>
             <option value="completed">Completed</option>
+            <option value="on_hold">On Hold</option>
+            <option value="cancelled">Cancelled</option>
           </select>
           
           <select
@@ -244,9 +266,9 @@ const CaseManager = () => {
                       onChange={(e) => handleStatusChange(case_.id, e.target.value)}
                       className="status-select"
                     >
-                      {statuses.map(status => (
-                        <option key={status} value={status}>
-                          {status.replace('-', ' ').toUpperCase()}
+                      {statuses.map(s => (
+                        <option key={s.value} value={s.value}>
+                          {s.label}
                         </option>
                       ))}
                     </select>
@@ -278,7 +300,7 @@ const CaseManager = () => {
                     <div className="assignment-controls">
                       <select
                         value=""
-                        onChange={(e) => handleAssignCase(case_.id, parseInt(e.target.value))}
+                        onChange={(e) => handleAssignCase(case_.id, e.target.value)}
                         className="assign-select"
                       >
                         <option value="">Assign to Engineer</option>
@@ -338,9 +360,9 @@ const CaseManager = () => {
                     required
                   >
                     <option value="">Select Location</option>
-                    {locations.map(location => (
-                      <option key={location} value={location}>
-                        {location}
+                    {(locationObjects || []).map(loc => (
+                      <option key={loc.id} value={loc.name}>
+                        {loc.name}
                       </option>
                     ))}
                   </select>
@@ -399,55 +421,75 @@ const CaseManager = () => {
           justify-content: space-between;
           align-items: center;
           margin-bottom: 20px;
+          flex-wrap: wrap;
+          gap: 12px;
         }
 
         .case-manager-header h2 {
           margin: 0;
-          color: #333;
+          color: #f1f5f9;
+          font-size: clamp(1.25rem, 4vw, 1.75rem);
         }
 
         .stats-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          grid-template-columns: repeat(2, 1fr);
           gap: 15px;
           margin-bottom: 30px;
         }
 
+        @media (min-width: 768px) {
+          .stats-grid {
+            grid-template-columns: repeat(4, 1fr);
+          }
+        }
+
         .stat-card {
-          background: white;
+          background: rgba(22, 27, 34, 0.85);
           padding: 20px;
-          border-radius: 10px;
+          border-radius: 14px;
           text-align: center;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          backdrop-filter: blur(20px);
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
 
         .stat-card.pending {
-          border-left: 4px solid #ffc107;
+          border-left: 4px solid #fbbf24;
         }
 
         .stat-card.in-progress {
-          border-left: 4px solid #17a2b8;
+          border-left: 4px solid #06b6d4;
         }
 
         .stat-card.completed {
-          border-left: 4px solid #28a745;
+          border-left: 4px solid #10b981;
         }
 
         .stat-number {
           font-size: 2rem;
           font-weight: bold;
-          color: #333;
+          color: #f1f5f9;
           margin-bottom: 5px;
         }
 
         .stat-label {
-          color: #666;
-          font-size: 0.9rem;
+          color: #94a3b8;
+          font-size: 0.85rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          font-weight: 500;
         }
 
         .filters-section {
           display: flex;
-          gap: 15px;
+          gap: 12px;
           margin-bottom: 20px;
           flex-wrap: wrap;
         }
@@ -456,12 +498,13 @@ const CaseManager = () => {
           display: flex;
           align-items: center;
           gap: 10px;
-          background: white;
+          background: rgba(22, 27, 34, 0.85);
           padding: 10px 15px;
-          border-radius: 8px;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+          border-radius: 12px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          backdrop-filter: blur(20px);
           flex: 1;
-          min-width: 250px;
+          min-width: 200px;
         }
 
         .search-box input {
@@ -469,19 +512,36 @@ const CaseManager = () => {
           outline: none;
           flex: 1;
           font-size: 14px;
+          background: transparent;
+          color: #e2e8f0;
+        }
+
+        .search-box input::placeholder {
+          color: #64748b;
         }
 
         .filter-controls {
           display: flex;
           gap: 10px;
+          flex-wrap: wrap;
         }
 
         .filter-select {
-          padding: 10px 15px;
-          border: 1px solid #ddd;
-          border-radius: 8px;
-          background: white;
+          padding: 10px 14px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 12px;
+          background: rgba(22, 27, 34, 0.85);
+          color: #e2e8f0;
           font-size: 14px;
+          min-height: 44px;
+          backdrop-filter: blur(20px);
+          cursor: pointer;
+        }
+
+        .filter-select:focus {
+          outline: none;
+          border-color: #7B61FF;
+          box-shadow: 0 0 0 3px rgba(123, 97, 255, 0.2);
         }
 
         .cases-list {
@@ -490,11 +550,20 @@ const CaseManager = () => {
         }
 
         .case-card {
-          background: white;
-          border-radius: 10px;
+          background: rgba(22, 27, 34, 0.85);
+          border-radius: 14px;
           padding: 20px;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-          border-left: 4px solid #667eea;
+          box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-left: 4px solid #7B61FF;
+          backdrop-filter: blur(20px);
+          transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .case-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+          border-color: rgba(123, 97, 255, 0.4);
         }
 
         .case-header {
@@ -502,21 +571,26 @@ const CaseManager = () => {
           justify-content: space-between;
           align-items: flex-start;
           margin-bottom: 15px;
+          gap: 12px;
+          flex-wrap: wrap;
         }
 
         .case-title-section h3 {
           margin: 0 0 5px 0;
-          color: #333;
+          color: #f1f5f9;
+          font-size: 1rem;
+          font-weight: 600;
         }
 
         .case-meta {
           display: flex;
           gap: 10px;
           align-items: center;
+          flex-wrap: wrap;
         }
 
         .case-id {
-          color: #666;
+          color: #64748b;
           font-size: 0.8rem;
         }
 
@@ -532,6 +606,7 @@ const CaseManager = () => {
           display: flex;
           align-items: center;
           gap: 8px;
+          flex-shrink: 0;
         }
 
         .status-icon {
@@ -540,57 +615,81 @@ const CaseManager = () => {
         }
 
         .status-select {
-          padding: 5px 10px;
-          border: 1px solid #ddd;
-          border-radius: 4px;
+          padding: 6px 10px;
+          border: 1px solid rgba(148, 163, 184, 0.2);
+          border-radius: 8px;
           font-size: 0.8rem;
+          background: rgba(13, 17, 23, 0.7);
+          color: #e2e8f0;
+          cursor: pointer;
+          min-height: 36px;
+        }
+
+        .status-select:focus {
+          outline: none;
+          border-color: #7B61FF;
         }
 
         .case-description {
-          color: #666;
+          color: #94a3b8;
           margin-bottom: 15px;
-          line-height: 1.5;
+          line-height: 1.6;
+          font-size: 0.9rem;
         }
 
         .case-info {
           display: flex;
           gap: 20px;
           margin-bottom: 15px;
+          flex-wrap: wrap;
         }
 
         .info-item {
           display: flex;
           align-items: center;
           gap: 5px;
-          color: #666;
-          font-size: 0.9rem;
+          color: #64748b;
+          font-size: 0.85rem;
         }
 
         .case-assignment {
           padding-top: 15px;
-          border-top: 1px solid #eee;
+          border-top: 1px solid rgba(255, 255, 255, 0.07);
         }
 
         .assigned-engineer {
           display: flex;
           align-items: center;
-          gap: 5px;
-          color: #28a745;
+          gap: 6px;
+          color: #34d399;
           font-weight: 500;
+          font-size: 0.9rem;
         }
 
         .assign-select {
           padding: 8px 12px;
-          border: 1px solid #ddd;
-          border-radius: 4px;
+          border: 1px solid rgba(148, 163, 184, 0.2);
+          border-radius: 8px;
           font-size: 0.9rem;
           width: 100%;
+          background: rgba(13, 17, 23, 0.7);
+          color: #e2e8f0;
+          min-height: 44px;
+          cursor: pointer;
+        }
+
+        .assign-select:focus {
+          outline: none;
+          border-color: #7B61FF;
         }
 
         .no-cases {
           text-align: center;
-          padding: 40px;
-          color: #666;
+          padding: 60px 40px;
+          color: #64748b;
+          background: rgba(22, 27, 34, 0.5);
+          border-radius: 14px;
+          border: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         .form-row {
@@ -604,29 +703,34 @@ const CaseManager = () => {
           gap: 10px;
           justify-content: flex-end;
           margin-top: 20px;
+          flex-wrap: wrap;
         }
 
         @media (max-width: 768px) {
           .filters-section {
             flex-direction: column;
           }
-          
+
           .filter-controls {
             flex-direction: column;
           }
-          
+
           .form-row {
             grid-template-columns: 1fr;
           }
-          
+
           .case-header {
             flex-direction: column;
             gap: 10px;
           }
-          
+
           .case-info {
             flex-direction: column;
             gap: 10px;
+          }
+
+          .modal-actions {
+            flex-direction: column-reverse;
           }
         }
       `}</style>

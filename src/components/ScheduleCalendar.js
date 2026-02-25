@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import { useEngineerContext } from '../context/EngineerContext';
+import { useAuth } from '../context/AuthContext';
 import { Plus, RotateCcw, Trash2 } from 'lucide-react';
 import scheduleCaseSyncService from '../services/scheduleCaseSync';
 import toast from 'react-hot-toast';
@@ -10,17 +11,19 @@ import toast from 'react-hot-toast';
 const localizer = momentLocalizer(moment);
 
 const ScheduleCalendar = () => {
-  const { 
-    schedules, 
-    engineers, 
-    addSchedule, 
-    updateSchedule, 
+  const {
+    schedules,
+    engineers,
+    addSchedule,
+    updateSchedule,
     deleteSchedule,
     getEngineerById,
     locations,
+    locationObjects,
     isEngineerOnLeave,
     leaves
   } = useEngineerContext();
+  const { user } = useAuth();
   
   const [showModal, setShowModal] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState(null);
@@ -32,19 +35,20 @@ const ScheduleCalendar = () => {
     start: new Date(),
     end: new Date(),
     description: '',
-    priority: 'medium'
+    priority: 'normal'
   });
 
   // locations is now coming from context
   const priorities = [
     { value: 'low', label: 'Low', color: '#28a745' },
-    { value: 'medium', label: 'Medium', color: '#ffc107' },
-    { value: 'high', label: 'High', color: '#dc3545' }
+    { value: 'normal', label: 'Normal', color: '#ffc107' },
+    { value: 'high', label: 'High', color: '#dc3545' },
+    { value: 'urgent', label: 'Urgent', color: '#7B61FF' }
   ];
 
   // Convert schedules and leaves to calendar events
   const scheduleEvents = schedules.map(schedule => {
-    const engineer = getEngineerById(schedule.engineerId);
+    const engineer = getEngineerById(schedule.engineer_id);
     const priority = priorities.find(p => p.value === schedule.priority);
     
     return {
@@ -100,12 +104,12 @@ const ScheduleCalendar = () => {
       setEditingSchedule(schedule);
       setFormData({
         title: schedule.title,
-        engineerId: schedule.engineerId,
-        location: schedule.location,
-        start: new Date(schedule.start),
-        end: new Date(schedule.end),
-        description: schedule.description,
-        priority: schedule.priority
+        engineerId: schedule.engineer_id || '',
+        location: schedule.location || '',
+        start: new Date(schedule.start || schedule.start_time),
+        end: new Date(schedule.end || schedule.end_time),
+        description: schedule.description || '',
+        priority: schedule.priority || 'normal'
       });
       setShowModal(true);
     }
@@ -113,22 +117,26 @@ const ScheduleCalendar = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    try {
-      const locationId = locations.findIndex(loc => loc === formData.location) + 1;
-      const scheduleData = {
-        ...formData,
-        engineer_id: formData.engineerId,
-        location_id: locationId,
-        start_time: formData.start.toISOString(),
-        end_time: formData.end.toISOString()
-      };
 
+    try {
       // Block if engineer is on leave during the selected time range
-      if (isEngineerOnLeave({ start: formData.start, end: formData.end }, formData.engineerId)) {
+      if (formData.engineerId && isEngineerOnLeave({ start: formData.start, end: formData.end }, formData.engineerId)) {
         toast.error('Selected engineer is on leave for the chosen time range');
         return;
       }
+
+      const locationObj = (locationObjects || []).find(l => l.name === formData.location);
+      const scheduleData = {
+        title: formData.title,
+        engineer_id: formData.engineerId || null,
+        location_id: locationObj?.id || null,
+        start_time: formData.start.toISOString(),
+        end_time: formData.end.toISOString(),
+        description: formData.description || '',
+        priority: formData.priority,
+        status: 'scheduled',
+        created_by: user?.id
+      };
 
       if (editingSchedule) {
         await updateSchedule(editingSchedule.id, scheduleData);
@@ -161,7 +169,7 @@ const ScheduleCalendar = () => {
       start: new Date(),
       end: new Date(),
       description: '',
-      priority: 'medium'
+      priority: 'normal'
     });
     setEditingSchedule(null);
     setShowModal(false);
@@ -244,7 +252,7 @@ const ScheduleCalendar = () => {
           events={events}
           startAccessor="start"
           endAccessor="end"
-          style={{ height: 600 }}
+          style={{ height: 'clamp(400px, 65vh, 700px)' }}
           onSelectSlot={handleSelectSlot}
           onSelectEvent={handleSelectEvent}
           selectable
@@ -283,8 +291,7 @@ const ScheduleCalendar = () => {
                 <label>Engineer *</label>
                 <select
                   value={formData.engineerId}
-                  onChange={(e) => setFormData(prev => ({ ...prev, engineerId: parseInt(e.target.value) }))}
-                  required
+                  onChange={(e) => setFormData(prev => ({ ...prev, engineerId: e.target.value }))}
                 >
                   <option value="">Select Engineer</option>
                   {engineers.map(engineer => (
@@ -399,14 +406,16 @@ const ScheduleCalendar = () => {
 
         .calendar-header h2 {
           margin: 0;
-          color: #333;
+          color: #f1f5f9;
         }
 
         .calendar-wrapper {
-          background: white;
-          border-radius: 10px;
+          background: rgba(22, 27, 34, 0.5);
+          border-radius: 16px;
           padding: 20px;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          backdrop-filter: blur(20px);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         .custom-event {

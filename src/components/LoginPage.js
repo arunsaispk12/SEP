@@ -405,22 +405,11 @@ const LoginPage = () => {
                     />
                   </div>
 
-                  <div style={{
-                    background: '#ff0000',
-                    color: '#ffffff',
-                    padding: '20px',
-                    borderRadius: '8px',
-                    marginTop: '16px',
-                    fontSize: '16px',
-                    textAlign: 'center',
-                    fontWeight: 'bold',
-                    width: '100%',
-                    boxSizing: 'border-box',
-                    minHeight: '50px',
-                    border: '3px solid #000000'
-                  }}>
-                    🔴 FORCED ERROR DISPLAY: {resetError || 'NO MESSAGE SET'}
-                  </div>
+                  {resetError && (
+                    <div className="error-message" style={{ marginTop: '12px', color: '#f87171', fontSize: '14px', textAlign: 'center' }}>
+                      {resetError}
+                    </div>
+                  )}
 
                   <div className="modal-actions">
                     <button

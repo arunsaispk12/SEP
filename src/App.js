@@ -23,6 +23,7 @@ function AppContent() {
   const { user, isAuthenticated, loading, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isDark, setIsDark] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Theme toggle functionality
   const toggleTheme = () => {
@@ -34,6 +35,11 @@ function AppContent() {
   useEffect(() => {
     document.documentElement.classList.add('dark');
   }, []);
+
+  // Close sidebar when navigating (mobile UX)
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [activeTab]);
 
   // Show loading spinner while checking authentication
   if (loading) {
@@ -97,17 +103,29 @@ function AppContent() {
         logout={logout}
         isDark={isDark}
         toggleTheme={toggleTheme}
+        sidebarOpen={sidebarOpen}
+        onMenuToggle={() => setSidebarOpen(prev => !prev)}
       />
+
+      {/* Mobile backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
       {/* Sidebar */}
       <SidebarTabs
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         tabs={tabs}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
 
       {/* Main Content */}
-      <div className="ml-64 pt-16">
+      <div className="md:ml-64 pt-16">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -115,7 +133,7 @@ function AppContent() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
-            className="p-6"
+            className="p-4 sm:p-6"
           >
             {activeTab === 'admin' && <AdminPanel />}
             {activeTab === 'dashboard' && <UnifiedDashboard />}

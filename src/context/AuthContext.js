@@ -514,15 +514,27 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const changePassword = async (newPassword) => {
+  const changePassword = async (currentPassword, newPassword) => {
     try {
       if (!isSupabaseConfigured()) {
         toast.error('Password change not available in demo mode');
         return false;
       }
 
+      // Verify current password by re-authenticating
+      if (currentPassword && state.user?.email) {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: state.user.email,
+          password: currentPassword
+        });
+        if (signInError) {
+          toast.error('Current password is incorrect');
+          return false;
+        }
+      }
+
       const { error } = await authHelpers.updatePassword(newPassword);
-      
+
       if (error) {
         toast.error(errorHandler.parseError(error));
         return false;
