@@ -16,12 +16,53 @@ create table if not exists public.locations (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+-- clients table - IVF Hospitals and Fertility Centres
+create table if not exists public.clients (
+  id serial primary key,
+  name text not null,
+  location_id integer references public.locations(id) on delete set null,
+  contact_person text,
+  designation text,
+  mobile text,
+  assigned_executive_id uuid references auth.users(id) on delete set null,
+  created_by uuid references auth.users(id) on delete set null,
+  is_disclosed boolean default true,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- RLS for clients
+alter table public.clients enable row level security;
+
+create policy "Users can view disclosed clients"
+  on public.clients for select
+  using (is_disclosed = true or auth.uid() = assigned_executive_id or auth.uid() = created_by or exists (
+    select 1 from public.profiles where id = auth.uid() and role in ('admin', 'manager')
+  ));
+
+create policy "Users can insert clients"
+  on public.clients for insert
+  with check (auth.role() = 'authenticated');
+
+create policy "Owners and Admins can update clients"
+  on public.clients for update
+  using (auth.uid() = created_by or auth.uid() = assigned_executive_id or exists (
+    select 1 from public.profiles where id = auth.uid() and role in ('admin', 'manager')
+  ));
+
+create policy "Admins and Managers can delete clients"
+  on public.clients for delete
+  using (exists (
+    select 1 from public.profiles where id = auth.uid() and role in ('admin', 'manager')
+  ));
+
 -- profiles table - user profiles for authentication
 create table if not exists public.profiles (
   id uuid references auth.users(id) on delete cascade primary key,
   name text not null,
   email text not null unique,
-  role text not null default 'engineer' check (role in ('engineer', 'manager', 'admin')),
+  role text not null default 'engineer' check (role in ('engineer', 'manager', 'admin', 'executive', 'client')),
+  is_approved boolean default false,
   is_admin boolean default false,
   location_id integer references public.locations(id) on delete set null,
   current_location_id integer references public.locations(id) on delete set null,
@@ -33,6 +74,9 @@ create table if not exists public.profiles (
   avatar text default '👤',
   is_available boolean default true,
   is_active boolean default true,
+  laser_type text,
+  serial_number text,
+  tracker_status text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -77,6 +121,7 @@ create table if not exists public.cases (
   created_by uuid references auth.users(id) not null,
   completed_by uuid references auth.users(id),
   notes text,
+  completion_details jsonb,
   attachments text[],
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
@@ -464,14 +509,21 @@ create trigger handle_google_calendar_tokens_updated_at
 -- Function to automatically create profile on user signup
 create or replace function public.handle_new_user()
 returns trigger as $$
+declare
+  user_role text;
 begin
-  insert into public.profiles (id, name, email, role, is_admin)
+  user_role := coalesce(new.raw_user_meta_data->>'role', 'engineer');
+  insert into public.profiles (id, name, email, role, is_admin, is_approved)
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'name', new.email),
     new.email,
-    coalesce(new.raw_user_meta_data->>'role', 'engineer'),
-    coalesce((new.raw_user_meta_data->>'is_admin')::boolean, false)
+    user_role,
+    coalesce((new.raw_user_meta_data->>'is_admin')::boolean, false),
+    case 
+      when user_role = 'admin' then true 
+      else false 
+    end
   );
   return new;
 end;

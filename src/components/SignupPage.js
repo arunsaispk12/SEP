@@ -60,7 +60,9 @@ const [quickMode] = useState(true);
   const roles = [
     { value: 'engineer', label: 'Service Engineer', icon: '🔧' },
     { value: 'manager', label: 'Manager', icon: '👨‍💼' },
-    { value: 'admin', label: 'Administrator', icon: '🛡️' }
+    { value: 'admin', label: 'Administrator', icon: '🛡️' },
+    { value: 'executive', label: 'Executive', icon: '👔' },
+    { value: 'client', label: 'Client (Hospital)', icon: '🏥' }
   ];
 
   // Available skills

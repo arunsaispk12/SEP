@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useEngineerContext } from '../context/EngineerContext';
 import { MapPin, Clock, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
+import CaseCompletionModal from './CaseCompletionModal';
 
 const EngineerDashboard = () => {
   const { 
@@ -13,6 +14,10 @@ const EngineerDashboard = () => {
   const [selectedEngineer, setSelectedEngineer] = useState(null);
   const [showTravelModal, setShowTravelModal] = useState(false);
   const [travelDestination, setTravelDestination] = useState('');
+  
+  // Case Completion Modal State
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [completingCase, setCompletingCase] = useState(null);
 
   const locations = ['Hyderabad', 'Bangalore', 'Coimbatore', 'Chennai'];
 
@@ -47,16 +52,29 @@ const EngineerDashboard = () => {
       try {
         // Find the location ID for the destination
         const locationId = locations.findIndex(loc => loc === travelDestination) + 1;
+        
+        // Update engineer profile
         await updateEngineer(selectedEngineer.id, {
           current_location_id: locationId,
           is_available: false,
           travel_start_time: new Date().toISOString()
         });
+
+        // Transit Automation: Update all non-completed cases for this engineer to 'travelling'
+        const engineerCases = getCasesByEngineer(selectedEngineer.id);
+        const activeCases = engineerCases.filter(c => !['completed', 'cancelled'].includes(c.status));
+        
+        for (const case_ of activeCases) {
+          await updateCase(case_.id, { status: 'travelling' });
+        }
+
         setShowTravelModal(false);
         setTravelDestination('');
         setSelectedEngineer(null);
+        toast.success(`${selectedEngineer.name} is now in transit to ${travelDestination}`);
       } catch (error) {
         console.error('Error updating engineer travel:', error);
+        toast.error('Failed to update travel status');
       }
     }
   };
@@ -67,16 +85,65 @@ const EngineerDashboard = () => {
         is_available: true,
         travel_start_time: null
       });
+
+      // Arrival Automation: Update all 'travelling' cases for this engineer back to 'assigned' or 'in-progress'
+      const engineerCases = getCasesByEngineer(engineerId);
+      const travellingCases = engineerCases.filter(c => c.status === 'travelling');
+      
+      for (const case_ of travellingCases) {
+        // If it was in progress before travel, set back to in-progress, else assigned
+        await updateCase(case_.id, { status: 'assigned' });
+      }
+
+      toast.success('Engineer arrival recorded. Cases updated to assigned.');
     } catch (error) {
       console.error('Error updating engineer arrival:', error);
+      toast.error('Failed to update arrival status');
     }
   };
 
   const handleStatusChange = async (caseId, newStatus) => {
+    // Permission Check
+    const targetCase = engineers
+      .flatMap(eng => getCasesByEngineer(eng.id))
+      .find(c => c.id === caseId);
+
+    const isAssignedEngineer = user.role === 'engineer' && targetCase.assigned_engineer_id === user.id;
+    const isAdmin = user.role === 'admin';
+
+    if (!isAdmin && !isAssignedEngineer) {
+      toast.error('You do not have permission to update this case.');
+      return;
+    }
+
+    if (newStatus === 'completed') {
+... (line 75) ...
+      if (targetCase) {
+        setCompletingCase(targetCase);
+        setShowCompletionModal(true);
+        return; // Don't update status yet, wait for form completion
+      }
+    }
+
     try {
       await updateCase(caseId, { status: newStatus });
     } catch (error) {
       console.error('Error updating case status:', error);
+    }
+  };
+
+  const handleCaseCompletion = async ({ caseId, completionData }) => {
+    try {
+      // Here we would typically save completionData to a new table
+      // For now, we update the case status to completed
+      await updateCase(caseId, { 
+        status: 'completed',
+        completion_details: completionData 
+      });
+      setShowCompletionModal(false);
+      setCompletingCase(null);
+    } catch (error) {
+      console.error('Error completing case:', error);
     }
   };
 
@@ -136,7 +203,13 @@ const EngineerDashboard = () => {
                             className={`status-select status-${case_.status}`}
                           >
                             <option value="pending">Pending</option>
+                            <option value="assigned">Assigned</option>
+                            <option value="travelling">In Transit</option>
+                            <option value="reached_centre">Reached Centre</option>
                             <option value="in-progress">In Progress</option>
+                            <option value="waiting_installation">Waiting for Installation</option>
+                            <option value="installation_done">Installation Done</option>
+                            <option value="uninstallation_done">Uninstallation Done</option>
                             <option value="completed">Completed</option>
                           </select>
                         </div>
@@ -253,6 +326,18 @@ const EngineerDashboard = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Case Completion Modal */}
+      {showCompletionModal && completingCase && (
+        <CaseCompletionModal
+          caseData={completingCase}
+          onClose={() => {
+            setShowCompletionModal(false);
+            setCompletingCase(null);
+          }}
+          onSave={handleCaseCompletion}
+        />
       )}
 
       <style>{`

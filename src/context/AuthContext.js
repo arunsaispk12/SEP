@@ -258,6 +258,7 @@ export function AuthProvider({ children }) {
                 email: data.user.email,
                 role: data.user.user_metadata?.role || 'engineer',
                 is_admin: data.user.user_metadata?.is_admin || false,
+                is_approved: data.user.user_metadata?.role === 'admin', // Admins auto-approved
                 location_id: 1,
                 phone: '',
                 bio: '',
@@ -281,9 +282,17 @@ export function AuthProvider({ children }) {
                 name: data.user.user_metadata?.name || data.user.email,
                 email: data.user.email,
                 role: data.user.user_metadata?.role || 'engineer',
-                is_admin: data.user.user_metadata?.is_admin || false
+                is_admin: data.user.user_metadata?.is_admin || false,
+                is_approved: false
               };
             }
+          }
+
+          if (!profile.is_approved) {
+            await authHelpers.signOut();
+            dispatch({ type: 'LOGIN_FAILURE', payload: 'Your account is pending approval from an administrator.' });
+            toast.error('Your account is pending approval from an administrator.');
+            return false;
           }
 
           dispatch({ 

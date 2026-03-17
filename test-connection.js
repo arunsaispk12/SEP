@@ -20,7 +20,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function testConnection() {
   try {
-    console.log('📡 Testing connection to Supabase...');
+    console.log(`📡 Testing connection to Supabase at: ${supabaseUrl}`);
     
     // Test basic connection
     const { data, error } = await supabase

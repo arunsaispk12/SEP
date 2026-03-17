@@ -20,7 +20,7 @@ import supabaseService from '../services/supabaseService';
 
 const UserManagement = () => {
   const { user, changePassword } = useAuth();
-  const { engineers, leaves, updateLeave, deleteLeave, addEngineer, updateEngineer, deleteEngineer } = useEngineerContext();
+  const { engineers, leaves, updateLeave, deleteLeave, addEngineer, updateEngineer, deleteEngineer, approveUser } = useEngineerContext();
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
@@ -29,6 +29,7 @@ const UserManagement = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
+  const [filterApproval, setFilterApproval] = useState('all');
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [editingLeave, setEditingLeave] = useState(null);
   const [leaveForm, setLeaveForm] = useState({
@@ -76,6 +77,14 @@ const UserManagement = () => {
     confirm: false
   });
 
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+
+  const handleViewUser = (user) => {
+    setSelectedUser(user);
+    setShowViewModal(true);
+  };
+
   const [locations, setLocations] = useState([]);
 
   // Load locations from database
@@ -120,12 +129,15 @@ const UserManagement = () => {
     'OSHA Safety', 'Industrial Automation', 'Six Sigma Black Belt', 'Google Cloud Certified'
   ];
 
-  // Filter users based on search and role
+  // Filter users based on search, role, and approval
   const filteredUsers = engineers.filter(engineer => {
-    const matchesSearch = engineer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         engineer.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (engineer.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (engineer.email || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = filterRole === 'all' || engineer.role === filterRole;
-    return matchesSearch && matchesRole;
+    const matchesApproval = filterApproval === 'all' || 
+                           (filterApproval === 'pending' && !engineer.is_approved) ||
+                           (filterApproval === 'approved' && engineer.is_approved);
+    return matchesSearch && matchesRole && matchesApproval;
   });
 
   // Handle adding new user
@@ -386,6 +398,16 @@ const UserManagement = () => {
             <option value="admin">Administrators</option>
           </select>
         </div>
+        <div className="filter-dropdown">
+          <select
+            value={filterApproval}
+            onChange={(e) => setFilterApproval(e.target.value)}
+          >
+            <option value="all">All Status</option>
+            <option value="pending">Pending Approval</option>
+            <option value="approved">Approved Only</option>
+          </select>
+        </div>
       </div>
 
       {/* Users List */}
@@ -396,7 +418,10 @@ const UserManagement = () => {
               <span>{engineer.avatar || '👤'}</span>
             </div>
             <div className="user-info">
-              <div className="user-name">{engineer.name}</div>
+              <div className="user-name">
+                {engineer.name}
+                {!engineer.is_approved && <span className="pending-badge">PENDING</span>}
+              </div>
               <div className="user-email">{engineer.email}</div>
               <div className="user-details">
                 <span className="user-role">
@@ -426,6 +451,22 @@ const UserManagement = () => {
               )}
             </div>
             <div className="user-actions">
+              {!engineer.is_approved && (
+                <button
+                  className="approve-btn"
+                  onClick={() => approveUser(engineer.id)}
+                  title="Approve User"
+                >
+                  <Save size={16} />
+                </button>
+              )}
+              <button
+                className="view-btn"
+                onClick={() => handleViewUser(engineer)}
+                title="View Profile"
+              >
+                <Eye size={16} />
+              </button>
               <button
                 className="edit-btn"
                 onClick={() => {
@@ -1026,6 +1067,87 @@ const UserManagement = () => {
         </div>
       )}
 
+      {/* View User Modal */}
+      {showViewModal && selectedUser && (
+        <div className="modal-overlay">
+          <div className="modal-content view-modal">
+            <div className="modal-header">
+              <h3>User Profile</h3>
+              <button 
+                className="close-btn"
+                onClick={() => {
+                  setShowViewModal(false);
+                  setSelectedUser(null);
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="profile-summary">
+                <div className="profile-avatar-large">
+                  {selectedUser.avatar || '👤'}
+                </div>
+                <div className="profile-main-info">
+                  <h4>{selectedUser.name}</h4>
+                  <span className="profile-role">{getRoleLabel(selectedUser.role)}</span>
+                </div>
+              </div>
+
+              <div className="profile-details-grid">
+                <div className="detail-row">
+                  <span className="detail-label">Email:</span>
+                  <span className="detail-value">{selectedUser.email}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Phone:</span>
+                  <span className="detail-value">{selectedUser.phone || 'N/A'}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Location:</span>
+                  <span className="detail-value">
+                    {locations.find(l => l.id === selectedUser.location_id)?.name || 'N/A'}
+                  </span>
+                </div>
+              </div>
+
+              {selectedUser.role === 'engineer' && (
+                <div className="laser-details-box">
+                  <h5>Laser Equipment Details</h5>
+                  <div className="laser-info-grid">
+                    <div className="laser-info-item">
+                      <span className="label">Laser Type</span>
+                      <span className="value">{selectedUser.laser_type || 'Not specified'}</span>
+                    </div>
+                    <div className="laser-info-item">
+                      <span className="label">Serial Number</span>
+                      <span className="value">{selectedUser.serial_number || 'Not specified'}</span>
+                    </div>
+                    <div className="laser-info-item">
+                      <span className="label">Tracker Status</span>
+                      <span className={`value status-badge ${selectedUser.tracker_status === 'Available' ? 'available' : 'unavailable'}`}>
+                        {selectedUser.tracker_status || 'Not Available'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="modal-actions">
+              <button 
+                type="button" 
+                onClick={() => {
+                  setShowViewModal(false);
+                  setSelectedUser(null);
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style jsx>{`
         .user-management {
           max-width: 1200px;
@@ -1221,6 +1343,17 @@ const UserManagement = () => {
           font-size: 12px;
         }
 
+        .pending-badge {
+          background: #fef3c7;
+          color: #92400e;
+          padding: 2px 8px;
+          border-radius: 12px;
+          font-size: 10px;
+          font-weight: 700;
+          margin-left: 8px;
+          border: 1px solid #fde68a;
+        }
+
         .admin-badge {
           background: #dc2626;
           color: white;
@@ -1234,6 +1367,25 @@ const UserManagement = () => {
         .user-actions {
           display: flex;
           gap: 8px;
+        }
+
+        .approve-btn {
+          width: 36px;
+          height: 36px;
+          border: none;
+          border-radius: 6px;
+          background: #dcfce7;
+          color: #166534;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .approve-btn:hover {
+          background: #bbf7d0;
+          color: #15803d;
         }
 
         .edit-btn, .delete-btn {
@@ -1490,6 +1642,146 @@ const UserManagement = () => {
 
         .primary-btn:hover {
           background: #2563eb !important;
+        }
+
+        /* View Modal Styles */
+        .view-modal {
+          max-width: 500px !important;
+        }
+
+        .profile-summary {
+          display: flex;
+          align-items: center;
+          gap: 20px;
+          margin-bottom: 24px;
+          padding-bottom: 20px;
+          border-bottom: 1px solid #f3f4f6;
+        }
+
+        .profile-avatar-large {
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          background: #eff6ff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 36px;
+          border: 3px solid #dbeafe;
+        }
+
+        .profile-main-info h4 {
+          margin: 0 0 4px 0;
+          font-size: 20px;
+          color: #1f2937;
+        }
+
+        .profile-role {
+          background: #f3f4f6;
+          color: #4b5563;
+          padding: 2px 10px;
+          border-radius: 20px;
+          font-size: 13px;
+          font-weight: 600;
+          text-transform: uppercase;
+        }
+
+        .profile-details-grid {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          margin-bottom: 24px;
+        }
+
+        .detail-row {
+          display: flex;
+          justify-content: space-between;
+          padding: 8px 0;
+          border-bottom: 1px dashed #f3f4f6;
+        }
+
+        .detail-label {
+          color: #6b7280;
+          font-weight: 500;
+        }
+
+        .detail-value {
+          color: #1f2937;
+          font-weight: 600;
+        }
+
+        .laser-details-box {
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          padding: 16px;
+        }
+
+        .laser-details-box h5 {
+          margin: 0 0 12px 0;
+          color: #3b82f6;
+          font-size: 14px;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .laser-info-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+
+        .laser-info-item {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .laser-info-item .label {
+          font-size: 12px;
+          color: #64748b;
+        }
+
+        .laser-info-item .value {
+          font-size: 14px;
+          font-weight: 600;
+          color: #1e293b;
+        }
+
+        .status-badge {
+          display: inline-block;
+          padding: 2px 8px;
+          border-radius: 4px;
+          font-size: 12px;
+        }
+
+        .status-badge.available {
+          background: #dcfce7;
+          color: #166534;
+        }
+
+        .status-badge.unavailable {
+          background: #fee2e2;
+          color: #991b1b;
+        }
+
+        .view-btn {
+          width: 36px;
+          height: 36px;
+          border: none;
+          border-radius: 6px;
+          background: #eff6ff;
+          color: #3b82f6;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .view-btn:hover {
+          background: #dbeafe;
+          color: #1d4ed8;
         }
 
         @media (max-width: 768px) {

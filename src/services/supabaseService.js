@@ -800,6 +800,46 @@ class SupabaseService {
       return acc;
     }, {});
   }
+
+  // Client operations
+  async getClients() {
+    const { data, error } = await supabase
+      .from(TABLES.CLIENTS)
+      .select('*')
+      .order('name');
+    if (error) throw error;
+    return data;
+  }
+
+  async createClient(clientData) {
+    const { data, error } = await supabase
+      .from(TABLES.CLIENTS)
+      .insert(clientData)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  async updateClient(id, updates) {
+    const { data, error } = await supabase
+      .from(TABLES.CLIENTS)
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  async deleteClient(id) {
+    const { error } = await supabase
+      .from(TABLES.CLIENTS)
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+    return true;
+  }
 }
 
 const supabaseService = new SupabaseService();

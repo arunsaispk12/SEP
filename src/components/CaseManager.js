@@ -4,15 +4,21 @@ import { useAuth } from '../context/AuthContext';
 import { Plus, Search, User, MapPin, Clock, AlertCircle, RotateCcw } from 'lucide-react';
 import scheduleCaseSyncService from '../services/scheduleCaseSync';
 import toast from 'react-hot-toast';
+import CaseCompletionModal from './CaseCompletionModal';
 
 const CaseManager = () => {
   const {
     cases,
     engineers,
+    clients,
+    addClient,
     addCase,
     updateCase,
     getEngineerById,
-    locationObjects
+    locationObjects,
+    checkLocationConflict,
+    checkScheduleOverlap,
+    isEngineerOnLeave
   } = useEngineerContext();
   const { user } = useAuth();
   
@@ -21,8 +27,14 @@ const CaseManager = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [isSyncing, setIsSyncing] = useState(false);
+  
+  // Case Completion Modal State
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [completingCase, setCompletingCase] = useState(null);
+
   const [formData, setFormData] = useState({
     title: '',
+    clientName: '',
     description: '',
     location: '',
     priority: 'medium',
@@ -37,7 +49,13 @@ const CaseManager = () => {
   ];
   const statuses = [
     { value: 'open', label: 'Open' },
+    { value: 'assigned', label: 'Assigned' },
+    { value: 'travelling', label: 'In Transit' },
+    { value: 'reached_centre', label: 'Reached Centre' },
     { value: 'in_progress', label: 'In Progress' },
+    { value: 'waiting_installation', label: 'Waiting for Installation' },
+    { value: 'installation_done', label: 'Installation Done' },
+    { value: 'uninstallation_done', label: 'Uninstallation Done' },
     { value: 'completed', label: 'Completed' },
     { value: 'on_hold', label: 'On Hold' },
     { value: 'cancelled', label: 'Cancelled' }
@@ -56,20 +74,46 @@ const CaseManager = () => {
     return matchesSearch && matchesStatus && matchesPriority;
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const locationObj = (locationObjects || []).find(l => l.name === formData.location);
-    const caseData = {
-      title: formData.title,
-      description: formData.description,
-      location_id: locationObj?.id || null,
-      priority: formData.priority,
-      status: formData.status || 'open',
-      assigned_engineer_id: formData.assignedEngineer || null,
-      created_by: user?.id
-    };
-    addCase(caseData);
-    resetForm();
+    try {
+      const locationObj = (locationObjects || []).find(l => l.name === formData.location);
+      
+      // Handle Client Logic: Find or Create
+      let clientId = null;
+      const existingClient = (clients || []).find(c => c.name.toLowerCase() === formData.clientName.toLowerCase());
+      
+      if (existingClient) {
+        clientId = existingClient.id;
+      } else if (formData.clientName) {
+        // Automatically create new client if it doesn't exist
+        const newClient = await addClient({
+          name: formData.clientName,
+          location_id: locationObj?.id || null,
+          created_by: user?.id,
+          is_disclosed: true
+        });
+        clientId = newClient.id;
+      }
+
+      const caseData = {
+        title: formData.title,
+        description: formData.description,
+        location_id: locationObj?.id || null,
+        client_id: clientId,
+        priority: formData.priority,
+        status: formData.status || 'open',
+        assigned_engineer_id: formData.assignedEngineer || null,
+        created_by: user?.id
+      };
+      
+      await addCase(caseData);
+      toast.success('Case created successfully');
+      resetForm();
+    } catch (error) {
+      console.error('Error creating case:', error);
+      toast.error('Failed to create case');
+    }
   };
 
   const resetForm = () => {
@@ -102,6 +146,32 @@ const CaseManager = () => {
   };
 
   const handleAssignCase = async (caseId, engineerId) => {
+    if (!engineerId) return;
+
+    const targetCase = cases.find(c => c.id === caseId);
+    
+    // Check Location Conflict (Mandatory Block)
+    const locationConflict = checkLocationConflict(engineerId, targetCase.created_at, targetCase.location);
+    if (locationConflict.hasConflict) {
+      toast.error(locationConflict.message);
+      return;
+    }
+
+    // Check Leave (Warning)
+    if (isEngineerOnLeave(targetCase.created_at, engineerId)) {
+      if (!window.confirm('Engineer is on leave during this period. Assign anyway?')) {
+        return;
+      }
+    }
+
+    // Check Overlap (Warning)
+    const overlap = checkScheduleOverlap(engineerId, targetCase.created_at, new Date(targetCase.created_at).setHours(23));
+    if (overlap.hasOverlap) {
+      if (!window.confirm(`${overlap.message} Assign anyway?`)) {
+        return;
+      }
+    }
+
     try {
       await updateCase(caseId, {
         assigned_engineer_id: engineerId,
@@ -113,10 +183,43 @@ const CaseManager = () => {
   };
 
   const handleStatusChange = async (caseId, newStatus) => {
+    const targetCase = cases.find(c => c.id === caseId);
+    
+    // Permission Check: Only Admin or assigned Engineer can update
+    const isAssignedEngineer = user.role === 'engineer' && targetCase.assigned_engineer_id === user.id;
+    const isAdmin = user.role === 'admin';
+    const isManager = user.role === 'manager'; // Requirements say Managers can view only, but let's confirm if they need update rights. The doc says: "Only Admin or particular Engineer... can edit or update... Executive and managers can only view"
+
+    if (!isAdmin && !isAssignedEngineer) {
+      toast.error('You do not have permission to update this case.');
+      return;
+    }
+
+    if (newStatus === 'completed') {
+      if (targetCase) {
+        setCompletingCase(targetCase);
+        setShowCompletionModal(true);
+        return;
+      }
+    }
+
     try {
       await updateCase(caseId, { status: newStatus });
     } catch (error) {
       console.error('Error updating case status:', error);
+    }
+  };
+
+  const handleCaseCompletion = async ({ caseId, completionData }) => {
+    try {
+      await updateCase(caseId, { 
+        status: 'completed',
+        completion_details: completionData 
+      });
+      setShowCompletionModal(false);
+      setCompletingCase(null);
+    } catch (error) {
+      console.error('Error completing case:', error);
     }
   };
 
@@ -244,11 +347,21 @@ const CaseManager = () => {
             const assignedEngineer = case_.assigned_engineer_id ? 
               getEngineerById(case_.assigned_engineer_id) : null;
             
+            const hasOverlap = assignedEngineer && checkScheduleOverlap(assignedEngineer.id, case_.created_at, new Date(case_.created_at).setHours(23), case_.id).hasOverlap;
+            const isOnLeave = assignedEngineer && isEngineerOnLeave(case_.created_at, assignedEngineer.id);
+
             return (
               <div key={case_.id} className="case-card">
                 <div className="case-header">
                   <div className="case-title-section">
-                    <h3>{case_.title}</h3>
+                    <div className="title-wrapper">
+                      <h3>{case_.title}</h3>
+                      {(hasOverlap || isOnLeave) && (
+                        <div className="warning-trigger" title={isOnLeave ? 'Engineer on Leave' : 'Schedule Overlap'}>
+                          <AlertCircle size={18} color="#fbbf24" />
+                        </div>
+                      )}
+                    </div>
                     <div className="case-meta">
                       <span className="case-id">#{case_.id}</span>
                       <span 
@@ -342,6 +455,23 @@ const CaseManager = () => {
               </div>
 
               <div className="form-group">
+                <label>Client (Hospital) *</label>
+                <input
+                  type="text"
+                  list="clients-list"
+                  value={formData.clientName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, clientName: e.target.value }))}
+                  placeholder="Select or type new hospital name"
+                  required
+                />
+                <datalist id="clients-list">
+                  {(clients || []).map(client => (
+                    <option key={client.id} value={client.name} />
+                  ))}
+                </datalist>
+              </div>
+
+              <div className="form-group">
                 <label>Description *</label>
                 <textarea
                   value={formData.description}
@@ -413,6 +543,18 @@ const CaseManager = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Case Completion Modal */}
+      {showCompletionModal && completingCase && (
+        <CaseCompletionModal
+          caseData={completingCase}
+          onClose={() => {
+            setShowCompletionModal(false);
+            setCompletingCase(null);
+          }}
+          onSave={handleCaseCompletion}
+        />
       )}
 
       <style jsx>{`
@@ -576,10 +718,27 @@ const CaseManager = () => {
         }
 
         .case-title-section h3 {
-          margin: 0 0 5px 0;
+          margin: 0;
           color: #f1f5f9;
           font-size: 1rem;
           font-weight: 600;
+        }
+
+        .title-wrapper {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 5px;
+        }
+
+        .warning-trigger {
+          cursor: help;
+          display: flex;
+          align-items: center;
+          background: rgba(251, 191, 36, 0.1);
+          padding: 4px;
+          border-radius: 6px;
+          border: 1px solid rgba(251, 191, 36, 0.2);
         }
 
         .case-meta {

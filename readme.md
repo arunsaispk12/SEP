@@ -57,6 +57,23 @@ Troubleshooting
 - Verify `.env` values and internet access to `*.supabase.co`
 - Reinstall: delete node_modules, run npm install
 
+## Platform Capabilities
+
+The Service Engineer Planner (SEP) is a comprehensive ERP-lite solution for field service management:
+
+- **Advanced Scheduling:** Integrated calendar views with support for multi-step case lifecycles (Travelling, Reached Centre, Installation, etc.).
+- **Workflow Intelligence:** Automated enforcement of business rules, such as preventing multi-city assignments on the same day and highlighting schedule overlaps.
+- **Role-Based Access (RBAC):** Distinct workflows for Admins, Managers, Service Engineers, Executives, and Clients.
+- **Client & Location ERP:** Dedicated modules for managing IVF Hospitals (Clients) and geographic service hubs (Locations).
+- **Clinical Data Capture:** Specialized post-case forms for recording patient counts and embryologist details.
+
+## Recent Technical Updates (March 2026)
+
+- **Approval System:** Implemented a new middleware layer requiring manual Admin/Manager approval for all Service Engineer and Executive signups.
+- **Schema Evolution:** Updated `profiles` and `cases` tables to support clinical data, equipment tracking (Laser Details), and approval states.
+- **UI Refresh:** Added dedicated management interfaces for geographic locations and client organizations.
+- **Security:** Restricted case updates to Admins and the specific Engineer assigned to the task.
+
 ## Google Calendar Integration (Interactive)
 
 1. In Google Cloud Console, create OAuth 2.0 Client ID (Web) and enable Calendar API.

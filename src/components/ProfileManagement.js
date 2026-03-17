@@ -33,7 +33,10 @@ const ProfileManagement = () => {
     skills: profile?.skills || [],
     certifications: profile?.certifications || [],
     experience_years: profile?.experience_years || 0,
-    avatar: profile?.avatar || '👨‍🔧'
+    avatar: profile?.avatar || '👨‍🔧',
+    laser_type: profile?.laser_type || '',
+    serial_number: profile?.serial_number || '',
+    tracker_status: profile?.tracker_status || 'Not Available'
   });
   
   const [passwordData, setPasswordData] = useState({
@@ -200,7 +203,10 @@ const ProfileManagement = () => {
                     skills: profile?.skills || [],
                     certifications: profile?.certifications || [],
                     experience_years: profile?.experience_years || 0,
-                    avatar: profile?.avatar || '👨‍🔧'
+                    avatar: profile?.avatar || '👨‍🔧',
+                    laser_type: profile?.laser_type || '',
+                    serial_number: profile?.serial_number || '',
+                    tracker_status: profile?.tracker_status || 'Not Available'
                   });
                 }}
               >
@@ -405,6 +411,84 @@ const ProfileManagement = () => {
             </div>
           )}
         </div>
+
+        {/* Laser Details (Engineers only) */}
+        {profile?.role === 'engineer' && (
+          <div className="profile-section">
+            <h3>Laser Details</h3>
+            <div className="info-grid">
+              <div className="info-item">
+                <Shield size={20} />
+                <div className="info-content">
+                  <label>Laser Type</label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={profileData.laser_type}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, laser_type: e.target.value }))}
+                      className="edit-input"
+                      placeholder="e.g., CO2 Laser, Fiber Laser"
+                    />
+                  ) : (
+                    <span>{profileData.laser_type || 'Not specified'}</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="info-item">
+                <Shield size={20} />
+                <div className="info-content">
+                  <label>Serial Number</label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={profileData.serial_number}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, serial_number: e.target.value }))}
+                      className="edit-input"
+                      placeholder="Enter serial number"
+                    />
+                  ) : (
+                    <span>{profileData.serial_number || 'Not specified'}</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="info-item">
+                <MapPin size={20} />
+                <div className="info-content">
+                  <label>Tracker Status</label>
+                  {isEditing ? (
+                    <select
+                      value={profileData.tracker_status}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, tracker_status: e.target.value }))}
+                      className="edit-input"
+                    >
+                      <option value="Available">Available</option>
+                      <option value="Not Available">Not Available</option>
+                    </select>
+                  ) : (
+                    <span>{profileData.tracker_status}</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="info-item">
+                <Shield size={20} />
+                <div className="info-content">
+                  <label>Equipment Image</label>
+                  {isEditing ? (
+                    <div className="image-placeholder">
+                      <input type="file" disabled title="Image upload coming soon" />
+                      <span className="hint">Upload coming soon</span>
+                    </div>
+                  ) : (
+                    <span className="hint">No image uploaded</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Security */}
         <div className="profile-section">

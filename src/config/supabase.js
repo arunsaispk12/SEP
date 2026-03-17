@@ -46,7 +46,8 @@ export const TABLES = {
   LEAVES: 'leaves',
   USER_SESSIONS: 'user_sessions',
   GOOGLE_CALENDAR_TOKENS: 'google_calendar_tokens',
-  NOTIFICATIONS: 'notifications'
+  NOTIFICATIONS: 'notifications',
+  CLIENTS: 'clients'
 };
 
 // Authentication helper functions

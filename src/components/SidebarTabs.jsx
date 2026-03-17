@@ -16,6 +16,8 @@ const SidebarTabs = ({ activeTab, setActiveTab, tabs, isOpen, onClose }) => {
       account: UserCog,
       calendar: Calendar,
       cases: Briefcase,
+      clients: Users,
+      locations: MapPin,
       sync: CalendarCheck,
       personal: LayoutDashboard,
       manager: LayoutDashboard,

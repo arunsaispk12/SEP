@@ -7,6 +7,8 @@ import SidebarTabs from './components/SidebarTabs';
 import UnifiedDashboard from './components/UnifiedDashboard';
 import ScheduleCalendar from './components/ScheduleCalendar';
 import CaseManager from './components/CaseManager';
+import ClientManagement from './components/ClientManagement';
+import LocationManagement from './components/LocationManagement';
 import GoogleCalendarSync from './components/GoogleCalendarSync';
 import UserManagement from './components/UserManagement';
 import ProfileManagement from './components/ProfileManagement';
@@ -68,6 +70,8 @@ function AppContent() {
         { id: 'admin', label: 'Admin Panel', icon: '🛡️' },
         { id: 'dashboard', label: 'Dashboard', icon: '📊' },
         { id: 'users', label: 'User Management', icon: '👤' },
+        { id: 'clients', label: 'Clients', icon: '🏢' },
+        { id: 'locations', label: 'Locations', icon: '📍' },
         { id: 'calendar', label: 'Schedule', icon: '📅' },
         { id: 'cases', label: 'Cases', icon: '📋' },
         { id: 'sync', label: 'Google Calendar', icon: '🔄' }
@@ -76,8 +80,18 @@ function AppContent() {
       return [
         { id: 'manager', label: 'Dashboard', icon: '📊' },
         { id: 'users', label: 'User Management', icon: '👤' },
+        { id: 'clients', label: 'Clients', icon: '🏢' },
+        { id: 'locations', label: 'Locations', icon: '📍' },
         { id: 'calendar', label: 'Schedule', icon: '📅' },
         { id: 'cases', label: 'Cases', icon: '📋' },
+        { id: 'sync', label: 'Google Calendar', icon: '🔄' }
+      ];
+    } else if (user.role === 'executive') {
+      return [
+        { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+        { id: 'clients', label: 'My Clients', icon: '🏢' },
+        { id: 'cases', label: 'Cases', icon: '📋' },
+        { id: 'calendar', label: 'Schedule', icon: '📅' },
         { id: 'sync', label: 'Google Calendar', icon: '🔄' }
       ];
     } else {
@@ -141,6 +155,8 @@ function AppContent() {
             {activeTab === 'account' && <ProfileManagement />}
             {activeTab === 'manager' && <UnifiedDashboard />}
             {activeTab === 'users' && <UserManagement />}
+            {activeTab === 'clients' && <ClientManagement />}
+            {activeTab === 'locations' && <LocationManagement />}
             {activeTab === 'calendar' && <ScheduleCalendar />}
             {activeTab === 'cases' && <CaseManager />}
             {activeTab === 'sync' && <GoogleCalendarSync />}

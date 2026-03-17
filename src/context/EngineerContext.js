@@ -46,6 +46,7 @@ const initialState = {
   leaves: [],
   locations: ['Hyderabad Office', 'Bangalore Office', 'Coimbatore Office', 'Chennai Office'],
   locationObjects: [],
+  clients: [],
   googleCalendarConnected: false,
   loading: false,
   error: null
@@ -152,6 +153,26 @@ function engineerReducer(state, action) {
         leaves: state.leaves.filter(leave => leave.id !== action.payload.id)
       };
 
+    case 'ADD_CLIENT':
+      return {
+        ...state,
+        clients: [...state.clients, action.payload]
+      };
+
+    case 'UPDATE_CLIENT':
+      return {
+        ...state,
+        clients: state.clients.map(client =>
+          client.id === action.payload.id ? { ...client, ...action.payload.updates } : client
+        )
+      };
+
+    case 'DELETE_CLIENT':
+      return {
+        ...state,
+        clients: state.clients.filter(client => client.id !== action.payload)
+      };
+
     case 'SET_GOOGLE_CALENDAR_CONNECTED':
       return {
         ...state,
@@ -188,12 +209,13 @@ export function EngineerProvider({ children }) {
       if (isSupabaseConfigured()) {
         console.log('Supabase is configured, fetching data from Supabase...');
         // Use Supabase
-        const [engineers, cases, schedules, locations, leaves] = await Promise.all([
+        const [engineers, cases, schedules, locations, leaves, clients] = await Promise.all([
           supabaseService.getEngineers(),
           supabaseService.getCases(),
           supabaseService.getSchedules(),
           supabaseService.getLocations(),
-          supabaseService.getLeavesOverlappingRange('1900-01-01', '2999-12-31')
+          supabaseService.getLeavesOverlappingRange('1900-01-01', '2999-12-31'),
+          supabaseService.getClients()
         ]);
 
         if (logger) {
@@ -202,7 +224,8 @@ export function EngineerProvider({ children }) {
             casesCount: cases?.length || 0,
             schedulesCount: schedules?.length || 0,
             locationsCount: locations?.length || 0,
-            leavesCount: leaves?.length || 0
+            leavesCount: leaves?.length || 0,
+            clientsCount: clients?.length || 0
           });
         }
 
@@ -225,6 +248,7 @@ export function EngineerProvider({ children }) {
             end: schedule.end_time
           })),
           leaves,
+          clients,
           locationObjects: locations,
           locations: locations.map(location => location.name)
         };
@@ -344,6 +368,50 @@ export function EngineerProvider({ children }) {
       new Date(l.start_date) <= rangeEnd && new Date(l.end_date) >= rangeStart
     );
   }, [state.leaves]);
+
+  const addClient = useCallback(async (clientData) => {
+    try {
+      if (isSupabaseConfigured()) {
+        const client = await supabaseService.createClient(clientData);
+        dispatch({ type: 'ADD_CLIENT', payload: client });
+        return client;
+      } else {
+        const mockClient = { ...clientData, id: Math.random() };
+        dispatch({ type: 'ADD_CLIENT', payload: mockClient });
+        return mockClient;
+      }
+    } catch (error) {
+      console.error('Add client error:', error);
+      throw error;
+    }
+  }, []);
+
+  const updateClient = useCallback(async (id, updates) => {
+    try {
+      if (isSupabaseConfigured()) {
+        const client = await supabaseService.updateClient(id, updates);
+        dispatch({ type: 'UPDATE_CLIENT', payload: { id, updates: client } });
+        return client;
+      } else {
+        dispatch({ type: 'UPDATE_CLIENT', payload: { id, updates } });
+      }
+    } catch (error) {
+      console.error('Update client error:', error);
+      throw error;
+    }
+  }, []);
+
+  const deleteClient = useCallback(async (id) => {
+    try {
+      if (isSupabaseConfigured()) {
+        await supabaseService.deleteClient(id);
+      }
+      dispatch({ type: 'DELETE_CLIENT', payload: id });
+    } catch (error) {
+      console.error('Delete client error:', error);
+      throw error;
+    }
+  }, []);
 
   const addCase = useCallback(async (caseData) => {
     try {
@@ -494,22 +562,56 @@ export function EngineerProvider({ children }) {
   const updateEngineer = useCallback(async (id, updates) => {
     try {
       if (isSupabaseConfigured()) {
-        const engineer = await supabaseService.updateEngineer(id, updates);
-        dispatch({ type: 'UPDATE_ENGINEER', payload: { id, updates: engineer } });
-        toast.success('Engineer updated successfully');
-        return engineer;
+        // Map common engineer fields to profile table if needed
+        const { data, error } = await supabase
+          .from('profiles')
+          .update({
+            ...updates,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        dispatch({ type: 'UPDATE_ENGINEER', payload: { id, updates: data } });
+        toast.success('Profile updated successfully');
+        return data;
       } else {
         dispatch({ type: 'UPDATE_ENGINEER', payload: { id, updates } });
-        toast.success('Engineer updated successfully');
-        return { id, ...updates };
+        toast.success('Profile updated successfully');
       }
     } catch (error) {
-      toast.error('Failed to update engineer');
-      console.error('Update engineer error:', error);
+      toast.error('Failed to update profile');
+      console.error('Update profile error:', error);
       throw error;
     }
   }, []);
 
+  const approveUser = useCallback(async (id) => {
+    try {
+      if (isSupabaseConfigured()) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .update({ is_approved: true })
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        dispatch({ type: 'UPDATE_ENGINEER', payload: { id, updates: data } });
+      } else {
+        dispatch({ type: 'UPDATE_ENGINEER', payload: { id, updates: { is_approved: true } } });
+      }
+      toast.success('User approved successfully!');
+    } catch (error) {
+      console.error('Approve user error:', error);
+      toast.error('Failed to approve user');
+      throw error;
+    }
+  }, []);
+
+  const deleteEngineer = useCallback(async (id) => {
   const deleteEngineer = useCallback(async (id) => {
     try {
       if (isSupabaseConfigured()) {
@@ -527,6 +629,54 @@ export function EngineerProvider({ children }) {
     }
   }, []);
 
+  const checkLocationConflict = useCallback((engineerId, date, location) => {
+    // Requirements: Engineer cannot handle cases at different locations on the same day.
+    const targetDate = new Date(date).toDateString();
+    
+    // Check existing cases for this engineer on the same day
+    const sameDayCases = state.cases.filter(c => 
+      c.assigned_engineer_id === engineerId && 
+      new Date(c.created_at).toDateString() === targetDate
+    );
+
+    const conflictingCase = sameDayCases.find(c => c.location !== location);
+    if (conflictingCase) {
+      return {
+        hasConflict: true,
+        message: `Engineer already assigned to ${conflictingCase.location} on this day.`,
+        conflictingCase
+      };
+    }
+
+    return { hasConflict: false };
+  }, [state.cases]);
+
+  const checkScheduleOverlap = useCallback((engineerId, startTime, endTime, currentCaseId = null) => {
+    // Requirements: Allow multiple case assignment but highlight with warning.
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+
+    const overlappingCases = state.cases.filter(c => {
+      if (c.id === currentCaseId || c.assigned_engineer_id !== engineerId) return false;
+      
+      // Using scheduled_start/end if available, otherwise fallback to created_at
+      const cStart = new Date(c.scheduled_start || c.created_at);
+      const cEnd = new Date(c.scheduled_end || new Date(cStart).setHours(cStart.getHours() + 2));
+      
+      return (start < cEnd && end > cStart);
+    });
+
+    if (overlappingCases.length > 0) {
+      return {
+        hasOverlap: true,
+        message: `Engineer has ${overlappingCases.length} other case(s) during this time.`,
+        overlappingCases
+      };
+    }
+
+    return { hasOverlap: false };
+  }, [state.cases]);
+
   const value = useMemo(() => ({
     ...state,
     locationObjects: state.locationObjects || [],
@@ -543,13 +693,18 @@ export function EngineerProvider({ children }) {
     updateLeave,
     deleteLeave,
     isEngineerOnLeave,
+    // Approval
+    approveUser,
+    // Validation
+    checkLocationConflict,
+    checkScheduleOverlap,
     setGoogleCalendarConnected,
     getEngineerById,
     getCasesByEngineer,
     getAvailableEngineers,
     getEngineersByLocation,
     loadData
-  }), [state, addCase, updateCase, updateEngineer, addEngineer, deleteEngineer, addSchedule, updateSchedule, deleteSchedule, addLeave, updateLeave, deleteLeave, isEngineerOnLeave, setGoogleCalendarConnected, getEngineerById, getCasesByEngineer, getAvailableEngineers, getEngineersByLocation, loadData]);
+  }), [state, addCase, updateCase, updateEngineer, addEngineer, deleteEngineer, addSchedule, updateSchedule, deleteSchedule, addLeave, updateLeave, deleteLeave, isEngineerOnLeave, checkLocationConflict, checkScheduleOverlap, setGoogleCalendarConnected, getEngineerById, getCasesByEngineer, getAvailableEngineers, getEngineersByLocation, loadData]);
 
   return (
     <EngineerContext.Provider value={value}>
