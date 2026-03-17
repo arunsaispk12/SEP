@@ -97,3 +97,4 @@ typings/
 
 # Google Calendar credentials
 google-credentials.json
+.gemini/settings.json
