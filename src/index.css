@@ -571,14 +571,12 @@ code {
 }
 
 .rbc-calendar {
-  min-height: 500px;
+  height: 100% !important;
 }
 
 .rbc-event {
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%) !important;
-  border: none !important;
-  border-radius: 8px !important;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
+  border-radius: 4px !important;
+  padding: 1px 4px !important;
 }
 
 .rbc-event-content {
@@ -732,6 +730,7 @@ select:focus {
 }
 .rbc-month-row {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  min-height: 120px;
 }
 .rbc-date-cell {
   padding: 4px 8px;
@@ -895,4 +894,253 @@ select:focus {
   padding: 20px;
   z-index: 201;
   box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+}
+
+/* ===== Google Calendar Layout ===== */
+.gcal-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+}
+
+.gcal-topbar {
+  height: 52px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.gcal-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.gcal-divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.gcal-today-btn {
+  padding: 5px 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.gcal-today-btn:hover { background: rgba(255, 255, 255, 0.12); }
+
+.gcal-nav-btn {
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.gcal-nav-btn:hover { background: rgba(255, 255, 255, 0.08); }
+
+.gcal-date-label {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.gcal-view-switcher {
+  display: flex;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.gcal-view-btn {
+  padding: 5px 12px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+.gcal-view-btn.active {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: #fff;
+}
+.gcal-view-btn:not(.active):hover { background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.7); }
+
+.gcal-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.gcal-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+  padding: 16px 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.gcal-main {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Mini Calendar */
+.mini-cal { }
+
+.mini-cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.mini-cal-month {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.mini-cal-nav {
+  width: 20px;
+  height: 20px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+.mini-cal-nav:hover { background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.8); }
+
+.mini-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  text-align: center;
+}
+
+.mini-cal-dow {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.3);
+  padding: 2px 0;
+  font-weight: 600;
+}
+
+.mini-cal-day {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.55);
+  padding: 2px 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  margin: 0 auto;
+  transition: background 0.1s;
+}
+.mini-cal-day:hover:not(.today):not(.active-day) { background: rgba(255, 255, 255, 0.1); }
+.mini-cal-day.off-month { color: rgba(255, 255, 255, 0.2); }
+.mini-cal-day.today { background: #a78bfa; color: #fff; font-weight: 700; }
+.mini-cal-day.active-day:not(.today) { background: rgba(167, 139, 250, 0.25); color: #a78bfa; font-weight: 600; }
+.mini-cal-week-highlight { background: rgba(167, 139, 250, 0.08); border-radius: 4px; }
+
+/* Filter section */
+.gcal-filter-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 6px;
+}
+
+.gcal-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 5px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.gcal-filter-row:hover { background: rgba(255, 255, 255, 0.06); }
+
+.gcal-filter-color {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.gcal-filter-name {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.75);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gcal-filter-count {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+/* RBC overrides for gcal layout */
+.gcal-main .rbc-calendar { height: 100% !important; }
+.gcal-main .rbc-time-view,
+.gcal-main .rbc-month-view,
+.gcal-main .rbc-agenda-view { border-radius: 0 !important; border: none !important; height: 100%; }
+.gcal-main .rbc-header {
+  background: rgba(15, 12, 41, 0.6) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  padding: 8px 4px;
+  text-align: center;
+}
+.gcal-main .rbc-header .rbc-button-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  pointer-events: none;
 }
