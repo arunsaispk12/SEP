@@ -54,6 +54,8 @@ const ScheduleCalendar = () => {
   const {
     schedules,
     engineers,
+    clients,
+    addClient,
     addSchedule,
     updateSchedule,
     deleteSchedule,
@@ -68,10 +70,16 @@ const ScheduleCalendar = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [showInlineAdd, setShowInlineAdd] = useState(false);
+  const [newClientForm, setNewClientForm] = useState({
+    name: '', contact_person: '', mobile: '', address: '', location: ''
+  });
+  const [savingClient, setSavingClient] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     engineerId: '',
     location: '',
+    client_id: null,
     start: new Date(),
     end: new Date(),
     description: '',
@@ -146,6 +154,7 @@ const ScheduleCalendar = () => {
         title: schedule.title,
         engineerId: schedule.engineer_id || '',
         location: schedule.location || '',
+        client_id: schedule.client_id || null,
         start: new Date(schedule.start || schedule.start_time),
         end: new Date(schedule.end || schedule.end_time),
         description: schedule.description || '',
@@ -170,6 +179,7 @@ const ScheduleCalendar = () => {
         title: formData.title,
         engineer_id: formData.engineerId || null,
         location_id: locationObj?.id || null,
+        client_id: formData.client_id || null,
         start_time: formData.start.toISOString(),
         end_time: formData.end.toISOString(),
         description: formData.description || '',
@@ -206,6 +216,7 @@ const ScheduleCalendar = () => {
       title: '',
       engineerId: '',
       location: '',
+      client_id: null,
       start: new Date(),
       end: new Date(),
       description: '',
@@ -229,6 +240,31 @@ const ScheduleCalendar = () => {
       toast.error('Error syncing schedules with cases');
     } finally {
       setIsSyncing(false);
+    }
+  };
+
+  const handleSaveNewClient = async (e) => {
+    e.preventDefault();
+    setSavingClient(true);
+    try {
+      const locationObj = (locationObjects || []).find(l => l.name === newClientForm.location);
+      const created = await addClient({
+        name: newClientForm.name,
+        contact_person: newClientForm.contact_person || null,
+        mobile: newClientForm.mobile || null,
+        address: newClientForm.address || null,
+        location_id: locationObj?.id || null,
+        created_by: user?.id,
+        is_disclosed: true
+      });
+      setFormData(prev => ({ ...prev, client_id: created.id }));
+      setShowInlineAdd(false);
+      setNewClientForm({ name: '', contact_person: '', mobile: '', address: '', location: '' });
+      toast.success('Client added');
+    } catch (err) {
+      toast.error('Failed to add client');
+    } finally {
+      setSavingClient(false);
     }
   };
 
@@ -358,6 +394,86 @@ const ScheduleCalendar = () => {
                   onChange={(val) => setFormData(prev => ({ ...prev, location: val }))}
                   locations={locations}
                 />
+              </div>
+
+              {/* Client field */}
+              <div style={{ marginBottom: 14 }}>
+                <div className="section-label">Client</div>
+                <select
+                  value={formData.client_id || ''}
+                  onChange={(e) => {
+                    setFormData(prev => ({ ...prev, client_id: e.target.value ? parseInt(e.target.value) : null }));
+                    setShowInlineAdd(false);
+                  }}
+                  className="glass-select"
+                >
+                  <option value="">Select Client (optional)</option>
+                  {(clients || []).map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+
+                {/* Inline add toggle */}
+                {!showInlineAdd && (
+                  <button
+                    type="button"
+                    onClick={() => setShowInlineAdd(true)}
+                    style={{ marginTop: 8, background: 'none', border: 'none', color: '#a78bfa', fontSize: 12, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 4 }}
+                  >
+                    + Add new client
+                  </button>
+                )}
+
+                {/* Inline expansion */}
+                {showInlineAdd && (
+                  <div style={{ marginTop: 12, padding: 14, background: 'rgba(167,139,250,0.06)', border: '1px solid rgba(167,139,250,0.15)', borderRadius: 10 }}>
+                    <form onSubmit={handleSaveNewClient}>
+                      <div style={{ marginBottom: 10 }}>
+                        <div className="section-label">Name *</div>
+                        <input type="text" required value={newClientForm.name}
+                          onChange={e => setNewClientForm(p => ({ ...p, name: e.target.value }))}
+                          className="glass-input" placeholder="Hospital / Clinic name" />
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+                        <div>
+                          <div className="section-label">Contact person</div>
+                          <input type="text" value={newClientForm.contact_person}
+                            onChange={e => setNewClientForm(p => ({ ...p, contact_person: e.target.value }))}
+                            className="glass-input" placeholder="Dr. Name" />
+                        </div>
+                        <div>
+                          <div className="section-label">Mobile</div>
+                          <input type="tel" value={newClientForm.mobile}
+                            onChange={e => setNewClientForm(p => ({ ...p, mobile: e.target.value }))}
+                            className="glass-input" placeholder="10-digit" />
+                        </div>
+                      </div>
+                      <div style={{ marginBottom: 10 }}>
+                        <div className="section-label">Address</div>
+                        <input type="text" value={newClientForm.address}
+                          onChange={e => setNewClientForm(p => ({ ...p, address: e.target.value }))}
+                          className="glass-input" placeholder="Hospital address" />
+                      </div>
+                      <div style={{ marginBottom: 12 }}>
+                        <div className="section-label">Location</div>
+                        <LocationCombobox
+                          value={newClientForm.location}
+                          onChange={val => setNewClientForm(p => ({ ...p, location: val }))}
+                          locations={locations}
+                        />
+                      </div>
+                      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                        <button type="button" className="glass-btn-secondary"
+                          onClick={() => { setShowInlineAdd(false); setNewClientForm({ name: '', contact_person: '', mobile: '', address: '', location: '' }); }}
+                          style={{ fontSize: 12, padding: '6px 12px' }}>Cancel</button>
+                        <button type="submit" className="glass-btn-primary" disabled={savingClient}
+                          style={{ fontSize: 12, padding: '6px 12px' }}>
+                          {savingClient ? 'Saving...' : 'Save & Select'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
