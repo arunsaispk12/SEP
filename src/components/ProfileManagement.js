@@ -1,22 +1,24 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Briefcase, 
-  Shield, 
-  Save, 
-  Eye, 
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Briefcase,
+  Shield,
+  Save,
+  Eye,
   EyeOff,
   Edit
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+const getInitials = n => n ? n.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase() : '?';
+
 const ProfileManagement = () => {
   const { profile, updateProfile, changePassword } = useAuth();
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [showPasswords, setShowPasswords] = useState({
@@ -24,7 +26,7 @@ const ProfileManagement = () => {
     new: false,
     confirm: false
   });
-  
+
   const [profileData, setProfileData] = useState({
     name: profile?.name || '',
     email: profile?.email || '',
@@ -34,11 +36,12 @@ const ProfileManagement = () => {
     certifications: profile?.certifications || [],
     experience_years: profile?.experience_years || 0,
     avatar: profile?.avatar || '👨‍🔧',
+    avatar_url: profile?.avatar_url || '',
     laser_type: profile?.laser_type || '',
     serial_number: profile?.serial_number || '',
     tracker_status: profile?.tracker_status || 'Not Available'
   });
-  
+
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -70,7 +73,7 @@ const ProfileManagement = () => {
   // Handle profile update
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
-    
+
     try {
       await updateProfile(profileData);
       setIsEditing(false);
@@ -82,12 +85,12 @@ const ProfileManagement = () => {
   // Handle password change
   const handlePasswordChange = async (e) => {
     e.preventDefault();
-    
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast.error('New passwords do not match');
       return;
     }
-    
+
     if (passwordData.newPassword.length < 6) {
       toast.error('New password must be at least 6 characters');
       return;
@@ -163,36 +166,42 @@ const ProfileManagement = () => {
   const roleInfo = getRoleInfo(profile?.role);
 
   return (
-    <div className="profile-management">
-      <div className="profile-header">
-        <div className="profile-avatar">
-          <span className="avatar-emoji">{profileData.avatar}</span>
+    <div style={{ maxWidth: 800, margin: '0 auto', padding: 20, color: '#f1f5f9' }}>
+      {/* Profile Header */}
+      <div className="glass-panel" style={{ padding: 30, display: 'flex', alignItems: 'center', gap: 20, marginBottom: 30, flexWrap: 'wrap' }}>
+        <div style={{ width: 80, height: 80, borderRadius: '50%', overflow: 'hidden', border: '2px solid rgba(255,255,255,0.12)', background: profileData.avatar_url ? 'transparent' : 'linear-gradient(135deg,#a78bfa,#ec4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, flexShrink: 0 }}>
+          {profileData.avatar_url ? (
+            <img
+              src={profileData.avatar_url}
+              alt="avatar"
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              onError={e => { e.target.style.display = 'none'; }}
+            />
+          ) : (
+            <span style={{ color: '#fff', fontWeight: 700, fontSize: 28 }}>{getInitials(profileData.name)}</span>
+          )}
         </div>
-        <div className="profile-info">
-          <h2>{profileData.name}</h2>
-          <p className="profile-email">{profileData.email}</p>
-          <div className="profile-role">
-            <span 
-              className="role-badge"
-              style={{ backgroundColor: roleInfo.color }}
-            >
-              {roleInfo.icon} {roleInfo.label}
-            </span>
-          </div>
+        <div style={{ flex: 1 }}>
+          <h2 style={{ margin: '0 0 8px 0', color: '#fff', fontSize: 24, fontWeight: 700 }}>{profileData.name}</h2>
+          <p style={{ margin: '0 0 12px 0', color: '#94a3b8', fontSize: 16 }}>{profileData.email}</p>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 20, color: 'white', fontSize: 14, fontWeight: 600, background: roleInfo.color }}>
+            {roleInfo.icon} {roleInfo.label}
+          </span>
         </div>
-        <div className="profile-actions">
+        <div style={{ display: 'flex', gap: 12 }}>
           {!isEditing ? (
-            <button 
-              className="edit-btn"
+            <button
+              className="glass-btn-primary"
               onClick={() => setIsEditing(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: 8 }}
             >
               <Edit size={16} />
               Edit Profile
             </button>
           ) : (
-            <div className="edit-actions">
-              <button 
-                className="cancel-btn"
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                className="glass-btn-secondary"
                 onClick={() => {
                   setIsEditing(false);
                   setProfileData({
@@ -204,6 +213,7 @@ const ProfileManagement = () => {
                     certifications: profile?.certifications || [],
                     experience_years: profile?.experience_years || 0,
                     avatar: profile?.avatar || '👨‍🔧',
+                    avatar_url: profile?.avatar_url || '',
                     laser_type: profile?.laser_type || '',
                     serial_number: profile?.serial_number || '',
                     tracker_status: profile?.tracker_status || 'Not Available'
@@ -212,9 +222,10 @@ const ProfileManagement = () => {
               >
                 Cancel
               </button>
-              <button 
-                className="save-btn"
+              <button
+                className="glass-btn-primary"
                 onClick={handleProfileUpdate}
+                style={{ display: 'flex', alignItems: 'center', gap: 8 }}
               >
                 <Save size={16} />
                 Save Changes
@@ -224,128 +235,155 @@ const ProfileManagement = () => {
         </div>
       </div>
 
-      <div className="profile-content">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
         {/* Basic Information */}
-        <div className="profile-section">
-          <h3>Basic Information</h3>
-          <div className="info-grid">
-            <div className="info-item">
-              <User size={20} />
-              <div className="info-content">
-                <label>Full Name</label>
+        <div className="glass-panel" style={{ padding: 24 }}>
+          <h3 style={{ margin: '0 0 20px 0', color: '#fff', fontSize: 18, fontWeight: 600 }}>Basic Information</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <User size={20} style={{ color: '#94a3b8', flexShrink: 0 }} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
+                <label style={{ fontSize: 14, color: '#94a3b8', fontWeight: 500 }}>Full Name</label>
                 {isEditing ? (
                   <input
                     type="text"
                     value={profileData.name}
                     onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
-                    className="edit-input"
+                    className="glass-input"
                   />
                 ) : (
-                  <span>{profileData.name}</span>
+                  <span style={{ color: '#fff', fontSize: 16 }}>{profileData.name}</span>
                 )}
               </div>
             </div>
 
-            <div className="info-item">
-              <Mail size={20} />
-              <div className="info-content">
-                <label>Email</label>
-                <span>{profileData.email}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <Mail size={20} style={{ color: '#94a3b8', flexShrink: 0 }} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <label style={{ fontSize: 14, color: '#94a3b8', fontWeight: 500 }}>Email</label>
+                <span style={{ color: '#fff', fontSize: 16 }}>{profileData.email}</span>
               </div>
             </div>
 
-            <div className="info-item">
-              <Phone size={20} />
-              <div className="info-content">
-                <label>Phone</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <Phone size={20} style={{ color: '#94a3b8', flexShrink: 0 }} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
+                <label style={{ fontSize: 14, color: '#94a3b8', fontWeight: 500 }}>Phone</label>
                 {isEditing ? (
                   <input
                     type="tel"
                     value={profileData.phone}
                     onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
-                    className="edit-input"
+                    className="glass-input"
                     placeholder="Enter phone number"
                   />
                 ) : (
-                  <span>{profileData.phone || 'Not provided'}</span>
+                  <span style={{ color: '#fff', fontSize: 16 }}>{profileData.phone || 'Not provided'}</span>
                 )}
               </div>
             </div>
 
-            <div className="info-item">
-              <MapPin size={20} />
-              <div className="info-content">
-                <label>Location</label>
-                <span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <MapPin size={20} style={{ color: '#94a3b8', flexShrink: 0 }} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <label style={{ fontSize: 14, color: '#94a3b8', fontWeight: 500 }}>Location</label>
+                <span style={{ color: '#fff', fontSize: 16 }}>
                   {locations.find(l => l.id === profile?.location_id)?.name || 'Not assigned'}
                 </span>
               </div>
             </div>
 
-            <div className="info-item">
-              <Briefcase size={20} />
-              <div className="info-content">
-                <label>Experience</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <Briefcase size={20} style={{ color: '#94a3b8', flexShrink: 0 }} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
+                <label style={{ fontSize: 14, color: '#94a3b8', fontWeight: 500 }}>Experience</label>
                 {isEditing ? (
                   <input
                     type="number"
                     min="0"
                     value={profileData.experience_years}
                     onChange={(e) => setProfileData(prev => ({ ...prev, experience_years: parseInt(e.target.value) || 0 }))}
-                    className="edit-input"
+                    className="glass-input"
                   />
                 ) : (
-                  <span>{profileData.experience_years} years</span>
+                  <span style={{ color: '#fff', fontSize: 16 }}>{profileData.experience_years} years</span>
                 )}
               </div>
             </div>
           </div>
+
+          {/* Avatar URL field (editing mode) */}
+          {isEditing && (
+            <div style={{ marginTop: 20 }}>
+              <div className="section-label">Avatar URL</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 48, height: 48, borderRadius: '50%', flexShrink: 0, overflow: 'hidden', border: '2px solid rgba(255,255,255,0.12)', background: profileData.avatar_url ? 'transparent' : 'linear-gradient(135deg,#a78bfa,#ec4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: '#fff' }}>
+                  {profileData.avatar_url ? (
+                    <img
+                      src={profileData.avatar_url}
+                      alt="avatar"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={e => { e.target.style.display = 'none'; }}
+                    />
+                  ) : getInitials(profileData.name || '')}
+                </div>
+                <input
+                  type="url"
+                  value={profileData.avatar_url || ''}
+                  onChange={e => setProfileData(prev => ({ ...prev, avatar_url: e.target.value }))}
+                  placeholder="https://example.com/photo.jpg"
+                  className="glass-input"
+                />
+              </div>
+              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 5 }}>Enter a public image URL. Leave blank to use initials avatar.</div>
+            </div>
+          )}
         </div>
 
         {/* Bio */}
-        <div className="profile-section">
-          <h3>Bio</h3>
+        <div className="glass-panel" style={{ padding: 24 }}>
+          <h3 style={{ margin: '0 0 16px 0', color: '#fff', fontSize: 18, fontWeight: 600 }}>Bio</h3>
           {isEditing ? (
             <textarea
               value={profileData.bio}
               onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
-              className="edit-textarea"
+              className="glass-textarea"
               placeholder="Tell us about yourself..."
               rows="3"
             />
           ) : (
-            <p className="bio-text">{profileData.bio || 'No bio provided'}</p>
+            <p style={{ color: '#94a3b8', lineHeight: 1.6, margin: 0 }}>{profileData.bio || 'No bio provided'}</p>
           )}
         </div>
 
         {/* Skills */}
-        <div className="profile-section">
-          <h3>Skills</h3>
+        <div className="glass-panel" style={{ padding: 24 }}>
+          <h3 style={{ margin: '0 0 16px 0', color: '#fff', fontSize: 18, fontWeight: 600 }}>Skills</h3>
           {isEditing ? (
-            <div className="skills-edit">
-              <div className="selected-skills">
+            <div style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: 16 }}>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
                 {profileData.skills.map((skill, index) => (
-                  <span key={index} className="skill-tag">
+                  <span key={index} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(123,97,255,0.2)', color: '#a78bfa', padding: '6px 12px', borderRadius: 20, fontSize: 14, fontWeight: 500 }}>
                     {skill}
                     <button
                       type="button"
                       onClick={() => removeSkill(skill)}
-                      className="remove-btn"
+                      style={{ background: 'none', border: 'none', color: '#a78bfa', cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: 0, marginLeft: 4 }}
                     >
                       ×
                     </button>
                   </span>
                 ))}
               </div>
-              <div className="available-skills">
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {availableSkills
                   .filter(skill => !profileData.skills.includes(skill))
                   .map(skill => (
                     <button
                       key={skill}
                       type="button"
-                      className="skill-option"
                       onClick={() => addSkill(skill)}
+                      style={{ background: 'rgba(255,255,255,0.05)', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.1)', padding: '6px 12px', borderRadius: 20, fontSize: 14, cursor: 'pointer', transition: 'all 0.2s' }}
                     >
                       + {skill}
                     </button>
@@ -353,46 +391,48 @@ const ProfileManagement = () => {
               </div>
             </div>
           ) : (
-            <div className="skills-display">
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {profileData.skills.length > 0 ? (
                 profileData.skills.map((skill, index) => (
-                  <span key={index} className="skill-tag">{skill}</span>
+                  <span key={index} style={{ background: 'rgba(123,97,255,0.2)', color: '#a78bfa', padding: '6px 12px', borderRadius: 20, fontSize: 14, fontWeight: 500 }}>
+                    {skill}
+                  </span>
                 ))
               ) : (
-                <p className="no-skills">No skills added yet</p>
+                <p style={{ color: '#64748b', fontStyle: 'italic', margin: 0 }}>No skills added yet</p>
               )}
             </div>
           )}
         </div>
 
         {/* Certifications */}
-        <div className="profile-section">
-          <h3>Certifications</h3>
+        <div className="glass-panel" style={{ padding: 24 }}>
+          <h3 style={{ margin: '0 0 16px 0', color: '#fff', fontSize: 18, fontWeight: 600 }}>Certifications</h3>
           {isEditing ? (
-            <div className="certifications-edit">
-              <div className="selected-certifications">
+            <div style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: 16 }}>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
                 {profileData.certifications.map((cert, index) => (
-                  <span key={index} className="cert-tag">
+                  <span key={index} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(6,182,212,0.15)', color: '#22d3ee', padding: '6px 12px', borderRadius: 20, fontSize: 14, fontWeight: 500 }}>
                     {cert}
                     <button
                       type="button"
                       onClick={() => removeCertification(cert)}
-                      className="remove-btn"
+                      style={{ background: 'none', border: 'none', color: '#22d3ee', cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: 0, marginLeft: 4 }}
                     >
                       ×
                     </button>
                   </span>
                 ))}
               </div>
-              <div className="available-certifications">
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {availableCertifications
                   .filter(cert => !profileData.certifications.includes(cert))
                   .map(cert => (
                     <button
                       key={cert}
                       type="button"
-                      className="cert-option"
                       onClick={() => addCertification(cert)}
+                      style={{ background: 'rgba(255,255,255,0.05)', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.1)', padding: '6px 12px', borderRadius: 20, fontSize: 14, cursor: 'pointer', transition: 'all 0.2s' }}
                     >
                       + {cert}
                     </button>
@@ -400,13 +440,15 @@ const ProfileManagement = () => {
               </div>
             </div>
           ) : (
-            <div className="certifications-display">
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {profileData.certifications.length > 0 ? (
                 profileData.certifications.map((cert, index) => (
-                  <span key={index} className="cert-tag">{cert}</span>
+                  <span key={index} style={{ background: 'rgba(6,182,212,0.15)', color: '#22d3ee', padding: '6px 12px', borderRadius: 20, fontSize: 14, fontWeight: 500 }}>
+                    {cert}
+                  </span>
                 ))
               ) : (
-                <p className="no-certs">No certifications added yet</p>
+                <p style={{ color: '#64748b', fontStyle: 'italic', margin: 0 }}>No certifications added yet</p>
               )}
             </div>
           )}
@@ -414,75 +456,75 @@ const ProfileManagement = () => {
 
         {/* Laser Details (Engineers only) */}
         {profile?.role === 'engineer' && (
-          <div className="profile-section">
-            <h3>Laser Details</h3>
-            <div className="info-grid">
-              <div className="info-item">
-                <Shield size={20} />
-                <div className="info-content">
-                  <label>Laser Type</label>
+          <div className="glass-panel" style={{ padding: 24 }}>
+            <h3 style={{ margin: '0 0 20px 0', color: '#fff', fontSize: 18, fontWeight: 600 }}>Laser Details</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <Shield size={20} style={{ color: '#94a3b8', flexShrink: 0 }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
+                  <label style={{ fontSize: 14, color: '#94a3b8', fontWeight: 500 }}>Laser Type</label>
                   {isEditing ? (
                     <input
                       type="text"
                       value={profileData.laser_type}
                       onChange={(e) => setProfileData(prev => ({ ...prev, laser_type: e.target.value }))}
-                      className="edit-input"
+                      className="glass-input"
                       placeholder="e.g., CO2 Laser, Fiber Laser"
                     />
                   ) : (
-                    <span>{profileData.laser_type || 'Not specified'}</span>
+                    <span style={{ color: '#fff', fontSize: 16 }}>{profileData.laser_type || 'Not specified'}</span>
                   )}
                 </div>
               </div>
 
-              <div className="info-item">
-                <Shield size={20} />
-                <div className="info-content">
-                  <label>Serial Number</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <Shield size={20} style={{ color: '#94a3b8', flexShrink: 0 }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
+                  <label style={{ fontSize: 14, color: '#94a3b8', fontWeight: 500 }}>Serial Number</label>
                   {isEditing ? (
                     <input
                       type="text"
                       value={profileData.serial_number}
                       onChange={(e) => setProfileData(prev => ({ ...prev, serial_number: e.target.value }))}
-                      className="edit-input"
+                      className="glass-input"
                       placeholder="Enter serial number"
                     />
                   ) : (
-                    <span>{profileData.serial_number || 'Not specified'}</span>
+                    <span style={{ color: '#fff', fontSize: 16 }}>{profileData.serial_number || 'Not specified'}</span>
                   )}
                 </div>
               </div>
 
-              <div className="info-item">
-                <MapPin size={20} />
-                <div className="info-content">
-                  <label>Tracker Status</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <MapPin size={20} style={{ color: '#94a3b8', flexShrink: 0 }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
+                  <label style={{ fontSize: 14, color: '#94a3b8', fontWeight: 500 }}>Tracker Status</label>
                   {isEditing ? (
                     <select
                       value={profileData.tracker_status}
                       onChange={(e) => setProfileData(prev => ({ ...prev, tracker_status: e.target.value }))}
-                      className="edit-input"
+                      className="glass-select"
                     >
                       <option value="Available">Available</option>
                       <option value="Not Available">Not Available</option>
                     </select>
                   ) : (
-                    <span>{profileData.tracker_status}</span>
+                    <span style={{ color: '#fff', fontSize: 16 }}>{profileData.tracker_status}</span>
                   )}
                 </div>
               </div>
 
-              <div className="info-item">
-                <Shield size={20} />
-                <div className="info-content">
-                  <label>Equipment Image</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <Shield size={20} style={{ color: '#94a3b8', flexShrink: 0 }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <label style={{ fontSize: 14, color: '#94a3b8', fontWeight: 500 }}>Equipment Image</label>
                   {isEditing ? (
-                    <div className="image-placeholder">
-                      <input type="file" disabled title="Image upload coming soon" />
-                      <span className="hint">Upload coming soon</span>
+                    <div>
+                      <input type="file" disabled title="Image upload coming soon" style={{ color: '#94a3b8' }} />
+                      <span style={{ fontSize: 13, color: '#64748b' }}>Upload coming soon</span>
                     </div>
                   ) : (
-                    <span className="hint">No image uploaded</span>
+                    <span style={{ fontSize: 13, color: '#64748b' }}>No image uploaded</span>
                   )}
                 </div>
               </div>
@@ -491,111 +533,117 @@ const ProfileManagement = () => {
         )}
 
         {/* Security */}
-        <div className="profile-section">
-          <h3>Security</h3>
-          <div className="security-actions">
-            <button 
-              className="password-btn"
-              onClick={() => setShowPasswordForm(true)}
-            >
-              <Shield size={16} />
-              Change Password
-            </button>
-          </div>
+        <div className="glass-panel" style={{ padding: 24 }}>
+          <h3 style={{ margin: '0 0 16px 0', color: '#fff', fontSize: 18, fontWeight: 600 }}>Security</h3>
+          <button
+            className="glass-btn-primary"
+            onClick={() => setShowPasswordForm(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+          >
+            <Shield size={16} />
+            Change Password
+          </button>
         </div>
       </div>
 
       {/* Password Change Modal */}
       {showPasswordForm && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>Change Password</h3>
-              <button 
-                className="close-btn"
+        <div className="glass-modal-backdrop">
+          <div className="glass-modal">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ margin: 0, color: '#fff', fontSize: 20, fontWeight: 600 }}>Change Password</h3>
+              <button
                 onClick={() => setShowPasswordForm(false)}
+                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 24, lineHeight: 1 }}
               >
                 ×
               </button>
             </div>
-            <form onSubmit={handlePasswordChange} className="modal-body">
-              <div className="form-group">
-                <label>Current Password *</label>
-                <div className="password-input">
+
+            <form onSubmit={handlePasswordChange}>
+              <div style={{ marginBottom: 18 }}>
+                <div className="section-label">Current Password *</div>
+                <div style={{ position: 'relative' }}>
                   <input
                     type={showPasswords.current ? 'text' : 'password'}
                     value={passwordData.currentPassword}
                     onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
                     required
                     placeholder="Enter current password"
+                    className="glass-input"
+                    style={{ paddingRight: 40 }}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPasswords(prev => ({ ...prev, current: !prev.current }))}
-                    className="password-toggle"
+                    style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 4 }}
                   >
                     {showPasswords.current ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
               </div>
 
-              <div className="form-group">
-                <label>New Password *</label>
-                <div className="password-input">
+              <div style={{ marginBottom: 18 }}>
+                <div className="section-label">New Password *</div>
+                <div style={{ position: 'relative' }}>
                   <input
                     type={showPasswords.new ? 'text' : 'password'}
                     value={passwordData.newPassword}
                     onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
                     required
                     placeholder="Enter new password"
+                    className="glass-input"
+                    style={{ paddingRight: 40 }}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPasswords(prev => ({ ...prev, new: !prev.new }))}
-                    className="password-toggle"
+                    style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 4 }}
                   >
                     {showPasswords.new ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
               </div>
 
-              <div className="form-group">
-                <label>Confirm New Password *</label>
-                <div className="password-input">
+              <div style={{ marginBottom: 18 }}>
+                <div className="section-label">Confirm New Password *</div>
+                <div style={{ position: 'relative' }}>
                   <input
                     type={showPasswords.confirm ? 'text' : 'password'}
                     value={passwordData.confirmPassword}
                     onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
                     required
                     placeholder="Confirm new password"
+                    className="glass-input"
+                    style={{ paddingRight: 40 }}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPasswords(prev => ({ ...prev, confirm: !prev.confirm }))}
-                    className="password-toggle"
+                    style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 4 }}
                   >
                     {showPasswords.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
               </div>
 
-              <div className="password-requirements">
-                <h4>Password Requirements:</h4>
-                <ul>
+              <div style={{ background: 'rgba(13,17,23,0.5)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 6, padding: 12, marginBottom: 20 }}>
+                <h4 style={{ margin: '0 0 8px 0', color: '#94a3b8', fontSize: 14 }}>Password Requirements:</h4>
+                <ul style={{ margin: 0, paddingLeft: 20, color: '#64748b', fontSize: 14 }}>
                   <li>At least 6 characters long</li>
                   <li>Must be different from current password</li>
                 </ul>
               </div>
 
-              <div className="modal-actions">
-                <button 
-                  type="button" 
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
                   onClick={() => setShowPasswordForm(false)}
-                  className="cancel-btn"
+                  className="glass-btn-secondary"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="save-btn">
+                <button type="submit" className="glass-btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Shield size={16} />
                   Change Password
                 </button>
@@ -604,399 +652,6 @@ const ProfileManagement = () => {
           </div>
         </div>
       )}
-
-      <style jsx>{`
-        .profile-management {
-          max-width: 800px;
-          margin: 0 auto;
-          padding: 20px;
-        }
-
-        .profile-header {
-          display: flex;
-          align-items: center;
-          gap: 20px;
-          margin-bottom: 40px;
-          padding: 30px;
-          background: white;
-          border-radius: 12px;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .profile-avatar {
-          width: 80px;
-          height: 80px;
-          border-radius: 50%;
-          background: #f3f4f6;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 32px;
-        }
-
-        .profile-info {
-          flex: 1;
-        }
-
-        .profile-info h2 {
-          margin: 0 0 8px 0;
-          color: #1f2937;
-          font-size: 24px;
-          font-weight: 700;
-        }
-
-        .profile-email {
-          margin: 0 0 12px 0;
-          color: #6b7280;
-          font-size: 16px;
-        }
-
-        .role-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 6px 12px;
-          border-radius: 20px;
-          color: white;
-          font-size: 14px;
-          font-weight: 600;
-        }
-
-        .profile-actions {
-          display: flex;
-          gap: 12px;
-        }
-
-        .edit-btn, .save-btn, .cancel-btn {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 10px 16px;
-          border: none;
-          border-radius: 6px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .edit-btn {
-          background: #3b82f6;
-          color: white;
-        }
-
-        .edit-btn:hover {
-          background: #2563eb;
-        }
-
-        .save-btn {
-          background: #10b981;
-          color: white;
-        }
-
-        .save-btn:hover {
-          background: #059669;
-        }
-
-        .cancel-btn {
-          background: #f3f4f6;
-          color: #6b7280;
-        }
-
-        .cancel-btn:hover {
-          background: #e5e7eb;
-        }
-
-        .profile-content {
-          display: flex;
-          flex-direction: column;
-          gap: 30px;
-        }
-
-        .profile-section {
-          background: white;
-          padding: 24px;
-          border-radius: 12px;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .profile-section h3 {
-          margin: 0 0 20px 0;
-          color: #1f2937;
-          font-size: 18px;
-          font-weight: 600;
-        }
-
-        .info-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 20px;
-        }
-
-        .info-item {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .info-item svg {
-          color: #6b7280;
-          flex-shrink: 0;
-        }
-
-        .info-content {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-
-        .info-content label {
-          font-size: 14px;
-          color: #6b7280;
-          font-weight: 500;
-        }
-
-        .info-content span {
-          color: #1f2937;
-          font-size: 16px;
-        }
-
-        .edit-input, .edit-textarea {
-          padding: 8px 12px;
-          border: 1px solid #d1d5db;
-          border-radius: 6px;
-          font-size: 16px;
-          width: 100%;
-        }
-
-        .edit-textarea {
-          resize: vertical;
-          min-height: 80px;
-        }
-
-        .bio-text {
-          color: #6b7280;
-          line-height: 1.6;
-          margin: 0;
-        }
-
-        .skills-edit, .certifications-edit {
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          padding: 16px;
-        }
-
-        .selected-skills, .selected-certifications {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-          margin-bottom: 16px;
-        }
-
-        .skill-tag, .cert-tag {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          background: #dbeafe;
-          color: #1e40af;
-          padding: 6px 12px;
-          border-radius: 20px;
-          font-size: 14px;
-          font-weight: 500;
-        }
-
-        .remove-btn {
-          background: none;
-          border: none;
-          color: #1e40af;
-          cursor: pointer;
-          font-size: 16px;
-          line-height: 1;
-          padding: 0;
-          margin-left: 4px;
-        }
-
-        .available-skills, .available-certifications {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-
-        .skill-option, .cert-option {
-          background: #f3f4f6;
-          color: #6b7280;
-          border: 1px solid #d1d5db;
-          padding: 6px 12px;
-          border-radius: 20px;
-          font-size: 14px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .skill-option:hover, .cert-option:hover {
-          background: #e5e7eb;
-          color: #374151;
-        }
-
-        .skills-display, .certifications-display {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-
-        .no-skills, .no-certs {
-          color: #9ca3af;
-          font-style: italic;
-          margin: 0;
-        }
-
-        .security-actions {
-          display: flex;
-          gap: 12px;
-        }
-
-        .password-btn {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 10px 16px;
-          background: #f59e0b;
-          color: white;
-          border: none;
-          border-radius: 6px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .password-btn:hover {
-          background: #d97706;
-        }
-
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0, 0, 0, 0.5);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1000;
-        }
-
-        .modal-content {
-          background: white;
-          border-radius: 12px;
-          width: 90%;
-          max-width: 500px;
-        }
-
-        .modal-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 20px;
-          border-bottom: 1px solid #e5e7eb;
-        }
-
-        .modal-header h3 {
-          margin: 0;
-          color: #1f2937;
-          font-size: 20px;
-          font-weight: 600;
-        }
-
-        .close-btn {
-          background: none;
-          border: none;
-          color: #6b7280;
-          cursor: pointer;
-          font-size: 24px;
-          line-height: 1;
-        }
-
-        .modal-body {
-          padding: 20px;
-        }
-
-        .form-group {
-          margin-bottom: 20px;
-        }
-
-        .form-group label {
-          display: block;
-          margin-bottom: 8px;
-          font-weight: 600;
-          color: #374151;
-        }
-
-        .password-input {
-          position: relative;
-        }
-
-        .password-input input {
-          width: 100%;
-          padding: 12px 40px 12px 12px;
-          border: 1px solid #d1d5db;
-          border-radius: 6px;
-          font-size: 16px;
-        }
-
-        .password-toggle {
-          position: absolute;
-          right: 12px;
-          top: 50%;
-          transform: translateY(-50%);
-          background: none;
-          border: none;
-          color: #6b7280;
-          cursor: pointer;
-          padding: 4px;
-        }
-
-        .password-requirements {
-          background: #f9fafb;
-          border: 1px solid #e5e7eb;
-          border-radius: 6px;
-          padding: 12px;
-          margin-bottom: 20px;
-        }
-
-        .password-requirements h4 {
-          margin: 0 0 8px 0;
-          color: #374151;
-          font-size: 14px;
-        }
-
-        .password-requirements ul {
-          margin: 0;
-          padding-left: 20px;
-          color: #6b7280;
-          font-size: 14px;
-        }
-
-        .modal-actions {
-          display: flex;
-          gap: 12px;
-          justify-content: flex-end;
-        }
-
-        @media (max-width: 768px) {
-          .profile-header {
-            flex-direction: column;
-            text-align: center;
-          }
-
-          .info-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .profile-actions {
-            justify-content: center;
-          }
-        }
-      `}</style>
     </div>
   );
 };
