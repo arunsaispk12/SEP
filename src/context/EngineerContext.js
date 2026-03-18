@@ -597,8 +597,10 @@ export function EngineerProvider({ children }) {
           .eq('id', id)
           .select()
           .single();
-
         if (error) throw error;
+
+        await supabase.from('engineers').update({ is_approved: true }).eq('id', id);
+
         dispatch({ type: 'UPDATE_ENGINEER', payload: { id, updates: data } });
       } else {
         dispatch({ type: 'UPDATE_ENGINEER', payload: { id, updates: { is_approved: true } } });

@@ -75,8 +75,18 @@ class SupabaseService {
       .single();
 
     if (error) throw error;
+
+    // Sync writable fields to profiles to keep both tables consistent
+    const profileUpdates = {};
+    const syncFields = ['name', 'role', 'phone', 'location_id', 'laser_type', 'serial_number', 'tracker_status'];
+    syncFields.forEach(f => { if (updates[f] !== undefined) profileUpdates[f] = updates[f]; });
+    if (Object.keys(profileUpdates).length > 0) {
+      profileUpdates.updated_at = new Date().toISOString();
+      await supabase.from('profiles').update(profileUpdates).eq('id', id);
+    }
+
     return data;
-  }
+  },
 
   async createEngineer(engineer) {
     const { data, error } = await supabase
