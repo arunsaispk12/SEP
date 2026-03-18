@@ -99,10 +99,10 @@ const ScheduleCalendar = () => {
 
   // locations is now coming from context
   const priorities = [
-    { value: 'low', label: 'Low', color: '#28a745' },
-    { value: 'normal', label: 'Normal', color: '#ffc107' },
-    { value: 'high', label: 'High', color: '#dc3545' },
-    { value: 'urgent', label: 'Urgent', color: '#7B61FF' }
+    { value: 'low',    label: 'Low',    color: '#22c55e' },
+    { value: 'normal', label: 'Normal', color: '#3b82f6' },
+    { value: 'high',   label: 'High',   color: '#f59e0b' },
+    { value: 'urgent', label: 'Urgent', color: '#ef4444' }
   ];
 
   const PRIORITY_COLORS = {
@@ -330,9 +330,9 @@ const ScheduleCalendar = () => {
     return {
       style: {
         backgroundColor: PRIORITY_COLORS[priority] || '#6b7280',
-        borderLeft: caseAccent ? `3px solid ${caseAccent}` : 'none',
-        borderRadius: 4,
         border: 'none',
+        borderLeft: caseAccent ? `3px solid ${caseAccent}` : undefined,
+        borderRadius: 4,
         opacity: dim ? 0.5 : 1,
         fontSize: 11,
         color: '#fff',
@@ -514,7 +514,7 @@ const ScheduleCalendar = () => {
                 {/* Inline expansion */}
                 {showInlineAdd && (
                   <div style={{ marginTop: 12, padding: 14, background: 'rgba(167,139,250,0.06)', border: '1px solid rgba(167,139,250,0.15)', borderRadius: 10 }}>
-                    <form onSubmit={handleSaveNewClient}>
+                    <div>
                       <div style={{ marginBottom: 10 }}>
                         <div className="section-label">Name *</div>
                         <input type="text" required value={newClientForm.name}
@@ -553,12 +553,13 @@ const ScheduleCalendar = () => {
                         <button type="button" className="glass-btn-secondary"
                           onClick={() => { setShowInlineAdd(false); setNewClientForm({ name: '', contact_person: '', mobile: '', address: '', location: '' }); }}
                           style={{ fontSize: 12, padding: '6px 12px' }}>Cancel</button>
-                        <button type="submit" className="glass-btn-primary" disabled={savingClient}
+                        <button type="button" className="glass-btn-primary" disabled={savingClient}
+                          onClick={handleSaveNewClient}
                           style={{ fontSize: 12, padding: '6px 12px' }}>
                           {savingClient ? 'Saving...' : 'Save & Select'}
                         </button>
                       </div>
-                    </form>
+                    </div>
                   </div>
                 )}
               </div>
