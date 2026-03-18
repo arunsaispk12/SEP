@@ -13,6 +13,7 @@ import GoogleCalendarSync from './components/GoogleCalendarSync';
 import UserManagement from './components/UserManagement';
 import ProfileManagement from './components/ProfileManagement';
 import AdminPanel from './components/AdminPanel';
+import EngineerDashboard from './components/EngineerDashboard';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
 import { EngineerProvider } from './context/EngineerContext';
@@ -22,7 +23,7 @@ import middlewareConfig from './config/middleware';
 import './App.css';
 
 function AppContent() {
-  const { user, isAuthenticated, loading, logout } = useAuth();
+  const { user, profile, isAuthenticated, loading, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isDark, setIsDark] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -65,7 +66,7 @@ function AppContent() {
 
   // Different tabs based on user role
   const getTabsForUser = () => {
-    if (user.role === 'admin') {
+    if (profile?.role === 'admin') {
       return [
         { id: 'admin', label: 'Admin Panel', icon: '🛡️' },
         { id: 'dashboard', label: 'Dashboard', icon: '📊' },
@@ -76,7 +77,7 @@ function AppContent() {
         { id: 'cases', label: 'Cases', icon: '📋' },
         { id: 'sync', label: 'Google Calendar', icon: '🔄' }
       ];
-    } else if (user.role === 'manager') {
+    } else if (profile?.role === 'manager') {
       return [
         { id: 'manager', label: 'Dashboard', icon: '📊' },
         { id: 'users', label: 'User Management', icon: '👤' },
@@ -86,7 +87,7 @@ function AppContent() {
         { id: 'cases', label: 'Cases', icon: '📋' },
         { id: 'sync', label: 'Google Calendar', icon: '🔄' }
       ];
-    } else if (user.role === 'executive') {
+    } else if (profile?.role === 'executive') {
       return [
         { id: 'dashboard', label: 'Dashboard', icon: '📊' },
         { id: 'clients', label: 'My Clients', icon: '🏢' },
@@ -151,7 +152,7 @@ function AppContent() {
           >
             {activeTab === 'admin' && <AdminPanel />}
             {activeTab === 'dashboard' && <UnifiedDashboard />}
-            {activeTab === 'personal' && <UnifiedDashboard />}
+            {activeTab === 'personal' && <EngineerDashboard onGoToCases={() => setActiveTab('cases')} />}
             {activeTab === 'account' && <ProfileManagement />}
             {activeTab === 'manager' && <UnifiedDashboard />}
             {activeTab === 'users' && <UserManagement />}
