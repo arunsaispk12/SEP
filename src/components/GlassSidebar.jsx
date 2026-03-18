@@ -37,8 +37,8 @@ function avatarGradient(name) {
     'linear-gradient(135deg,#34d399,#06b6d4)',
     'linear-gradient(135deg,#f472b6,#a78bfa)',
   ];
-  const idx = name ? name.charCodeAt(0) % colors.length : 0;
-  return colors[idx];
+  const code = name && name.length > 0 ? name.charCodeAt(0) : 0;
+  return colors[code % colors.length];
 }
 
 const LogoMark = () => (
