@@ -10,6 +10,46 @@ import toast from 'react-hot-toast';
 
 const localizer = momentLocalizer(moment);
 
+const LocationCombobox = ({ value, onChange, locations }) => {
+  const [open, setOpen] = React.useState(false);
+  const ref = React.useRef(null);
+  const filtered = (locations || [])
+    .filter(l => l.toLowerCase().includes((value || '').toLowerCase()))
+    .slice(0, 8);
+
+  React.useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <input
+        type="text"
+        value={value}
+        onChange={e => { onChange(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        placeholder="Type or select location..."
+        className="glass-input"
+      />
+      {open && filtered.length > 0 && (
+        <div className="location-combobox-dropdown">
+          {filtered.map(loc => (
+            <div
+              key={loc}
+              className="location-combobox-option"
+              onMouseDown={() => { onChange(loc); setOpen(false); }}
+            >
+              {loc}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const ScheduleCalendar = () => {
   const {
     schedules,
@@ -312,20 +352,12 @@ const ScheduleCalendar = () => {
               </div>
 
               <div style={{ marginBottom: 14 }}>
-                <div className="section-label">Location *</div>
-                <select
+                <div className="section-label">Location</div>
+                <LocationCombobox
                   value={formData.location}
-                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                  required
-                  className="glass-select"
-                >
-                  <option value="">Select Location</option>
-                  {locations.map(location => (
-                    <option key={location} value={location}>
-                      {location}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setFormData(prev => ({ ...prev, location: val }))}
+                  locations={locations}
+                />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>

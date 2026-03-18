@@ -850,3 +850,31 @@ select:focus {
   }
 }
 
+/* Location combobox dropdown */
+.location-combobox-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: rgba(15, 12, 41, 0.95);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  backdrop-filter: blur(16px);
+  z-index: 100;
+  max-height: 220px;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.location-combobox-option {
+  padding: 10px 14px;
+  color: rgba(255,255,255,0.8);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.location-combobox-option:hover {
+  background: rgba(167,139,250,0.12);
+  color: #fff;
+}
+.location-combobox-option:first-child { border-radius: 10px 10px 0 0; }
+.location-combobox-option:last-child  { border-radius: 0 0 10px 10px; }
