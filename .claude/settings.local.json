@@ -9,7 +9,22 @@
       "mcp__supabase__execute_sql",
       "Bash(npm install:*)",
       "Bash(npm start)",
-      "Bash(npx react-scripts build)"
+      "Bash(npx react-scripts build)",
+      "mcp__supabase__list_migrations",
+      "Bash(netstat -ano)",
+      "Bash(findstr \":3000\")",
+      "Bash(SESSION_DIR=\"C:/ASP/SEP/.superpowers/brainstorm/main-session\")",
+      "Bash(mkdir -p \"$SESSION_DIR\")",
+      "Bash(powershell -Command \":*)",
+      "Bash(echo \"SESSION_DIR=$SESSION_DIR\")",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npm run:*)",
+      "Bash(grep -E \"\\(ERROR|src\\\\components\\\\\\\\\\(UnifiedDashboard|EngineerDashboard|dashboard\\)\\)\")",
+      "Bash(bash .claude/scripts/start-server.sh --project-dir C:/ASP/SEP)",
+      "Bash(bash \"C:/Users/nisan/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.5/skills/brainstorming/scripts/start-server.sh\" --project-dir C:/ASP/SEP 2>&1)",
+      "mcp__supabase__get_advisors",
+      "mcp__supabase__get_logs"
     ]
   },
   "enableAllProjectMcpServers": true,
