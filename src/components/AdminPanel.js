@@ -42,7 +42,7 @@ const AdminPanel = () => {
     console.log(`${action} user:`, userId);
   }, []);
 
-  // System statistics
+  // System statistics — live from context data
   const systemStats = useMemo(() => {
     return {
       totalUsers: engineers.length,
@@ -70,39 +70,13 @@ const AdminPanel = () => {
   // Check if user is admin
   if (!profile || profile.role !== 'admin') {
     return (
-      <div className="admin-access-denied">
-        <div className="denied-content">
-          <Shield size={64} />
-          <h2>Access Denied</h2>
-          <p>You don't have permission to access the admin panel.</p>
-          <p>This area is restricted to administrators only.</p>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+        <div className="glass-panel" style={{ textAlign: 'center', padding: 40, maxWidth: 400 }}>
+          <Shield size={64} style={{ color: '#f87171', marginBottom: 16 }} />
+          <h2 style={{ color: '#f87171', marginBottom: 16 }}>Access Denied</h2>
+          <p style={{ color: '#94a3b8', marginBottom: 8 }}>You don't have permission to access the admin panel.</p>
+          <p style={{ color: '#94a3b8' }}>This area is restricted to administrators only.</p>
         </div>
-        <style jsx>{`
-          .admin-access-denied {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
-          }
-          .denied-content {
-            text-align: center;
-            background: rgba(22, 27, 34, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            max-width: 400px;
-          }
-          .denied-content h2 {
-            color: #f87171;
-            margin-bottom: 16px;
-          }
-          .denied-content p {
-            color: #94a3b8;
-            margin-bottom: 8px;
-          }
-        `}</style>
       </div>
     );
   }
@@ -115,188 +89,126 @@ const AdminPanel = () => {
   ];
 
   const OverviewTab = () => (
-    <div className="overview-content">
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon">
-            <Users size={24} />
+    <div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginBottom: 40 }}>
+        {[
+          { icon: <Users size={24} />, value: systemStats.totalUsers, label: 'Total Users' },
+          { icon: <CheckCircle size={24} />, value: systemStats.activeUsers, label: 'Active Users' },
+          { icon: <Database size={24} />, value: systemStats.totalCases, label: 'Total Cases' },
+          { icon: <AlertTriangle size={24} />, value: systemStats.openCases, label: 'Open Cases' },
+          { icon: <BarChart3 size={24} />, value: systemStats.totalSchedules, label: 'Schedules' },
+          { icon: <Shield size={24} />, value: systemStats.systemHealth, label: 'System Health' },
+        ].map((stat, i) => (
+          <div key={i} className="glass-panel-sm" style={{ padding: 20, display: 'flex', alignItems: 'center', gap: 16, transition: 'all 0.3s ease' }}>
+            <div style={{ color: '#a78bfa', background: 'rgba(123,97,255,0.15)', padding: 12, borderRadius: 12, flexShrink: 0 }}>
+              {stat.icon}
+            </div>
+            <div>
+              <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#f1f5f9', marginBottom: 4 }}>{stat.value}</div>
+              <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>{stat.label}</div>
+            </div>
           </div>
-          <div className="stat-content">
-            <div className="stat-number">{systemStats.totalUsers}</div>
-            <div className="stat-label">Total Users</div>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">
-            <CheckCircle size={24} />
-          </div>
-          <div className="stat-content">
-            <div className="stat-number">{systemStats.activeUsers}</div>
-            <div className="stat-label">Active Users</div>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">
-            <Database size={24} />
-          </div>
-          <div className="stat-content">
-            <div className="stat-number">{systemStats.totalCases}</div>
-            <div className="stat-label">Total Cases</div>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">
-            <AlertTriangle size={24} />
-          </div>
-          <div className="stat-content">
-            <div className="stat-number">{systemStats.openCases}</div>
-            <div className="stat-label">Open Cases</div>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">
-            <BarChart3 size={24} />
-          </div>
-          <div className="stat-content">
-            <div className="stat-number">{systemStats.totalSchedules}</div>
-            <div className="stat-label">Schedules</div>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">
-            <Shield size={24} />
-          </div>
-          <div className="stat-content">
-            <div className="stat-number">{systemStats.systemHealth}</div>
-            <div className="stat-label">System Health</div>
-          </div>
-        </div>
+        ))}
       </div>
 
-      <div className="recent-activity">
-        <h3>Recent System Activity</h3>
-        <div className="activity-list">
-          <div className="activity-item">
-            <div className="activity-icon">
-              <Users size={16} />
+      <div>
+        <h3 style={{ color: '#f1f5f9', marginBottom: 20 }}>Recent System Activity</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {[
+            { icon: <Users size={16} />, text: 'New user registered: john.doe@example.com', time: '2 hours ago' },
+            { icon: <Database size={16} />, text: 'Case #1234 status updated to "In Progress"', time: '4 hours ago' },
+            { icon: <Settings size={16} />, text: 'System backup completed successfully', time: '1 day ago' },
+          ].map((item, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'rgba(13,17,23,0.4)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8 }}>
+              <div style={{ color: '#a78bfa', flexShrink: 0 }}>{item.icon}</div>
+              <div>
+                <p style={{ color: '#e2e8f0', margin: '0 0 4px 0', fontSize: '0.9rem' }}>{item.text}</p>
+                <span style={{ color: '#64748b', fontSize: '0.8rem' }}>{item.time}</span>
+              </div>
             </div>
-            <div className="activity-content">
-              <p>New user registered: john.doe@example.com</p>
-              <span className="activity-time">2 hours ago</span>
-            </div>
-          </div>
-          <div className="activity-item">
-            <div className="activity-icon">
-              <Database size={16} />
-            </div>
-            <div className="activity-content">
-              <p>Case #1234 status updated to "In Progress"</p>
-              <span className="activity-time">4 hours ago</span>
-            </div>
-          </div>
-          <div className="activity-item">
-            <div className="activity-icon">
-              <Settings size={16} />
-            </div>
-            <div className="activity-content">
-              <p>System backup completed successfully</p>
-              <span className="activity-time">1 day ago</span>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>
   );
 
   const UsersTab = () => (
-    <div className="users-content">
-      <div className="users-header">
-        <div className="header-left">
-          <h3>User Management</h3>
-          <p>Manage system users and their permissions</p>
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <h3 style={{ color: '#f1f5f9', margin: 0 }}>User Management</h3>
+          <p style={{ color: '#94a3b8', margin: '4px 0 0 0', fontSize: '0.9rem' }}>Manage system users and their permissions</p>
         </div>
-        <div className="header-actions">
-          <div className="search-box">
-            <Search size={16} />
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(13,17,23,0.5)', border: '1px solid rgba(255,255,255,0.1)', padding: '8px 12px', borderRadius: 8 }}>
+            <Search size={16} style={{ color: '#64748b', flexShrink: 0 }} />
             <input
               type="text"
               placeholder="Search users..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ border: 'none', background: 'transparent', outline: 'none', flex: 1, color: '#e2e8f0', minWidth: 160 }}
             />
           </div>
-          <button className="btn-primary">
+          <button className="glass-btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Plus size={16} />
             Add User
           </button>
         </div>
       </div>
 
-      <div className="users-table">
-        <div className="table-header">
-          <div className="table-cell">Name</div>
-          <div className="table-cell">Email</div>
-          <div className="table-cell">Role</div>
-          <div className="table-cell">Status</div>
-          <div className="table-cell">Actions</div>
+      <div style={{ background: 'rgba(13,17,23,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, overflow: 'hidden' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1fr 1fr 1fr', gap: 16, padding: '14px 20px', background: 'rgba(13,17,23,0.6)', fontWeight: 600, color: '#94a3b8', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <div>Name</div>
+          <div>Email</div>
+          <div>Role</div>
+          <div>Status</div>
+          <div>Actions</div>
         </div>
         {filteredEngineers.map(user => (
-            <div key={user.id} className="table-row">
-              <div className="table-cell">{user.name}</div>
-              <div className="table-cell">{user.email}</div>
-              <div className="table-cell">
-                <span className={`role-badge ${user.role}`}>{user.role}</span>
-              </div>
-              <div className="table-cell">
-                <span className={`status-badge ${user.is_active ? 'active' : 'inactive'}`}>
-                  {user.is_active ? 'Active' : 'Inactive'}
-                </span>
-              </div>
-              <div className="table-cell">
-                <div className="action-buttons">
-                  <button
-                    className="btn-icon"
-                    onClick={() => handleUserAction('edit', user.id)}
-                    title="Edit user"
-                  >
-                    <Edit size={14} />
-                  </button>
-                  <button
-                    className="btn-icon danger"
-                    onClick={() => handleUserAction('delete', user.id)}
-                    title="Delete user"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              </div>
+          <div key={user.id} style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1fr 1fr 1fr', gap: 16, padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', color: '#e2e8f0', alignItems: 'center', transition: 'background-color 0.2s ease' }}>
+            <div>{user.name}</div>
+            <div>{user.email}</div>
+            <div>
+              <span style={{ padding: '4px 8px', borderRadius: 12, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', background: user.role === 'admin' ? 'rgba(239,68,68,0.15)' : user.role === 'manager' ? 'rgba(245,158,11,0.15)' : 'rgba(34,197,94,0.15)', color: user.role === 'admin' ? '#f87171' : user.role === 'manager' ? '#fbbf24' : '#4ade80' }}>
+                {user.role}
+              </span>
             </div>
-          ))}
+            <div>
+              <span style={{ padding: '4px 8px', borderRadius: 12, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', background: user.is_active ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)', color: user.is_active ? '#4ade80' : '#f87171' }}>
+                {user.is_active ? 'Active' : 'Inactive'}
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => handleUserAction('edit', user.id)} title="Edit user" style={{ padding: 6, border: 'none', borderRadius: 6, cursor: 'pointer', background: 'rgba(123,97,255,0.15)', color: '#a78bfa', minHeight: 32, minWidth: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Edit size={14} />
+              </button>
+              <button onClick={() => handleUserAction('delete', user.id)} title="Delete user" style={{ padding: 6, border: 'none', borderRadius: 6, cursor: 'pointer', background: 'rgba(239,68,68,0.15)', color: '#f87171', minHeight: 32, minWidth: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Trash2 size={14} />
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
 
   const CasesTab = () => (
-    <div className="cases-content">
-      <h3>Case Administration</h3>
-      <p>Monitor and manage all system cases</p>
+    <div>
+      <h3 style={{ color: '#f1f5f9', marginBottom: 8 }}>Case Administration</h3>
+      <p style={{ color: '#94a3b8', marginBottom: 20 }}>Monitor and manage all system cases</p>
 
-      <div className="cases-grid">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
         {displayedCases.map(case_ => (
-          <div key={case_.id} className="case-admin-card">
-            <div className="case-header">
-              <h4>{case_.title}</h4>
-              <span className={`status-badge ${case_.status}`}>
+          <div key={case_.id} className="glass-panel-sm" style={{ padding: 16, transition: 'border-color 0.2s' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8, gap: 8 }}>
+              <h4 style={{ margin: 0, color: '#f1f5f9', fontSize: '0.95rem' }}>{case_.title}</h4>
+              <span style={{ padding: '4px 8px', borderRadius: 12, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', background: 'rgba(123,97,255,0.15)', color: '#a78bfa', flexShrink: 0 }}>
                 {case_.status}
               </span>
             </div>
-            <p>{case_.description}</p>
-            <div className="case-meta">
+            <p style={{ color: '#94a3b8', marginBottom: 12, fontSize: '0.875rem' }}>{case_.description}</p>
+            <div style={{ display: 'flex', gap: 16, fontSize: '0.8rem', color: '#64748b', flexWrap: 'wrap' }}>
               <span>Priority: {case_.priority}</span>
               <span>Location: {case_.location}</span>
             </div>
@@ -307,60 +219,59 @@ const AdminPanel = () => {
   );
 
   const SystemTab = () => (
-    <div className="system-content">
-      <h3>System Settings</h3>
-      <p>Configure system-wide settings and preferences</p>
+    <div>
+      <h3 style={{ color: '#f1f5f9', marginBottom: 8 }}>System Settings</h3>
+      <p style={{ color: '#94a3b8', marginBottom: 20 }}>Configure system-wide settings and preferences</p>
 
-      <div className="settings-grid">
-        <div className="setting-card">
-          <h4>Database Configuration</h4>
-          <p>Manage database connections and settings</p>
-          <button className="btn-secondary">Configure</button>
-        </div>
-
-        <div className="setting-card">
-          <h4>Security Settings</h4>
-          <p>Configure authentication and access controls</p>
-          <button className="btn-secondary">Configure</button>
-        </div>
-
-        <div className="setting-card">
-          <h4>Backup & Recovery</h4>
-          <p>Manage system backups and recovery options</p>
-          <button className="btn-secondary">Configure</button>
-        </div>
-
-        <div className="setting-card">
-          <h4>API Configuration</h4>
-          <p>Configure external API integrations</p>
-          <button className="btn-secondary">Configure</button>
-        </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+        {[
+          { title: 'Database Configuration', desc: 'Manage database connections and settings' },
+          { title: 'Security Settings', desc: 'Configure authentication and access controls' },
+          { title: 'Backup & Recovery', desc: 'Manage system backups and recovery options' },
+          { title: 'API Configuration', desc: 'Configure external API integrations' },
+        ].map((card, i) => (
+          <div key={i} className="glass-panel-sm" style={{ padding: 20, transition: 'border-color 0.2s' }}>
+            <h4 style={{ margin: '0 0 8px 0', color: '#f1f5f9' }}>{card.title}</h4>
+            <p style={{ color: '#94a3b8', marginBottom: 16, fontSize: '0.875rem' }}>{card.desc}</p>
+            <button className="glass-btn-secondary">Configure</button>
+          </div>
+        ))}
       </div>
     </div>
   );
 
   return (
-    <div className="admin-panel">
-      <div className="admin-header">
-        <div className="header-content">
-          <Shield size={32} />
+    <div style={{ minHeight: '100vh', padding: 20, color: '#f1f5f9' }}>
+      {/* Admin Header */}
+      <div className="glass-panel" style={{ padding: 24, marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <Shield size={32} style={{ color: '#a78bfa' }} />
           <div>
-            <h1>Admin Panel</h1>
-            <p>System administration and management</p>
+            <h1 style={{ margin: 0, color: '#f1f5f9', fontSize: 'clamp(1.4rem, 4vw, 2rem)', fontWeight: 700 }}>Admin Panel</h1>
+            <p style={{ margin: '4px 0 0 0', color: '#94a3b8' }}>System administration and management</p>
           </div>
         </div>
-        <div className="admin-info">
+        <div style={{ color: '#94a3b8', fontWeight: 500 }}>
           <span>Administrator: {profile.name}</span>
         </div>
       </div>
 
-      <div className="admin-content">
-        <nav className="admin-nav">
+      {/* Content Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 24 }}>
+        {/* Nav */}
+        <nav className="glass-panel" style={{ padding: 20, height: 'fit-content' }}>
           {adminTabs.map(tab => (
             <button
               key={tab.id}
-              className={`nav-item ${activeTab === tab.id ? 'active' : ''}`}
               onClick={() => setActiveTab(tab.id)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '14px 16px',
+                border: 'none', borderRadius: 12, cursor: 'pointer', transition: 'all 0.3s ease',
+                marginBottom: 6, minHeight: 44, fontWeight: 500,
+                background: activeTab === tab.id ? 'linear-gradient(135deg, #7b61ff 0%, #06b6d4 100%)' : 'transparent',
+                color: activeTab === tab.id ? 'white' : '#94a3b8',
+                boxShadow: activeTab === tab.id ? '0 4px 16px rgba(123,97,255,0.3)' : 'none',
+              }}
             >
               {tab.icon}
               {tab.label}
@@ -368,7 +279,8 @@ const AdminPanel = () => {
           ))}
         </nav>
 
-        <main className="admin-main">
+        {/* Main content */}
+        <main className="glass-panel" style={{ padding: 24 }}>
           {activeTab === 'overview' && <OverviewTab />}
           {activeTab === 'users' && <UsersTab />}
           {activeTab === 'cases' && <CasesTab />}
@@ -377,505 +289,9 @@ const AdminPanel = () => {
       </div>
 
       <style jsx>{`
-        .admin-panel {
-          min-height: 100vh;
-          padding: 20px;
-        }
-
-        .admin-header {
-          background: rgba(22, 27, 34, 0.85);
-          backdrop-filter: blur(15px);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          padding: 24px;
-          border-radius: 16px;
-          margin-bottom: 24px;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 12px;
-        }
-
-        .header-content {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-        }
-
-        .header-content h1 {
-          margin: 0;
-          color: #f1f5f9;
-          font-size: clamp(1.4rem, 4vw, 2rem);
-          font-weight: 700;
-        }
-
-        .header-content p {
-          margin: 4px 0 0 0;
-          color: #94a3b8;
-        }
-
-        .admin-info {
-          color: #94a3b8;
-          font-weight: 500;
-        }
-
-        .admin-content {
-          display: grid;
-          grid-template-columns: 280px 1fr;
-          gap: 24px;
-        }
-
-        .admin-nav {
-          background: rgba(22, 27, 34, 0.85);
-          backdrop-filter: blur(15px);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          padding: 20px;
-          border-radius: 16px;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-          height: fit-content;
-        }
-
-        .nav-item {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          width: 100%;
-          padding: 14px 16px;
-          border: none;
-          background: transparent;
-          border-radius: 12px;
-          color: #94a3b8;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          margin-bottom: 6px;
-          min-height: 44px;
-        }
-
-        .nav-item:hover {
-          background: rgba(123, 97, 255, 0.1);
-          color: #a78bfa;
-          transform: translateX(4px);
-        }
-
-        .nav-item.active {
-          background: linear-gradient(135deg, #7b61ff 0%, #06b6d4 100%);
-          color: white;
-          box-shadow: 0 4px 16px rgba(123, 97, 255, 0.3);
-        }
-
-        .admin-main {
-          background: rgba(22, 27, 34, 0.85);
-          backdrop-filter: blur(15px);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          padding: 24px;
-          border-radius: 16px;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        .stats-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-          gap: 16px;
-          margin-bottom: 40px;
-        }
-
-        .stat-card {
-          background: rgba(13, 17, 23, 0.5);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          padding: 20px;
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-          transform: translateY(-2px);
-          border-color: rgba(123, 97, 255, 0.3);
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-        }
-
-        .stat-icon {
-          color: #a78bfa;
-          background: rgba(123, 97, 255, 0.15);
-          padding: 12px;
-          border-radius: 12px;
-          flex-shrink: 0;
-        }
-
-        .stat-number {
-          font-size: 1.8rem;
-          font-weight: 700;
-          color: #f1f5f9;
-          margin-bottom: 4px;
-        }
-
-        .stat-label {
-          color: #94a3b8;
-          font-size: 0.85rem;
-        }
-
-        .recent-activity h3 {
-          color: #f1f5f9;
-          margin-bottom: 20px;
-        }
-
-        .activity-list {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
-        .activity-item {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 14px 16px;
-          background: rgba(13, 17, 23, 0.4);
-          border: 1px solid rgba(255, 255, 255, 0.06);
-          border-radius: 8px;
-        }
-
-        .activity-content p {
-          color: #e2e8f0;
-          margin: 0 0 4px 0;
-          font-size: 0.9rem;
-        }
-
-        .activity-icon {
-          color: #a78bfa;
-          flex-shrink: 0;
-        }
-
-        .activity-time {
-          color: #64748b;
-          font-size: 0.8rem;
-        }
-
-        .users-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 24px;
-          flex-wrap: wrap;
-          gap: 12px;
-        }
-
-        .users-header h3 {
-          color: #f1f5f9;
-          margin: 0;
-        }
-
-        .users-header p {
-          color: #94a3b8;
-          margin: 4px 0 0 0;
-          font-size: 0.9rem;
-        }
-
-        .header-actions {
-          display: flex;
-          gap: 12px;
-          align-items: center;
-          flex-wrap: wrap;
-        }
-
-        .search-box {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          background: rgba(13, 17, 23, 0.5);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          padding: 8px 12px;
-          border-radius: 8px;
-        }
-
-        .search-box input {
-          border: none;
-          background: transparent;
-          outline: none;
-          flex: 1;
-          color: #e2e8f0;
-          min-width: 160px;
-        }
-
-        .search-box input::placeholder {
-          color: #64748b;
-        }
-
-        .search-box svg {
-          color: #64748b;
-          flex-shrink: 0;
-        }
-
-        .btn-primary {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          background: linear-gradient(135deg, #7b61ff 0%, #06b6d4 100%);
-          color: white;
-          border: none;
-          padding: 10px 16px;
-          border-radius: 8px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          min-height: 44px;
-        }
-
-        .btn-primary:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(123, 97, 255, 0.4);
-        }
-
-        .users-table {
-          background: rgba(13, 17, 23, 0.4);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 12px;
-          overflow: hidden;
-        }
-
-        .table-header {
-          display: grid;
-          grid-template-columns: 2fr 2fr 1fr 1fr 1fr;
-          gap: 16px;
-          padding: 14px 20px;
-          background: rgba(13, 17, 23, 0.6);
-          font-weight: 600;
-          color: #94a3b8;
-          font-size: 0.85rem;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-
-        .table-row {
-          display: grid;
-          grid-template-columns: 2fr 2fr 1fr 1fr 1fr;
-          gap: 16px;
-          padding: 14px 20px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-          transition: background-color 0.2s ease;
-          color: #e2e8f0;
-          align-items: center;
-        }
-
-        .table-row:last-child {
-          border-bottom: none;
-        }
-
-        .table-row:hover {
-          background: rgba(123, 97, 255, 0.05);
-        }
-
-        .role-badge, .status-badge {
-          padding: 4px 8px;
-          border-radius: 12px;
-          font-size: 0.75rem;
-          font-weight: 600;
-          text-transform: uppercase;
-          display: inline-block;
-        }
-
-        .role-badge.admin {
-          background: rgba(239, 68, 68, 0.15);
-          color: #f87171;
-        }
-
-        .role-badge.manager {
-          background: rgba(245, 158, 11, 0.15);
-          color: #fbbf24;
-        }
-
-        .role-badge.engineer {
-          background: rgba(34, 197, 94, 0.15);
-          color: #4ade80;
-        }
-
-        .status-badge.active {
-          background: rgba(34, 197, 94, 0.15);
-          color: #4ade80;
-        }
-
-        .status-badge.inactive {
-          background: rgba(239, 68, 68, 0.15);
-          color: #f87171;
-        }
-
-        .action-buttons {
-          display: flex;
-          gap: 8px;
-        }
-
-        .btn-icon {
-          padding: 6px;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          background: rgba(123, 97, 255, 0.15);
-          color: #a78bfa;
-          min-height: 32px;
-          min-width: 32px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .btn-icon:hover {
-          background: #7b61ff;
-          color: white;
-        }
-
-        .btn-icon.danger {
-          background: rgba(239, 68, 68, 0.15);
-          color: #f87171;
-        }
-
-        .btn-icon.danger:hover {
-          background: #dc2626;
-          color: white;
-        }
-
-        .cases-content h3,
-        .system-content h3 {
-          color: #f1f5f9;
-          margin-bottom: 8px;
-        }
-
-        .cases-content > p,
-        .system-content > p {
-          color: #94a3b8;
-          margin-bottom: 20px;
-        }
-
-        .cases-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          gap: 16px;
-        }
-
-        .case-admin-card {
-          background: rgba(13, 17, 23, 0.5);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          padding: 16px;
-          border-radius: 8px;
-          transition: border-color 0.2s;
-        }
-
-        .case-admin-card:hover {
-          border-color: rgba(123, 97, 255, 0.3);
-        }
-
-        .case-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 8px;
-          gap: 8px;
-        }
-
-        .case-admin-card h4 {
-          margin: 0;
-          color: #f1f5f9;
-          font-size: 0.95rem;
-        }
-
-        .case-admin-card p {
-          color: #94a3b8;
-          margin-bottom: 12px;
-          font-size: 0.875rem;
-        }
-
-        .case-meta {
-          display: flex;
-          gap: 16px;
-          font-size: 0.8rem;
-          color: #64748b;
-          flex-wrap: wrap;
-        }
-
-        .settings-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-          gap: 16px;
-        }
-
-        .setting-card {
-          background: rgba(13, 17, 23, 0.5);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          padding: 20px;
-          border-radius: 12px;
-          transition: border-color 0.2s;
-        }
-
-        .setting-card:hover {
-          border-color: rgba(123, 97, 255, 0.3);
-        }
-
-        .setting-card h4 {
-          margin: 0 0 8px 0;
-          color: #f1f5f9;
-        }
-
-        .setting-card p {
-          color: #94a3b8;
-          margin-bottom: 16px;
-          font-size: 0.875rem;
-        }
-
-        .btn-secondary {
-          background: rgba(123, 97, 255, 0.1);
-          color: #a78bfa;
-          border: 1px solid rgba(123, 97, 255, 0.3);
-          padding: 8px 16px;
-          border-radius: 6px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          min-height: 36px;
-          font-weight: 500;
-        }
-
-        .btn-secondary:hover {
-          background: rgba(123, 97, 255, 0.2);
-          border-color: #a78bfa;
-        }
-
         @media (max-width: 900px) {
-          .admin-content {
-            grid-template-columns: 1fr;
-          }
-
-          .table-header,
-          .table-row {
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-          }
-        }
-
-        @media (max-width: 640px) {
-          .admin-panel {
-            padding: 12px;
-          }
-
-          .admin-header {
-            padding: 16px;
-          }
-
-          .users-header {
-            flex-direction: column;
-            align-items: stretch;
-          }
-
-          .table-header,
-          .table-row {
-            grid-template-columns: 1fr;
-            gap: 6px;
-          }
-
-          .table-row {
-            padding: 12px 14px;
+          div[style*="gridTemplateColumns: '280px 1fr'"] {
+            grid-template-columns: 1fr !important;
           }
         }
       `}</style>
