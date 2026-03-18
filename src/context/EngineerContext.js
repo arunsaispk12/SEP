@@ -684,6 +684,9 @@ export function EngineerProvider({ children }) {
     updateEngineer,
     addEngineer,
     deleteEngineer,
+    addClient,
+    updateClient,
+    deleteClient,
     addSchedule,
     updateSchedule,
     deleteSchedule,
@@ -703,7 +706,7 @@ export function EngineerProvider({ children }) {
     getAvailableEngineers,
     getEngineersByLocation,
     loadData
-  }), [state, addCase, updateCase, updateEngineer, addEngineer, deleteEngineer, addSchedule, updateSchedule, deleteSchedule, addLeave, updateLeave, deleteLeave, isEngineerOnLeave, approveUser, checkLocationConflict, checkScheduleOverlap, setGoogleCalendarConnected, getEngineerById, getCasesByEngineer, getAvailableEngineers, getEngineersByLocation, loadData]);
+  }), [state, addCase, updateCase, updateEngineer, addEngineer, deleteEngineer, addClient, updateClient, deleteClient, addSchedule, updateSchedule, deleteSchedule, addLeave, updateLeave, deleteLeave, isEngineerOnLeave, approveUser, checkLocationConflict, checkScheduleOverlap, setGoogleCalendarConnected, getEngineerById, getCasesByEngineer, getAvailableEngineers, getEngineersByLocation, loadData]);
 
   return (
     <EngineerContext.Provider value={value}>
