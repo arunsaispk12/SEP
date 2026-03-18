@@ -39,7 +39,7 @@ const UserManagement = () => {
     end_date: '',
     reason: ''
   });
-  
+
   // Form states
   const [newUser, setNewUser] = useState({
     name: '',
@@ -64,13 +64,13 @@ const UserManagement = () => {
     state: '',
     pincode: ''
   });
-  
+
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
-  
+
   const [showPasswords, setShowPasswords] = useState({
     current: false,
     new: false,
@@ -80,8 +80,8 @@ const UserManagement = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
 
-  const handleViewUser = (user) => {
-    setSelectedUser(user);
+  const handleViewUser = (u) => {
+    setSelectedUser(u);
     setShowViewModal(true);
   };
 
@@ -134,7 +134,7 @@ const UserManagement = () => {
     const matchesSearch = (engineer.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (engineer.email || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = filterRole === 'all' || engineer.role === filterRole;
-    const matchesApproval = filterApproval === 'all' || 
+    const matchesApproval = filterApproval === 'all' ||
                            (filterApproval === 'pending' && !engineer.is_approved) ||
                            (filterApproval === 'approved' && engineer.is_approved);
     return matchesSearch && matchesRole && matchesApproval;
@@ -143,13 +143,13 @@ const UserManagement = () => {
   // Handle adding new user
   const handleAddUser = async (e) => {
     e.preventDefault();
-    
+
     // Validation
     if (newUser.password !== newUser.confirmPassword) {
       toast.error('Passwords do not match');
       return;
     }
-    
+
     if (newUser.password.length < 6) {
       toast.error('Password must be at least 6 characters');
       return;
@@ -162,7 +162,7 @@ const UserManagement = () => {
         is_active: true,
         created_at: new Date().toISOString()
       };
-      
+
       await addEngineer(userData);
       toast.success('User added successfully');
       setShowAddForm(false);
@@ -189,7 +189,7 @@ const UserManagement = () => {
   // Handle editing user
   const handleEditUser = async (e) => {
     e.preventDefault();
-    
+
     try {
       await updateEngineer(editingUser.id, editingUser);
       toast.success('User updated successfully');
@@ -246,12 +246,12 @@ const UserManagement = () => {
   // Handle password change
   const handlePasswordChange = async (e) => {
     e.preventDefault();
-    
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast.error('New passwords do not match');
       return;
     }
-    
+
     if (passwordData.newPassword.length < 6) {
       toast.error('New password must be at least 6 characters');
       return;
@@ -352,24 +352,32 @@ const UserManagement = () => {
     }
   };
 
+  const iconBtnStyle = {
+    width: 36, height: 36, border: 'none', borderRadius: 6, cursor: 'pointer',
+    transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center'
+  };
+
   return (
-    <div className="user-management">
-      <div className="user-management-header">
-        <div className="header-left">
-          <h2>User Management</h2>
-          <p>Manage service engineers and user accounts</p>
+    <div style={{ maxWidth: 1200, margin: '0 auto', padding: 20, color: '#f1f5f9' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30, paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        <div>
+          <h2 style={{ margin: '0 0 5px 0', color: '#fff', fontSize: 28, fontWeight: 700 }}>User Management</h2>
+          <p style={{ margin: 0, color: '#94a3b8' }}>Manage service engineers and user accounts</p>
         </div>
-        <div className="header-actions">
+        <div style={{ display: 'flex', gap: 10 }}>
           <button
-            className="add-location-btn"
+            className="glass-btn-secondary"
             onClick={() => setShowLocationForm(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: 8 }}
           >
             <Plus size={20} />
             Add Location
           </button>
           <button
-            className="add-user-btn"
+            className="glass-btn-primary"
             onClick={() => setShowAddForm(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: 8 }}
           >
             <UserPlus size={20} />
             Add New User
@@ -378,82 +386,88 @@ const UserManagement = () => {
       </div>
 
       {/* Search and Filter */}
-      <div className="search-filter-section">
-        <div className="search-box">
-          <input
-            type="text"
-            placeholder="Search users..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="filter-dropdown">
-          <select
-            value={filterRole}
-            onChange={(e) => setFilterRole(e.target.value)}
-          >
-            <option value="all">All Roles</option>
-            <option value="engineer">Engineers</option>
-            <option value="manager">Managers</option>
-            <option value="admin">Administrators</option>
-          </select>
-        </div>
-        <div className="filter-dropdown">
-          <select
-            value={filterApproval}
-            onChange={(e) => setFilterApproval(e.target.value)}
-          >
-            <option value="all">All Status</option>
-            <option value="pending">Pending Approval</option>
-            <option value="approved">Approved Only</option>
-          </select>
-        </div>
+      <div style={{ display: 'flex', gap: 16, marginBottom: 24, flexWrap: 'wrap' }}>
+        <input
+          type="text"
+          placeholder="Search users..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="glass-input"
+          style={{ flex: 1, minWidth: 200 }}
+        />
+        <select
+          value={filterRole}
+          onChange={(e) => setFilterRole(e.target.value)}
+          className="glass-select"
+          style={{ minWidth: 150 }}
+        >
+          <option value="all">All Roles</option>
+          <option value="engineer">Engineers</option>
+          <option value="manager">Managers</option>
+          <option value="admin">Administrators</option>
+        </select>
+        <select
+          value={filterApproval}
+          onChange={(e) => setFilterApproval(e.target.value)}
+          className="glass-select"
+          style={{ minWidth: 160 }}
+        >
+          <option value="all">All Status</option>
+          <option value="pending">Pending Approval</option>
+          <option value="approved">Approved Only</option>
+        </select>
       </div>
 
       {/* Users List */}
-      <div className="users-list">
+      <div style={{ display: 'grid', gap: 16 }}>
         {filteredUsers.map((engineer) => (
-          <div key={engineer.id} className="user-card">
-            <div className="user-avatar">
+          <div key={engineer.id} className="glass-panel-sm" style={{ padding: 20, display: 'flex', alignItems: 'center', gap: 20, transition: 'all 0.2s' }}>
+            <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(123,97,255,0.15)', border: '1px solid rgba(123,97,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0 }}>
               <span>{engineer.avatar || '👤'}</span>
             </div>
-            <div className="user-info">
-              <div className="user-name">
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 18, fontWeight: 600, color: '#fff', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
                 {engineer.name}
-                {!engineer.is_approved && <span className="pending-badge">PENDING</span>}
+                {!engineer.is_approved && (
+                  <span style={{ background: 'rgba(245,158,11,0.15)', color: '#fbbf24', padding: '2px 8px', borderRadius: 12, fontSize: 10, fontWeight: 700, border: '1px solid rgba(245,158,11,0.3)' }}>
+                    PENDING
+                  </span>
+                )}
               </div>
-              <div className="user-email">{engineer.email}</div>
-              <div className="user-details">
-                <span className="user-role">
+              <div style={{ color: '#94a3b8', marginBottom: 8 }}>{engineer.email}</div>
+              <div style={{ display: 'flex', gap: 16, marginBottom: 8, flexWrap: 'wrap' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 14, color: '#94a3b8' }}>
                   {getRoleIcon(engineer.role)} {getRoleLabel(engineer.role)}
-                  {engineer.role === 'admin' && <span className="admin-badge">ADMIN</span>}
+                  {engineer.role === 'admin' && (
+                    <span style={{ background: '#dc2626', color: 'white', padding: '2px 6px', borderRadius: 10, fontSize: 10, fontWeight: 'bold', marginLeft: 4 }}>ADMIN</span>
+                  )}
                 </span>
-                <span className="user-location">
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 14, color: '#94a3b8' }}>
                   <MapPin size={14} />
                   {locations.find(l => l.id === engineer.location_id)?.name || 'Unknown'}
                 </span>
                 {engineer.phone && (
-                  <span className="user-phone">
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 14, color: '#94a3b8' }}>
                     <Phone size={14} />
                     {engineer.phone}
                   </span>
                 )}
               </div>
               {engineer.skills && engineer.skills.length > 0 && (
-                <div className="user-skills">
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {engineer.skills.slice(0, 3).map((skill, index) => (
-                    <span key={index} className="skill-tag">{skill}</span>
+                    <span key={index} style={{ background: 'rgba(123,97,255,0.15)', color: '#a78bfa', padding: '3px 8px', borderRadius: 4, fontSize: 12, fontWeight: 500 }}>{skill}</span>
                   ))}
                   {engineer.skills.length > 3 && (
-                    <span className="skill-more">+{engineer.skills.length - 3} more</span>
+                    <span style={{ color: '#64748b', fontSize: 12 }}>+{engineer.skills.length - 3} more</span>
                   )}
                 </div>
               )}
             </div>
-            <div className="user-actions">
+            <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
               {!engineer.is_approved && (
                 <button
-                  className="approve-btn"
+                  style={{ ...iconBtnStyle, background: 'rgba(34,197,94,0.15)', color: '#4ade80', border: '1px solid rgba(34,197,94,0.3)' }}
                   onClick={() => approveUser(engineer.id)}
                   title="Approve User"
                 >
@@ -461,24 +475,21 @@ const UserManagement = () => {
                 </button>
               )}
               <button
-                className="view-btn"
+                style={{ ...iconBtnStyle, background: 'rgba(123,97,255,0.15)', color: '#a78bfa', border: '1px solid rgba(123,97,255,0.2)' }}
                 onClick={() => handleViewUser(engineer)}
                 title="View Profile"
               >
                 <Eye size={16} />
               </button>
               <button
-                className="edit-btn"
-                onClick={() => {
-                  setEditingUser(engineer);
-                  setShowEditForm(true);
-                }}
+                style={{ ...iconBtnStyle, background: 'rgba(255,255,255,0.05)', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.1)' }}
+                onClick={() => { setEditingUser(engineer); setShowEditForm(true); }}
                 title="Edit User"
               >
                 <Edit size={16} />
               </button>
               <button
-                className="delete-btn"
+                style={{ ...iconBtnStyle, background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}
                 onClick={() => handleDeleteUser(engineer.id)}
                 title="Delete User"
               >
@@ -489,28 +500,30 @@ const UserManagement = () => {
         ))}
       </div>
 
-      {/* Leaves Management (Manager) */}
-      <div className="leaves-management">
-        <div className="leaves-header">
-          <h3><Calendar size={18} /> Engineers' Leaves</h3>
-          <p>View and modify leave requests</p>
+      {/* Leaves Management */}
+      <div style={{ marginTop: 30, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 16 }}>
+          <h3 style={{ margin: 0, color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Calendar size={18} /> Engineers' Leaves
+          </h3>
+          <p style={{ margin: 0, color: '#94a3b8', fontSize: 14 }}>View and modify leave requests</p>
         </div>
-        <div className="leaves-list">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {(leaves || []).length === 0 ? (
-            <div className="empty">No leaves found</div>
+            <div style={{ textAlign: 'center', padding: 24, color: '#64748b' }}>No leaves found</div>
           ) : (
             (leaves || []).map(leave => (
-              <div key={leave.id} className="leave-row">
-                <div className="leave-info">
-                  <div className="leave-title">{getEngineerName(leave.engineer_id)}</div>
-                  <div className="leave-dates">{new Date(leave.start_date).toLocaleDateString()} - {new Date(leave.end_date).toLocaleDateString()}</div>
-                  <div className="leave-reason">{leave.reason || 'No reason'}</div>
+              <div key={leave.id} className="glass-panel-sm" style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontWeight: 600, color: '#fff', marginBottom: 4 }}>{getEngineerName(leave.engineer_id)}</div>
+                  <div style={{ color: '#94a3b8', fontSize: 14 }}>{new Date(leave.start_date).toLocaleDateString()} - {new Date(leave.end_date).toLocaleDateString()}</div>
+                  <div style={{ color: '#64748b', fontSize: 14 }}>{leave.reason || 'No reason'}</div>
                 </div>
-                <div className="leave-actions">
-                  <button className="edit-btn" onClick={() => openEditLeave(leave)} title="Edit Leave">
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button style={{ ...iconBtnStyle, background: 'rgba(255,255,255,0.05)', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.1)' }} onClick={() => openEditLeave(leave)} title="Edit Leave">
                     <Edit size={16} />
                   </button>
-                  <button className="delete-btn" onClick={() => deleteLeave(leave.id)} title="Cancel Leave">
+                  <button style={{ ...iconBtnStyle, background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }} onClick={() => deleteLeave(leave.id)} title="Cancel Leave">
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -522,207 +535,124 @@ const UserManagement = () => {
 
       {/* Add User Modal */}
       {showAddForm && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>Add New User</h3>
-              <button 
-                className="close-btn"
-                onClick={() => setShowAddForm(false)}
-              >
+        <div className="glass-modal-backdrop">
+          <div className="glass-modal-wide">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ margin: 0, color: '#fff', fontSize: '1.125rem', fontWeight: 700 }}>Add New User</h3>
+              <button onClick={() => setShowAddForm(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex' }}>
                 <X size={20} />
               </button>
             </div>
-            <form onSubmit={handleAddUser} className="modal-body">
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Full Name *</label>
-                  <input
-                    type="text"
-                    value={newUser.name}
-                    onChange={(e) => setNewUser(prev => ({ ...prev, name: e.target.value }))}
-                    required
-                  />
+
+            <form onSubmit={handleAddUser}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+                <div>
+                  <div className="section-label">Full Name *</div>
+                  <input type="text" value={newUser.name} onChange={(e) => setNewUser(prev => ({ ...prev, name: e.target.value }))} required className="glass-input" />
                 </div>
-                <div className="form-group">
-                  <label>Email *</label>
-                  <input
-                    type="email"
-                    value={newUser.email}
-                    onChange={(e) => setNewUser(prev => ({ ...prev, email: e.target.value }))}
-                    required
-                  />
+                <div>
+                  <div className="section-label">Email *</div>
+                  <input type="email" value={newUser.email} onChange={(e) => setNewUser(prev => ({ ...prev, email: e.target.value }))} required className="glass-input" />
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Password *</label>
-                  <div className="password-input">
-                    <input
-                      type={showPasswords.new ? 'text' : 'password'}
-                      value={newUser.password}
-                      onChange={(e) => setNewUser(prev => ({ ...prev, password: e.target.value }))}
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPasswords(prev => ({ ...prev, new: !prev.new }))}
-                    >
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+                <div>
+                  <div className="section-label">Password *</div>
+                  <div style={{ position: 'relative' }}>
+                    <input type={showPasswords.new ? 'text' : 'password'} value={newUser.password} onChange={(e) => setNewUser(prev => ({ ...prev, password: e.target.value }))} required className="glass-input" style={{ paddingRight: 40 }} />
+                    <button type="button" onClick={() => setShowPasswords(prev => ({ ...prev, new: !prev.new }))} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 4 }}>
                       {showPasswords.new ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
                 </div>
-                <div className="form-group">
-                  <label>Confirm Password *</label>
-                  <div className="password-input">
-                    <input
-                      type={showPasswords.confirm ? 'text' : 'password'}
-                      value={newUser.confirmPassword}
-                      onChange={(e) => setNewUser(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPasswords(prev => ({ ...prev, confirm: !prev.confirm }))}
-                    >
+                <div>
+                  <div className="section-label">Confirm Password *</div>
+                  <div style={{ position: 'relative' }}>
+                    <input type={showPasswords.confirm ? 'text' : 'password'} value={newUser.confirmPassword} onChange={(e) => setNewUser(prev => ({ ...prev, confirmPassword: e.target.value }))} required className="glass-input" style={{ paddingRight: 40 }} />
+                    <button type="button" onClick={() => setShowPasswords(prev => ({ ...prev, confirm: !prev.confirm }))} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 4 }}>
                       {showPasswords.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Role *</label>
-                  <select
-                    value={newUser.role}
-                    onChange={(e) => setNewUser(prev => ({ ...prev, role: e.target.value }))}
-                    required
-                  >
-                    {roles.map(role => (
-                      <option key={role.value} value={role.value}>
-                        {role.icon} {role.label}
-                      </option>
-                    ))}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+                <div>
+                  <div className="section-label">Role *</div>
+                  <select value={newUser.role} onChange={(e) => setNewUser(prev => ({ ...prev, role: e.target.value }))} required className="glass-select">
+                    {roles.map(role => <option key={role.value} value={role.value}>{role.icon} {role.label}</option>)}
                   </select>
                 </div>
-                <div className="form-group">
-                  <label>Location *</label>
-                  <select
-                    value={newUser.location_id}
-                    onChange={(e) => setNewUser(prev => ({ ...prev, location_id: parseInt(e.target.value) }))}
-                    required
-                  >
-                    {locations.map(location => (
-                      <option key={location.id} value={location.id}>
-                        {location.name}
-                      </option>
-                    ))}
+                <div>
+                  <div className="section-label">Location *</div>
+                  <select value={newUser.location_id} onChange={(e) => setNewUser(prev => ({ ...prev, location_id: parseInt(e.target.value) }))} required className="glass-select">
+                    {locations.map(location => <option key={location.id} value={location.id}>{location.name}</option>)}
                   </select>
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Phone</label>
-                  <input
-                    type="tel"
-                    value={newUser.phone}
-                    onChange={(e) => setNewUser(prev => ({ ...prev, phone: e.target.value }))}
-                  />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+                <div>
+                  <div className="section-label">Phone</div>
+                  <input type="tel" value={newUser.phone} onChange={(e) => setNewUser(prev => ({ ...prev, phone: e.target.value }))} className="glass-input" />
                 </div>
-                <div className="form-group">
-                  <label>Experience (Years)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={newUser.experience_years}
-                    onChange={(e) => setNewUser(prev => ({ ...prev, experience_years: parseInt(e.target.value) || 0 }))}
-                  />
+                <div>
+                  <div className="section-label">Experience (Years)</div>
+                  <input type="number" min="0" value={newUser.experience_years} onChange={(e) => setNewUser(prev => ({ ...prev, experience_years: parseInt(e.target.value) || 0 }))} className="glass-input" />
                 </div>
               </div>
 
-              <div className="form-group">
-                <label>Bio</label>
-                <textarea
-                  value={newUser.bio}
-                  onChange={(e) => setNewUser(prev => ({ ...prev, bio: e.target.value }))}
-                  rows="3"
-                />
+              <div style={{ marginBottom: 14 }}>
+                <div className="section-label">Bio</div>
+                <textarea value={newUser.bio} onChange={(e) => setNewUser(prev => ({ ...prev, bio: e.target.value }))} rows="3" className="glass-textarea" />
               </div>
 
-              <div className="form-group">
-                <label>Skills</label>
-                <div className="skills-section">
-                  <div className="selected-skills">
+              <div style={{ marginBottom: 14 }}>
+                <div className="section-label">Skills</div>
+                <div style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: 12 }}>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
                     {newUser.skills.map((skill, index) => (
-                      <span key={index} className="skill-tag">
+                      <span key={index} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(123,97,255,0.2)', color: '#a78bfa', padding: '4px 10px', borderRadius: 20, fontSize: 13 }}>
                         {skill}
-                        <button
-                          type="button"
-                          onClick={() => removeSkill(skill)}
-                        >
+                        <button type="button" onClick={() => removeSkill(skill)} style={{ background: 'none', border: 'none', color: '#a78bfa', cursor: 'pointer', padding: 0, display: 'flex' }}>
                           <X size={12} />
                         </button>
                       </span>
                     ))}
                   </div>
-                  <div className="available-skills">
-                    {availableSkills
-                      .filter(skill => !newUser.skills.includes(skill))
-                      .map(skill => (
-                        <button
-                          key={skill}
-                          type="button"
-                          className="skill-option"
-                          onClick={() => addSkill(skill)}
-                        >
-                          {skill}
-                        </button>
-                      ))}
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {availableSkills.filter(skill => !newUser.skills.includes(skill)).map(skill => (
+                      <button key={skill} type="button" className="glass-btn-secondary" onClick={() => addSkill(skill)} style={{ padding: '4px 10px', fontSize: 12 }}>{skill}</button>
+                    ))}
                   </div>
                 </div>
               </div>
 
-              <div className="form-group">
-                <label>Certifications</label>
-                <div className="certifications-section">
-                  <div className="selected-certifications">
+              <div style={{ marginBottom: 20 }}>
+                <div className="section-label">Certifications</div>
+                <div style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: 12 }}>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
                     {newUser.certifications.map((cert, index) => (
-                      <span key={index} className="cert-tag">
+                      <span key={index} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(6,182,212,0.15)', color: '#22d3ee', padding: '4px 10px', borderRadius: 20, fontSize: 13 }}>
                         {cert}
-                        <button
-                          type="button"
-                          onClick={() => removeCertification(cert)}
-                        >
+                        <button type="button" onClick={() => removeCertification(cert)} style={{ background: 'none', border: 'none', color: '#22d3ee', cursor: 'pointer', padding: 0, display: 'flex' }}>
                           <X size={12} />
                         </button>
                       </span>
                     ))}
                   </div>
-                  <div className="available-certifications">
-                    {availableCertifications
-                      .filter(cert => !newUser.certifications.includes(cert))
-                      .map(cert => (
-                        <button
-                          key={cert}
-                          type="button"
-                          className="cert-option"
-                          onClick={() => addCertification(cert)}
-                        >
-                          {cert}
-                        </button>
-                      ))}
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {availableCertifications.filter(cert => !newUser.certifications.includes(cert)).map(cert => (
+                      <button key={cert} type="button" className="glass-btn-secondary" onClick={() => addCertification(cert)} style={{ padding: '4px 10px', fontSize: 12 }}>{cert}</button>
+                    ))}
                   </div>
                 </div>
               </div>
 
-              <div className="modal-actions">
-                <button type="button" onClick={() => setShowAddForm(false)}>
-                  Cancel
-                </button>
-                <button type="submit" className="primary-btn">
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+                <button type="button" className="glass-btn-secondary" onClick={() => setShowAddForm(false)}>Cancel</button>
+                <button type="submit" className="glass-btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Save size={16} />
                   Add User
                 </button>
@@ -734,113 +664,61 @@ const UserManagement = () => {
 
       {/* Edit User Modal */}
       {showEditForm && editingUser && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>Edit User</h3>
-              <button 
-                className="close-btn"
-                onClick={() => {
-                  setShowEditForm(false);
-                  setEditingUser(null);
-                }}
-              >
+        <div className="glass-modal-backdrop">
+          <div className="glass-modal-wide">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ margin: 0, color: '#fff', fontSize: '1.125rem', fontWeight: 700 }}>Edit User</h3>
+              <button onClick={() => { setShowEditForm(false); setEditingUser(null); }} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex' }}>
                 <X size={20} />
               </button>
             </div>
-            <form onSubmit={handleEditUser} className="modal-body">
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Full Name *</label>
-                  <input
-                    type="text"
-                    value={editingUser.name}
-                    onChange={(e) => setEditingUser(prev => ({ ...prev, name: e.target.value }))}
-                    required
-                  />
+
+            <form onSubmit={handleEditUser}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+                <div>
+                  <div className="section-label">Full Name *</div>
+                  <input type="text" value={editingUser.name} onChange={(e) => setEditingUser(prev => ({ ...prev, name: e.target.value }))} required className="glass-input" />
                 </div>
-                <div className="form-group">
-                  <label>Email *</label>
-                  <input
-                    type="email"
-                    value={editingUser.email}
-                    onChange={(e) => setEditingUser(prev => ({ ...prev, email: e.target.value }))}
-                    required
-                  />
+                <div>
+                  <div className="section-label">Email *</div>
+                  <input type="email" value={editingUser.email} onChange={(e) => setEditingUser(prev => ({ ...prev, email: e.target.value }))} required className="glass-input" />
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Role *</label>
-                  <select
-                    value={editingUser.role}
-                    onChange={(e) => setEditingUser(prev => ({ ...prev, role: e.target.value }))}
-                    required
-                  >
-                    {roles.map(role => (
-                      <option key={role.value} value={role.value}>
-                        {role.icon} {role.label}
-                      </option>
-                    ))}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+                <div>
+                  <div className="section-label">Role *</div>
+                  <select value={editingUser.role} onChange={(e) => setEditingUser(prev => ({ ...prev, role: e.target.value }))} required className="glass-select">
+                    {roles.map(role => <option key={role.value} value={role.value}>{role.icon} {role.label}</option>)}
                   </select>
                 </div>
-                <div className="form-group">
-                  <label>Location *</label>
-                  <select
-                    value={editingUser.location_id}
-                    onChange={(e) => setEditingUser(prev => ({ ...prev, location_id: parseInt(e.target.value) }))}
-                    required
-                  >
-                    {locations.map(location => (
-                      <option key={location.id} value={location.id}>
-                        {location.name}
-                      </option>
-                    ))}
+                <div>
+                  <div className="section-label">Location *</div>
+                  <select value={editingUser.location_id} onChange={(e) => setEditingUser(prev => ({ ...prev, location_id: parseInt(e.target.value) }))} required className="glass-select">
+                    {locations.map(location => <option key={location.id} value={location.id}>{location.name}</option>)}
                   </select>
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Phone</label>
-                  <input
-                    type="tel"
-                    value={editingUser.phone || ''}
-                    onChange={(e) => setEditingUser(prev => ({ ...prev, phone: e.target.value }))}
-                  />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+                <div>
+                  <div className="section-label">Phone</div>
+                  <input type="tel" value={editingUser.phone || ''} onChange={(e) => setEditingUser(prev => ({ ...prev, phone: e.target.value }))} className="glass-input" />
                 </div>
-                <div className="form-group">
-                  <label>Experience (Years)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={editingUser.experience_years || 0}
-                    onChange={(e) => setEditingUser(prev => ({ ...prev, experience_years: parseInt(e.target.value) || 0 }))}
-                  />
+                <div>
+                  <div className="section-label">Experience (Years)</div>
+                  <input type="number" min="0" value={editingUser.experience_years || 0} onChange={(e) => setEditingUser(prev => ({ ...prev, experience_years: parseInt(e.target.value) || 0 }))} className="glass-input" />
                 </div>
               </div>
 
-              <div className="form-group">
-                <label>Bio</label>
-                <textarea
-                  value={editingUser.bio || ''}
-                  onChange={(e) => setEditingUser(prev => ({ ...prev, bio: e.target.value }))}
-                  rows="3"
-                />
+              <div style={{ marginBottom: 20 }}>
+                <div className="section-label">Bio</div>
+                <textarea value={editingUser.bio || ''} onChange={(e) => setEditingUser(prev => ({ ...prev, bio: e.target.value }))} rows="3" className="glass-textarea" />
               </div>
 
-              <div className="modal-actions">
-                <button 
-                  type="button" 
-                  onClick={() => {
-                    setShowEditForm(false);
-                    setEditingUser(null);
-                  }}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="primary-btn">
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+                <button type="button" className="glass-btn-secondary" onClick={() => { setShowEditForm(false); setEditingUser(null); }}>Cancel</button>
+                <button type="submit" className="glass-btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Save size={16} />
                   Update User
                 </button>
@@ -852,42 +730,45 @@ const UserManagement = () => {
 
       {/* Edit Leave Modal */}
       {showLeaveModal && editingLeave && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>Edit Leave</h3>
-              <button className="close-btn" onClick={() => { setShowLeaveModal(false); setEditingLeave(null); }}>
+        <div className="glass-modal-backdrop">
+          <div className="glass-modal">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ margin: 0, color: '#fff', fontSize: '1.125rem', fontWeight: 700 }}>Edit Leave</h3>
+              <button onClick={() => { setShowLeaveModal(false); setEditingLeave(null); }} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex' }}>
                 <X size={20} />
               </button>
             </div>
-            <form onSubmit={handleUpdateLeave} className="modal-body">
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Engineer</label>
-                  <input type="text" value={getEngineerName(leaveForm.engineer_id)} readOnly />
+
+            <form onSubmit={handleUpdateLeave}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+                <div>
+                  <div className="section-label">Engineer</div>
+                  <input type="text" value={getEngineerName(leaveForm.engineer_id)} readOnly className="glass-input" style={{ opacity: 0.7 }} />
                 </div>
-                <div className="form-group">
-                  <label>Status</label>
-                  <input type="text" value="Approved" readOnly />
-                </div>
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Start Date</label>
-                  <input type="date" value={leaveForm.start_date} onChange={(e) => setLeaveForm(prev => ({ ...prev, start_date: e.target.value }))} required />
-                </div>
-                <div className="form-group">
-                  <label>End Date</label>
-                  <input type="date" value={leaveForm.end_date} onChange={(e) => setLeaveForm(prev => ({ ...prev, end_date: e.target.value }))} required />
+                <div>
+                  <div className="section-label">Status</div>
+                  <input type="text" value="Approved" readOnly className="glass-input" style={{ opacity: 0.7 }} />
                 </div>
               </div>
-              <div className="form-group">
-                <label>Reason</label>
-                <textarea rows="3" value={leaveForm.reason} onChange={(e) => setLeaveForm(prev => ({ ...prev, reason: e.target.value }))} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+                <div>
+                  <div className="section-label">Start Date</div>
+                  <input type="date" value={leaveForm.start_date} onChange={(e) => setLeaveForm(prev => ({ ...prev, start_date: e.target.value }))} required className="glass-input" />
+                </div>
+                <div>
+                  <div className="section-label">End Date</div>
+                  <input type="date" value={leaveForm.end_date} onChange={(e) => setLeaveForm(prev => ({ ...prev, end_date: e.target.value }))} required className="glass-input" />
+                </div>
               </div>
-              <div className="modal-actions">
-                <button type="button" onClick={() => { setShowLeaveModal(false); setEditingLeave(null); }}>Cancel</button>
-                <button type="submit" className="primary-btn"><Save size={16} />Update Leave</button>
+              <div style={{ marginBottom: 20 }}>
+                <div className="section-label">Reason</div>
+                <textarea rows="3" value={leaveForm.reason} onChange={(e) => setLeaveForm(prev => ({ ...prev, reason: e.target.value }))} className="glass-textarea" />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+                <button type="button" className="glass-btn-secondary" onClick={() => { setShowLeaveModal(false); setEditingLeave(null); }}>Cancel</button>
+                <button type="submit" className="glass-btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Save size={16} />Update Leave
+                </button>
               </div>
             </form>
           </div>
@@ -896,75 +777,41 @@ const UserManagement = () => {
 
       {/* Add Location Modal */}
       {showLocationForm && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>Add New Location</h3>
-              <button
-                className="close-btn"
-                onClick={() => setShowLocationForm(false)}
-              >
+        <div className="glass-modal-backdrop">
+          <div className="glass-modal">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ margin: 0, color: '#fff', fontSize: '1.125rem', fontWeight: 700 }}>Add New Location</h3>
+              <button onClick={() => setShowLocationForm(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex' }}>
                 <X size={20} />
               </button>
             </div>
-            <form onSubmit={handleAddLocation} className="modal-body">
-              <div className="form-group">
-                <label>Location Name *</label>
-                <input
-                  type="text"
-                  value={newLocation.name}
-                  onChange={(e) => setNewLocation(prev => ({ ...prev, name: e.target.value }))}
-                  required
-                  placeholder="e.g., Mumbai Office"
-                />
-              </div>
 
-              <div className="form-group">
-                <label>Address</label>
-                <input
-                  type="text"
-                  value={newLocation.address}
-                  onChange={(e) => setNewLocation(prev => ({ ...prev, address: e.target.value }))}
-                  placeholder="Street address"
-                />
+            <form onSubmit={handleAddLocation}>
+              <div style={{ marginBottom: 14 }}>
+                <div className="section-label">Location Name *</div>
+                <input type="text" value={newLocation.name} onChange={(e) => setNewLocation(prev => ({ ...prev, name: e.target.value }))} required placeholder="e.g., Mumbai Office" className="glass-input" />
               </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>City</label>
-                  <input
-                    type="text"
-                    value={newLocation.city}
-                    onChange={(e) => setNewLocation(prev => ({ ...prev, city: e.target.value }))}
-                    placeholder="City name"
-                  />
+              <div style={{ marginBottom: 14 }}>
+                <div className="section-label">Address</div>
+                <input type="text" value={newLocation.address} onChange={(e) => setNewLocation(prev => ({ ...prev, address: e.target.value }))} placeholder="Street address" className="glass-input" />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+                <div>
+                  <div className="section-label">City</div>
+                  <input type="text" value={newLocation.city} onChange={(e) => setNewLocation(prev => ({ ...prev, city: e.target.value }))} placeholder="City name" className="glass-input" />
                 </div>
-                <div className="form-group">
-                  <label>State</label>
-                  <input
-                    type="text"
-                    value={newLocation.state}
-                    onChange={(e) => setNewLocation(prev => ({ ...prev, state: e.target.value }))}
-                    placeholder="State name"
-                  />
+                <div>
+                  <div className="section-label">State</div>
+                  <input type="text" value={newLocation.state} onChange={(e) => setNewLocation(prev => ({ ...prev, state: e.target.value }))} placeholder="State name" className="glass-input" />
                 </div>
               </div>
-
-              <div className="form-group">
-                <label>Pincode</label>
-                <input
-                  type="text"
-                  value={newLocation.pincode}
-                  onChange={(e) => setNewLocation(prev => ({ ...prev, pincode: e.target.value }))}
-                  placeholder="PIN code"
-                />
+              <div style={{ marginBottom: 20 }}>
+                <div className="section-label">Pincode</div>
+                <input type="text" value={newLocation.pincode} onChange={(e) => setNewLocation(prev => ({ ...prev, pincode: e.target.value }))} placeholder="PIN code" className="glass-input" />
               </div>
-
-              <div className="modal-actions">
-                <button type="button" onClick={() => setShowLocationForm(false)}>
-                  Cancel
-                </button>
-                <button type="submit" className="primary-btn">
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+                <button type="button" className="glass-btn-secondary" onClick={() => setShowLocationForm(false)}>Cancel</button>
+                <button type="submit" className="glass-btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Plus size={16} />
                   Add Location
                 </button>
@@ -976,88 +823,53 @@ const UserManagement = () => {
 
       {/* Password Change Modal */}
       {showPasswordForm && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>Change Password</h3>
-              <button 
-                className="close-btn"
-                onClick={() => setShowPasswordForm(false)}
-              >
+        <div className="glass-modal-backdrop">
+          <div className="glass-modal">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ margin: 0, color: '#fff', fontSize: '1.125rem', fontWeight: 700 }}>Change Password</h3>
+              <button onClick={() => setShowPasswordForm(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex' }}>
                 <X size={20} />
               </button>
             </div>
-            <form onSubmit={handlePasswordChange} className="modal-body">
-              <div className="form-group">
-                <label>Current Password *</label>
-                <div className="password-input">
-                  <input
-                    type={showPasswords.current ? 'text' : 'password'}
-                    value={passwordData.currentPassword}
-                    onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPasswords(prev => ({ ...prev, current: !prev.current }))}
-                  >
+
+            <form onSubmit={handlePasswordChange}>
+              <div style={{ marginBottom: 16 }}>
+                <div className="section-label">Current Password *</div>
+                <div style={{ position: 'relative' }}>
+                  <input type={showPasswords.current ? 'text' : 'password'} value={passwordData.currentPassword} onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))} required className="glass-input" style={{ paddingRight: 40 }} />
+                  <button type="button" onClick={() => setShowPasswords(prev => ({ ...prev, current: !prev.current }))} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 4 }}>
                     {showPasswords.current ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
               </div>
-
-              <div className="form-group">
-                <label>New Password *</label>
-                <div className="password-input">
-                  <input
-                    type={showPasswords.new ? 'text' : 'password'}
-                    value={passwordData.newPassword}
-                    onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPasswords(prev => ({ ...prev, new: !prev.new }))}
-                  >
+              <div style={{ marginBottom: 16 }}>
+                <div className="section-label">New Password *</div>
+                <div style={{ position: 'relative' }}>
+                  <input type={showPasswords.new ? 'text' : 'password'} value={passwordData.newPassword} onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))} required className="glass-input" style={{ paddingRight: 40 }} />
+                  <button type="button" onClick={() => setShowPasswords(prev => ({ ...prev, new: !prev.new }))} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 4 }}>
                     {showPasswords.new ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
               </div>
-
-              <div className="form-group">
-                <label>Confirm New Password *</label>
-                <div className="password-input">
-                  <input
-                    type={showPasswords.confirm ? 'text' : 'password'}
-                    value={passwordData.confirmPassword}
-                    onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPasswords(prev => ({ ...prev, confirm: !prev.confirm }))}
-                  >
+              <div style={{ marginBottom: 16 }}>
+                <div className="section-label">Confirm New Password *</div>
+                <div style={{ position: 'relative' }}>
+                  <input type={showPasswords.confirm ? 'text' : 'password'} value={passwordData.confirmPassword} onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))} required className="glass-input" style={{ paddingRight: 40 }} />
+                  <button type="button" onClick={() => setShowPasswords(prev => ({ ...prev, confirm: !prev.confirm }))} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 4 }}>
                     {showPasswords.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
               </div>
-
-              <div className="password-requirements">
-                <h4>Password Requirements:</h4>
-                <ul>
+              <div style={{ background: 'rgba(13,17,23,0.5)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 6, padding: 12, marginBottom: 20 }}>
+                <h4 style={{ margin: '0 0 8px 0', color: '#94a3b8', fontSize: 14 }}>Password Requirements:</h4>
+                <ul style={{ margin: 0, paddingLeft: 20, color: '#64748b', fontSize: 14 }}>
                   <li>At least 6 characters long</li>
                   <li>Must be different from current password</li>
                 </ul>
               </div>
-
-              <div className="modal-actions">
-                <button 
-                  type="button" 
-                  onClick={() => setShowPasswordForm(false)}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="primary-btn">
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+                <button type="button" className="glass-btn-secondary" onClick={() => setShowPasswordForm(false)}>Cancel</button>
+                <button type="submit" className="glass-btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Shield size={16} />
                   Change Password
                 </button>
@@ -1069,740 +881,70 @@ const UserManagement = () => {
 
       {/* View User Modal */}
       {showViewModal && selectedUser && (
-        <div className="modal-overlay">
-          <div className="modal-content view-modal">
-            <div className="modal-header">
-              <h3>User Profile</h3>
-              <button 
-                className="close-btn"
-                onClick={() => {
-                  setShowViewModal(false);
-                  setSelectedUser(null);
-                }}
-              >
+        <div className="glass-modal-backdrop">
+          <div className="glass-modal">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ margin: 0, color: '#fff', fontSize: '1.125rem', fontWeight: 700 }}>User Profile</h3>
+              <button onClick={() => { setShowViewModal(false); setSelectedUser(null); }} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex' }}>
                 <X size={20} />
               </button>
             </div>
-            <div className="modal-body">
-              <div className="profile-summary">
-                <div className="profile-avatar-large">
-                  {selectedUser.avatar || '👤'}
-                </div>
-                <div className="profile-main-info">
-                  <h4>{selectedUser.name}</h4>
-                  <span className="profile-role">{getRoleLabel(selectedUser.role)}</span>
-                </div>
-              </div>
 
-              <div className="profile-details-grid">
-                <div className="detail-row">
-                  <span className="detail-label">Email:</span>
-                  <span className="detail-value">{selectedUser.email}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-label">Phone:</span>
-                  <span className="detail-value">{selectedUser.phone || 'N/A'}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-label">Location:</span>
-                  <span className="detail-value">
-                    {locations.find(l => l.id === selectedUser.location_id)?.name || 'N/A'}
-                  </span>
-                </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
+              <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(123,97,255,0.15)', border: '1px solid rgba(123,97,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0 }}>
+                {selectedUser.avatar || '👤'}
               </div>
+              <div>
+                <h4 style={{ margin: '0 0 4px 0', color: '#fff', fontSize: 18 }}>{selectedUser.name}</h4>
+                <span style={{ background: 'rgba(123,97,255,0.15)', color: '#a78bfa', padding: '3px 10px', borderRadius: 12, fontSize: 13, fontWeight: 500 }}>
+                  {getRoleLabel(selectedUser.role)}
+                </span>
+              </div>
+            </div>
 
-              {selectedUser.role === 'engineer' && (
-                <div className="laser-details-box">
-                  <h5>Laser Equipment Details</h5>
-                  <div className="laser-info-grid">
-                    <div className="laser-info-item">
-                      <span className="label">Laser Type</span>
-                      <span className="value">{selectedUser.laser_type || 'Not specified'}</span>
-                    </div>
-                    <div className="laser-info-item">
-                      <span className="label">Serial Number</span>
-                      <span className="value">{selectedUser.serial_number || 'Not specified'}</span>
-                    </div>
-                    <div className="laser-info-item">
-                      <span className="label">Tracker Status</span>
-                      <span className={`value status-badge ${selectedUser.tracker_status === 'Available' ? 'available' : 'unavailable'}`}>
-                        {selectedUser.tracker_status || 'Not Available'}
-                      </span>
-                    </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <span style={{ color: '#64748b', fontSize: 14, minWidth: 80 }}>Email:</span>
+                <span style={{ color: '#e2e8f0', fontSize: 14 }}>{selectedUser.email}</span>
+              </div>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <span style={{ color: '#64748b', fontSize: 14, minWidth: 80 }}>Phone:</span>
+                <span style={{ color: '#e2e8f0', fontSize: 14 }}>{selectedUser.phone || 'N/A'}</span>
+              </div>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <span style={{ color: '#64748b', fontSize: 14, minWidth: 80 }}>Location:</span>
+                <span style={{ color: '#e2e8f0', fontSize: 14 }}>{locations.find(l => l.id === selectedUser.location_id)?.name || 'N/A'}</span>
+              </div>
+            </div>
+
+            {selectedUser.role === 'engineer' && (
+              <div style={{ background: 'rgba(13,17,23,0.4)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: 16 }}>
+                <h5 style={{ margin: '0 0 12px 0', color: '#a78bfa', fontSize: 14, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Laser Equipment Details</h5>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div>
+                    <div style={{ color: '#64748b', fontSize: 12, marginBottom: 4 }}>Laser Type</div>
+                    <div style={{ color: '#e2e8f0' }}>{selectedUser.laser_type || 'Not specified'}</div>
+                  </div>
+                  <div>
+                    <div style={{ color: '#64748b', fontSize: 12, marginBottom: 4 }}>Serial Number</div>
+                    <div style={{ color: '#e2e8f0' }}>{selectedUser.serial_number || 'Not specified'}</div>
+                  </div>
+                  <div>
+                    <div style={{ color: '#64748b', fontSize: 12, marginBottom: 4 }}>Tracker Status</div>
+                    <span style={{ background: selectedUser.tracker_status === 'Available' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.1)', color: selectedUser.tracker_status === 'Available' ? '#4ade80' : '#f87171', padding: '3px 8px', borderRadius: 12, fontSize: 13, fontWeight: 600 }}>
+                      {selectedUser.tracker_status || 'Not Available'}
+                    </span>
                   </div>
                 </div>
-              )}
-            </div>
-            <div className="modal-actions">
-              <button 
-                type="button" 
-                onClick={() => {
-                  setShowViewModal(false);
-                  setSelectedUser(null);
-                }}
-              >
-                Close
-              </button>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 20 }}>
+              <button type="button" className="glass-btn-secondary" onClick={() => { setShowViewModal(false); setSelectedUser(null); }}>Close</button>
             </div>
           </div>
         </div>
       )}
-
-      <style jsx>{`
-        .user-management {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 20px;
-        }
-
-        .user-management-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 30px;
-          padding-bottom: 20px;
-          border-bottom: 2px solid #e5e7eb;
-        }
-
-        .header-left h2 {
-          margin: 0 0 5px 0;
-          color: #1f2937;
-          font-size: 28px;
-          font-weight: 700;
-        }
-
-        .header-left p {
-          margin: 0;
-          color: #6b7280;
-        }
-
-        .add-user-btn {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 12px 20px;
-          background: #3b82f6;
-          color: white;
-          border: none;
-          border-radius: 8px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .add-user-btn:hover {
-          background: #2563eb;
-          transform: translateY(-1px);
-        }
-
-        .search-filter-section {
-          display: flex;
-          gap: 20px;
-          margin-bottom: 30px;
-        }
-
-        .search-box {
-          flex: 1;
-        }
-
-        .search-box input {
-          width: 100%;
-          padding: 12px 16px;
-          border: 1px solid #d1d5db;
-          border-radius: 8px;
-          font-size: 16px;
-        }
-
-        .filter-dropdown select {
-          padding: 12px 16px;
-          border: 1px solid #d1d5db;
-          border-radius: 8px;
-          font-size: 16px;
-          min-width: 150px;
-        }
-
-        .users-list {
-          display: grid;
-          gap: 20px;
-        }
-
-      .leaves-management {
-        margin-top: 30px;
-        padding-top: 20px;
-        border-top: 2px solid #e5e7eb;
-      }
-
-      .leaves-header {
-        display: flex;
-        align-items: baseline;
-        gap: 10px;
-        margin-bottom: 12px;
-      }
-
-      .leaves-list {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-
-      .leave-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 16px;
-        background: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-      }
-
-      .leave-title {
-        font-weight: 600;
-        color: #111827;
-      }
-
-      .leave-dates, .leave-reason {
-        color: #6b7280;
-        font-size: 14px;
-      }
-
-        .user-card {
-          display: flex;
-          align-items: center;
-          gap: 20px;
-          padding: 20px;
-          background: white;
-          border: 1px solid #e5e7eb;
-          border-radius: 12px;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-          transition: all 0.2s;
-        }
-
-        .user-card:hover {
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-          transform: translateY(-1px);
-        }
-
-        .user-avatar {
-          width: 60px;
-          height: 60px;
-          border-radius: 50%;
-          background: #f3f4f6;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 24px;
-        }
-
-        .user-info {
-          flex: 1;
-        }
-
-        .user-name {
-          font-size: 18px;
-          font-weight: 600;
-          color: #1f2937;
-          margin-bottom: 4px;
-        }
-
-        .user-email {
-          color: #6b7280;
-          margin-bottom: 8px;
-        }
-
-        .user-details {
-          display: flex;
-          gap: 20px;
-          margin-bottom: 8px;
-        }
-
-        .user-details span {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          font-size: 14px;
-          color: #6b7280;
-        }
-
-        .user-skills {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-
-        .skill-tag {
-          background: #dbeafe;
-          color: #1e40af;
-          padding: 4px 8px;
-          border-radius: 4px;
-          font-size: 12px;
-          font-weight: 500;
-        }
-
-        .skill-more {
-          color: #6b7280;
-          font-size: 12px;
-        }
-
-        .pending-badge {
-          background: #fef3c7;
-          color: #92400e;
-          padding: 2px 8px;
-          border-radius: 12px;
-          font-size: 10px;
-          font-weight: 700;
-          margin-left: 8px;
-          border: 1px solid #fde68a;
-        }
-
-        .admin-badge {
-          background: #dc2626;
-          color: white;
-          padding: 2px 6px;
-          border-radius: 10px;
-          font-size: 10px;
-          font-weight: bold;
-          margin-left: 6px;
-        }
-
-        .user-actions {
-          display: flex;
-          gap: 8px;
-        }
-
-        .approve-btn {
-          width: 36px;
-          height: 36px;
-          border: none;
-          border-radius: 6px;
-          background: #dcfce7;
-          color: #166534;
-          cursor: pointer;
-          transition: all 0.2s;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .approve-btn:hover {
-          background: #bbf7d0;
-          color: #15803d;
-        }
-
-        .edit-btn, .delete-btn {
-          width: 36px;
-          height: 36px;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-          transition: all 0.2s;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .edit-btn {
-          background: #f3f4f6;
-          color: #6b7280;
-        }
-
-        .edit-btn:hover {
-          background: #e5e7eb;
-          color: #374151;
-        }
-
-        .delete-btn {
-          background: #fef2f2;
-          color: #dc2626;
-        }
-
-        .delete-btn:hover {
-          background: #fecaca;
-          color: #b91c1c;
-        }
-
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0, 0, 0, 0.5);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1000;
-        }
-
-        .modal-content {
-          background: white;
-          border-radius: 12px;
-          width: 90%;
-          max-width: 600px;
-          max-height: 90vh;
-          overflow-y: auto;
-        }
-
-        .modal-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 20px;
-          border-bottom: 1px solid #e5e7eb;
-        }
-
-        .modal-header h3 {
-          margin: 0;
-          color: #1f2937;
-          font-size: 20px;
-          font-weight: 600;
-        }
-
-        .close-btn {
-          background: none;
-          border: none;
-          color: #6b7280;
-          cursor: pointer;
-          padding: 4px;
-          border-radius: 4px;
-        }
-
-        .close-btn:hover {
-          background: #f3f4f6;
-        }
-
-        .modal-body {
-          padding: 20px;
-        }
-
-        .form-row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 20px;
-          margin-bottom: 20px;
-        }
-
-        .form-group {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-
-        .form-group label {
-          font-weight: 600;
-          color: #374151;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-          padding: 12px;
-          border: 1px solid #d1d5db;
-          border-radius: 6px;
-          font-size: 16px;
-        }
-
-        .form-group textarea {
-          resize: vertical;
-        }
-
-        .password-input {
-          position: relative;
-          display: flex;
-          align-items: center;
-        }
-
-        .password-input input {
-          width: 100%;
-          padding-right: 40px;
-        }
-
-        .password-input button {
-          position: absolute;
-          right: 12px;
-          background: none;
-          border: none;
-          color: #6b7280;
-          cursor: pointer;
-          padding: 4px;
-        }
-
-        .skills-section,
-        .certifications-section {
-          border: 1px solid #e5e7eb;
-          border-radius: 6px;
-          padding: 12px;
-        }
-
-        .selected-skills,
-        .selected-certifications {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-          margin-bottom: 12px;
-        }
-
-        .skill-tag,
-        .cert-tag {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          background: #dbeafe;
-          color: #1e40af;
-          padding: 4px 8px;
-          border-radius: 4px;
-          font-size: 12px;
-          font-weight: 500;
-        }
-
-        .skill-tag button,
-        .cert-tag button {
-          background: none;
-          border: none;
-          color: #1e40af;
-          cursor: pointer;
-          padding: 0;
-        }
-
-        .available-skills,
-        .available-certifications {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-
-        .skill-option,
-        .cert-option {
-          background: #f3f4f6;
-          color: #6b7280;
-          border: 1px solid #d1d5db;
-          padding: 4px 8px;
-          border-radius: 4px;
-          font-size: 12px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .skill-option:hover,
-        .cert-option:hover {
-          background: #e5e7eb;
-          color: #374151;
-        }
-
-        .password-requirements {
-          background: #f9fafb;
-          border: 1px solid #e5e7eb;
-          border-radius: 6px;
-          padding: 12px;
-          margin-bottom: 20px;
-        }
-
-        .password-requirements h4 {
-          margin: 0 0 8px 0;
-          color: #374151;
-          font-size: 14px;
-        }
-
-        .password-requirements ul {
-          margin: 0;
-          padding-left: 20px;
-          color: #6b7280;
-          font-size: 14px;
-        }
-
-        .modal-actions {
-          display: flex;
-          gap: 12px;
-          justify-content: flex-end;
-          padding-top: 20px;
-          border-top: 1px solid #e5e7eb;
-        }
-
-        .modal-actions button {
-          padding: 10px 20px;
-          border: 1px solid #d1d5db;
-          border-radius: 6px;
-          background: white;
-          color: #374151;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .modal-actions button:hover {
-          background: #f9fafb;
-        }
-
-        .primary-btn {
-          background: #3b82f6 !important;
-          color: white !important;
-          border-color: #3b82f6 !important;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .primary-btn:hover {
-          background: #2563eb !important;
-        }
-
-        /* View Modal Styles */
-        .view-modal {
-          max-width: 500px !important;
-        }
-
-        .profile-summary {
-          display: flex;
-          align-items: center;
-          gap: 20px;
-          margin-bottom: 24px;
-          padding-bottom: 20px;
-          border-bottom: 1px solid #f3f4f6;
-        }
-
-        .profile-avatar-large {
-          width: 80px;
-          height: 80px;
-          border-radius: 50%;
-          background: #eff6ff;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 36px;
-          border: 3px solid #dbeafe;
-        }
-
-        .profile-main-info h4 {
-          margin: 0 0 4px 0;
-          font-size: 20px;
-          color: #1f2937;
-        }
-
-        .profile-role {
-          background: #f3f4f6;
-          color: #4b5563;
-          padding: 2px 10px;
-          border-radius: 20px;
-          font-size: 13px;
-          font-weight: 600;
-          text-transform: uppercase;
-        }
-
-        .profile-details-grid {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          margin-bottom: 24px;
-        }
-
-        .detail-row {
-          display: flex;
-          justify-content: space-between;
-          padding: 8px 0;
-          border-bottom: 1px dashed #f3f4f6;
-        }
-
-        .detail-label {
-          color: #6b7280;
-          font-weight: 500;
-        }
-
-        .detail-value {
-          color: #1f2937;
-          font-weight: 600;
-        }
-
-        .laser-details-box {
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-          border-radius: 10px;
-          padding: 16px;
-        }
-
-        .laser-details-box h5 {
-          margin: 0 0 12px 0;
-          color: #3b82f6;
-          font-size: 14px;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-
-        .laser-info-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 12px;
-        }
-
-        .laser-info-item {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-
-        .laser-info-item .label {
-          font-size: 12px;
-          color: #64748b;
-        }
-
-        .laser-info-item .value {
-          font-size: 14px;
-          font-weight: 600;
-          color: #1e293b;
-        }
-
-        .status-badge {
-          display: inline-block;
-          padding: 2px 8px;
-          border-radius: 4px;
-          font-size: 12px;
-        }
-
-        .status-badge.available {
-          background: #dcfce7;
-          color: #166534;
-        }
-
-        .status-badge.unavailable {
-          background: #fee2e2;
-          color: #991b1b;
-        }
-
-        .view-btn {
-          width: 36px;
-          height: 36px;
-          border: none;
-          border-radius: 6px;
-          background: #eff6ff;
-          color: #3b82f6;
-          cursor: pointer;
-          transition: all 0.2s;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .view-btn:hover {
-          background: #dbeafe;
-          color: #1d4ed8;
-        }
-
-        @media (max-width: 768px) {
-          .form-row {
-            grid-template-columns: 1fr;
-          }
-
-          .search-filter-section {
-            flex-direction: column;
-          }
-
-          .user-card {
-            flex-direction: column;
-            text-align: center;
-          }
-
-          .user-actions {
-            justify-content: center;
-          }
-        }
-      `}</style>
     </div>
   );
 };
