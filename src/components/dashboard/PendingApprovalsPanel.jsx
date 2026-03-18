@@ -17,7 +17,7 @@ export default function PendingApprovalsPanel({
 
       {/* Leave Requests */}
       <div>
-        <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '.7px', marginBottom: 6 }}>
+        <div className="section-label" style={{ marginBottom: 6 }}>
           Leave Requests
         </div>
         {pendingLeaves.length === 0 ? (
@@ -36,12 +36,14 @@ export default function PendingApprovalsPanel({
                 </div>
                 <button
                   onClick={() => onApproveLeave(l.id)}
-                  style={{ width: 20, height: 20, borderRadius: 4, background: 'rgba(52,211,153,0.2)', border: '1px solid rgba(52,211,153,0.4)', color: '#34d399', cursor: 'pointer', fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  className="glass-btn-primary"
+                  style={{ width: 20, height: 20, borderRadius: 4, padding: 0, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   title="Approve"
                 >✓</button>
                 <button
                   onClick={() => onRejectLeave(l.id)}
-                  style={{ width: 20, height: 20, borderRadius: 4, background: 'rgba(248,113,113,0.2)', border: '1px solid rgba(248,113,113,0.4)', color: '#f87171', cursor: 'pointer', fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  className="glass-btn-danger"
+                  style={{ width: 20, height: 20, borderRadius: 4, padding: 0, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   title="Reject"
                 >✕</button>
               </div>
@@ -55,7 +57,7 @@ export default function PendingApprovalsPanel({
 
       {/* Unconfirmed Assignments */}
       <div>
-        <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '.7px', marginBottom: 6 }}>
+        <div className="section-label" style={{ marginBottom: 6 }}>
           Unconfirmed Assignments
         </div>
         {unconfirmedCases.length === 0 ? (
@@ -76,12 +78,14 @@ export default function PendingApprovalsPanel({
                   </div>
                   <button
                     onClick={() => onConfirmCase(c.id)}
-                    style={{ width: 20, height: 20, borderRadius: 4, background: 'rgba(52,211,153,0.2)', border: '1px solid rgba(52,211,153,0.4)', color: '#34d399', cursor: 'pointer', fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    className="glass-btn-primary"
+                    style={{ width: 20, height: 20, borderRadius: 4, padding: 0, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     title="Confirm (start)"
                   >✓</button>
                   <button
                     onClick={() => onReassignCase(c)}
-                    style={{ width: 20, height: 20, borderRadius: 4, background: 'rgba(167,139,250,0.2)', border: '1px solid rgba(167,139,250,0.4)', color: '#a78bfa', cursor: 'pointer', fontSize: 9, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    className="glass-btn-secondary"
+                    style={{ width: 20, height: 20, borderRadius: 4, padding: 0, fontSize: 9, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     title="Reassign"
                   >↻</button>
                 </div>

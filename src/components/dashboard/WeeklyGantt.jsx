@@ -39,7 +39,8 @@ export default function WeeklyGantt({ engineers, schedules, cases, leaves, weekS
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8, gap: 8 }}>
         <button
           onClick={() => { const d = new Date(weekStart); d.setDate(d.getDate() - 7); onWeekChange(d); }}
-          style={{ background: 'none', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 4, color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: '2px 8px', fontSize: 11 }}
+          className="glass-btn-secondary"
+          style={{ padding: '2px 8px', fontSize: 11 }}
         >‹</button>
         <div style={{ flex: 1, display: 'flex' }}>
           {weekDays.map((d, i) => (
@@ -50,7 +51,8 @@ export default function WeeklyGantt({ engineers, schedules, cases, leaves, weekS
         </div>
         <button
           onClick={() => { const d = new Date(weekStart); d.setDate(d.getDate() + 7); onWeekChange(d); }}
-          style={{ background: 'none', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 4, color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: '2px 8px', fontSize: 11 }}
+          className="glass-btn-secondary"
+          style={{ padding: '2px 8px', fontSize: 11 }}
         >›</button>
       </div>
 

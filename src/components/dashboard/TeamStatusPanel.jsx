@@ -25,6 +25,9 @@ export default function TeamStatusPanel({ engineers, schedules, currentUserId, a
                 display: 'flex', alignItems: 'center', gap: 8,
                 opacity: dimmed ? 0.3 : 1,
                 transition: 'opacity 0.2s',
+                background: 'rgba(255,255,255,0.03)',
+                borderRadius: 8,
+                padding: '4px 6px',
               }}
             >
               {/* Avatar */}

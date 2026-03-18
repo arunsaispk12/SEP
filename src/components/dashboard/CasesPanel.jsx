@@ -12,10 +12,10 @@ export default function CasesPanel({ upcomingCases, unassignedCases, engineers, 
 
       {/* Upcoming Cases */}
       <div style={{ flex: 1, minHeight: 0 }}>
-        <div style={{
-          fontSize: 7, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '.7px', marginBottom: 6,
-          ...(highlightUpcoming ? { color: '#fbbf24' } : {})
-        }}>
+        <div
+          className="section-label"
+          style={{ marginBottom: 6, ...(highlightUpcoming ? { color: '#fbbf24' } : {}) }}
+        >
           Upcoming Cases
         </div>
         {upcomingCases.length === 0 ? (
@@ -58,11 +58,10 @@ export default function CasesPanel({ upcomingCases, unassignedCases, engineers, 
 
       {/* Unassigned Cases */}
       <div style={{ flex: 1, minHeight: 0 }}>
-        <div style={{
-          fontSize: 7, textTransform: 'uppercase', letterSpacing: '.7px', marginBottom: 6,
-          color: highlightUnassigned ? '#f87171' : 'rgba(248,113,113,0.6)',
-          display: 'flex', alignItems: 'center', gap: 4
-        }}>
+        <div
+          className="section-label"
+          style={{ marginBottom: 6, color: highlightUnassigned ? '#f87171' : 'rgba(248,113,113,0.6)', display: 'flex', alignItems: 'center', gap: 4 }}
+        >
           <span>⚠</span> Unassigned Cases
         </div>
         {unassignedCases.length === 0 ? (

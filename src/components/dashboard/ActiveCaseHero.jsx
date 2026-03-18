@@ -76,7 +76,7 @@ export default function ActiveCaseHero({ activeCase, onUpdateCase }) {
                 style={{ width: '100%', padding: '6px 16px', background: 'rgba(251,191,36,0.2)', border: '1px solid rgba(251,191,36,0.4)', borderRadius: 6, color: '#fde68a', cursor: 'pointer', fontSize: 10, fontWeight: 600, whiteSpace: 'nowrap' }}
               >⟳ Update Status</button>
               {showStatusPicker && nextStatuses.length > 0 && (
-                <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: 4, background: '#1e1b4b', border: '1px solid rgba(167,139,250,0.35)', borderRadius: 8, padding: 8, zIndex: 10, display: 'flex', flexDirection: 'column', gap: 4, minWidth: 140 }}>
+                <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: 4, background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8, padding: 8, zIndex: 10, display: 'flex', flexDirection: 'column', gap: 4, minWidth: 140 }}>
                   {nextStatuses.map(s => {
                     const nsc = STATUS_COLORS[s] || STATUS_COLORS.open;
                     return (

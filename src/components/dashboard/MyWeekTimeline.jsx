@@ -17,11 +17,13 @@ export default function MyWeekTimeline({ schedules, cases, engineerId, weekStart
         </div>
         <button
           onClick={() => { const d = new Date(weekStart); d.setDate(d.getDate() - 7); onWeekChange(d); }}
-          style={{ background: 'none', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 4, color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: '2px 8px', fontSize: 11 }}
+          className="glass-btn-secondary"
+          style={{ padding: '2px 8px', fontSize: 11 }}
         >‹</button>
         <button
           onClick={() => { const d = new Date(weekStart); d.setDate(d.getDate() + 7); onWeekChange(d); }}
-          style={{ background: 'none', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 4, color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: '2px 8px', fontSize: 11 }}
+          className="glass-btn-secondary"
+          style={{ padding: '2px 8px', fontSize: 11 }}
         >›</button>
       </div>
 
@@ -83,7 +85,8 @@ export default function MyWeekTimeline({ schedules, cases, engineerId, weekStart
       {popover && (
         <div style={{
           position: 'absolute', bottom: 0, left: 0, right: 0,
-          background: '#1e1b4b', border: '1px solid rgba(167,139,250,0.35)', borderRadius: '0 0 10px 10px',
+          background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+          border: '1px solid rgba(255,255,255,0.15)', borderRadius: '0 0 10px 10px',
           padding: '10px 14px', zIndex: 10
         }}>
           <div style={{ fontSize: 10, fontWeight: 700, color: '#fff', marginBottom: 3 }}>
@@ -98,10 +101,11 @@ export default function MyWeekTimeline({ schedules, cases, engineerId, weekStart
             {onGoToCase && (
               <button
                 onClick={() => { onGoToCase(); setPopover(null); }}
-                style={{ fontSize: 8, padding: '3px 10px', background: 'rgba(96,165,250,0.2)', border: '1px solid rgba(96,165,250,0.4)', borderRadius: 5, color: '#60a5fa', cursor: 'pointer', fontWeight: 600 }}
+                className="glass-btn-primary"
+                style={{ fontSize: 8, padding: '3px 10px' }}
               >Go to Case →</button>
             )}
-            <button onClick={() => setPopover(null)} style={{ fontSize: 8, padding: '3px 10px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 5, color: 'rgba(255,255,255,0.5)', cursor: 'pointer' }}>Close</button>
+            <button onClick={() => setPopover(null)} className="glass-btn-secondary" style={{ fontSize: 8, padding: '3px 10px' }}>Close</button>
           </div>
         </div>
       )}
