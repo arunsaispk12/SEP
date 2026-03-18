@@ -1,660 +1,330 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useEngineerContext } from '../context/EngineerContext';
+import { supabase } from '../config/supabase';
 import {
-  UserPlus,
-  Edit,
-  Trash2,
-  Eye,
-  EyeOff,
-  Save,
-  X,
-  Shield,
-  Phone,
-  MapPin,
-  Calendar,
-  Plus
+  Edit, Trash2, Mail, CheckCircle, X, Save
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import supabaseService from '../services/supabaseService';
 
 const UserManagement = () => {
-  const { user, changePassword } = useAuth();
-  const { engineers, leaves, updateLeave, deleteLeave, addEngineer, updateEngineer, deleteEngineer, approveUser } = useEngineerContext();
+  const { user } = useAuth();
+  const { engineers, approveUser, updateEngineer, loadData, locationObjects } = useEngineerContext();
 
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [showEditForm, setShowEditForm] = useState(false);
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
-  const [showLocationForm, setShowLocationForm] = useState(false);
-  const [editingUser, setEditingUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
-  const [filterApproval, setFilterApproval] = useState('all');
-  const [showLeaveModal, setShowLeaveModal] = useState(false);
-  const [editingLeave, setEditingLeave] = useState(null);
-  const [leaveForm, setLeaveForm] = useState({
-    id: null,
-    engineer_id: null,
-    start_date: '',
-    end_date: '',
-    reason: ''
+  const [filterStatus, setFilterStatus] = useState('all');
+
+  const [showInviteForm, setShowInviteForm] = useState(false);
+  const [inviteForm, setInviteForm] = useState({ name: '', email: '', role: 'engineer', location_id: '' });
+  const [inviteLoading, setInviteLoading] = useState(false);
+
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+
+  const [deletingId, setDeletingId] = useState(null);
+
+  // ── Derived stats ───────────────────────────────────────────────
+  const totalUsers = engineers.length;
+  const engineerCount = engineers.filter(e => e.role === 'engineer').length;
+  const pendingCount = engineers.filter(e => !e.is_active && e.invite_sent_at).length;
+  const adminCount = engineers.filter(e => e.role === 'admin').length;
+
+  // ── Filtering ───────────────────────────────────────────────────
+  const filteredUsers = engineers.filter(e => {
+    const matchSearch = (e.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (e.email || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchRole = filterRole === 'all' || e.role === filterRole;
+    let matchStatus = true;
+    if (filterStatus === 'active') matchStatus = e.is_active === true;
+    else if (filterStatus === 'pending') matchStatus = !e.is_active && !!e.invite_sent_at;
+    else if (filterStatus === 'not_invited') matchStatus = !e.is_active && !e.invite_sent_at;
+    return matchSearch && matchRole && matchStatus;
   });
 
-  // Form states
-  const [newUser, setNewUser] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    role: 'engineer',
-    location_id: 1,
-    phone: '',
-    bio: '',
-    skills: [],
-    certifications: [],
-    experience_years: 0,
-    avatar: '👨‍🔧'
-  });
-
-  // Location form state
-  const [newLocation, setNewLocation] = useState({
-    name: '',
-    address: '',
-    city: '',
-    state: '',
-    pincode: ''
-  });
-
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
-
-  const [showPasswords, setShowPasswords] = useState({
-    current: false,
-    new: false,
-    confirm: false
-  });
-
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [showViewModal, setShowViewModal] = useState(false);
-
-  const handleViewUser = (u) => {
-    setSelectedUser(u);
-    setShowViewModal(true);
+  // ── Status helpers ──────────────────────────────────────────────
+  const getStatus = (e) => {
+    if (e.is_active) return 'active';
+    if (e.invite_sent_at) return 'pending';
+    return 'not_invited';
   };
 
-  const [locations, setLocations] = useState([]);
+  const STATUS_CONFIG = {
+    active:      { label: 'Active',             color: '#4ade80', bg: 'rgba(34,197,94,0.12)',   border: 'rgba(34,197,94,0.25)' },
+    pending:     { label: 'Pending Activation', color: '#fbbf24', bg: 'rgba(245,158,11,0.12)',  border: 'rgba(245,158,11,0.25)' },
+    not_invited: { label: 'Not Invited',        color: '#f87171', bg: 'rgba(239,68,68,0.10)',   border: 'rgba(239,68,68,0.20)' },
+  };
 
-  // Load locations from database
-  useEffect(() => {
-    const loadLocations = async () => {
-      try {
-        const locationData = await supabaseService.getLocations();
-        setLocations(locationData.map(loc => ({ id: loc.id, name: loc.name })));
-      } catch (error) {
-        console.error('Error loading locations:', error);
-        // Fallback to hardcoded locations
-        setLocations([
-          { id: 1, name: 'Hyderabad' },
-          { id: 2, name: 'Bangalore' },
-          { id: 3, name: 'Coimbatore' },
-          { id: 4, name: 'Chennai' }
-        ]);
-      }
-    };
+  const AVATAR_COLORS = {
+    active:      'linear-gradient(135deg,#7c3aed,#4f46e5)',
+    pending:     'linear-gradient(135deg,#d97706,#b45309)',
+    not_invited: 'linear-gradient(135deg,#dc2626,#991b1b)',
+  };
 
-    loadLocations();
-  }, []);
+  const getInitials = (name) => (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  const getRoleLabel = (role) => ({ engineer: '🔧 Engineer', manager: '👨‍💼 Manager', admin: '🛡️ Admin' }[role] || role);
+  const getLocationName = (locId) => (locationObjects || []).find(l => l.id === locId)?.name || '';
 
-  // Available roles
-  const roles = [
-    { value: 'engineer', label: 'Service Engineer', icon: '🔧' },
-    { value: 'manager', label: 'Manager', icon: '👨‍💼' },
-    { value: 'admin', label: 'Administrator', icon: '🛡️' }
-  ];
-
-  // Available skills
-  const availableSkills = [
-    'Hardware Repair', 'Software Installation', 'Network Setup', 'System Maintenance',
-    'Database Management', 'Cloud Services', 'Technical Analysis', 'Problem Solving',
-    'Equipment Setup', 'Industrial Systems', 'Manufacturing Equipment', 'Safety Protocols',
-    'Team Management', 'Operations Planning', 'Strategic Planning'
-  ];
-
-  // Available certifications
-  const availableCertifications = [
-    'CCNA', 'CompTIA A+', 'AWS Certified', 'Microsoft Azure', 'PMP', 'ITIL Foundation',
-    'OSHA Safety', 'Industrial Automation', 'Six Sigma Black Belt', 'Google Cloud Certified'
-  ];
-
-  // Filter users based on search, role, and approval
-  const filteredUsers = engineers.filter(engineer => {
-    const matchesSearch = (engineer.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (engineer.email || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = filterRole === 'all' || engineer.role === filterRole;
-    const matchesApproval = filterApproval === 'all' ||
-                           (filterApproval === 'pending' && !engineer.is_approved) ||
-                           (filterApproval === 'approved' && engineer.is_approved);
-    return matchesSearch && matchesRole && matchesApproval;
-  });
-
-  // Handle adding new user
-  const handleAddUser = async (e) => {
+  // ── Invite ──────────────────────────────────────────────────────
+  const handleInvite = async (e) => {
     e.preventDefault();
-
-    // Validation
-    if (newUser.password !== newUser.confirmPassword) {
-      toast.error('Passwords do not match');
-      return;
-    }
-
-    if (newUser.password.length < 6) {
-      toast.error('Password must be at least 6 characters');
-      return;
-    }
-
+    setInviteLoading(true);
     try {
-      const userData = {
-        ...newUser,
-        is_available: true,
-        is_active: true,
-        created_at: new Date().toISOString()
-      };
-
-      await addEngineer(userData);
-      toast.success('User added successfully');
-      setShowAddForm(false);
-      setNewUser({
-        name: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-        role: 'engineer',
-        location_id: 1,
-        phone: '',
-        bio: '',
-        skills: [],
-        certifications: [],
-        experience_years: 0,
-        avatar: '👨‍🔧'
+      const { data, error } = await supabase.functions.invoke('invite-user', {
+        body: { ...inviteForm, location_id: inviteForm.location_id || null, resend: false }
       });
-    } catch (error) {
-      toast.error('Failed to add user');
-      console.error('Add user error:', error);
+      if (error || data?.error) throw new Error(data?.error || error.message);
+      toast.success(`Invite sent to ${inviteForm.email}`);
+      setShowInviteForm(false);
+      setInviteForm({ name: '', email: '', role: 'engineer', location_id: '' });
+      await loadData();
+    } catch (err) {
+      toast.error(err.message || 'Failed to send invite');
+    } finally {
+      setInviteLoading(false);
     }
   };
 
-  // Handle editing user
-  const handleEditUser = async (e) => {
-    e.preventDefault();
-
+  const handleResendInvite = async (engineer) => {
     try {
-      await updateEngineer(editingUser.id, editingUser);
-      toast.success('User updated successfully');
+      const { data, error } = await supabase.functions.invoke('invite-user', {
+        body: { email: engineer.email, name: engineer.name, role: engineer.role,
+                location_id: engineer.location_id, resend: true }
+      });
+      if (error || data?.error) throw new Error(data?.error || error.message);
+      toast.success(`Invite resent to ${engineer.email}`);
+      await loadData();
+    } catch (err) {
+      toast.error(err.message || 'Failed to resend invite');
+    }
+  };
+
+  // ── Delete ──────────────────────────────────────────────────────
+  const handleDeleteConfirm = async (engineer) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        body: { userId: engineer.id }
+      });
+      if (error || data?.error) throw new Error(data?.error || error.message);
+      toast.success('User deleted');
+      setDeletingId(null);
+      await loadData();
+    } catch (err) {
+      toast.error(err.message || 'Failed to delete user');
+    }
+  };
+
+  // ── Edit ────────────────────────────────────────────────────────
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await updateEngineer(editingUser.id, {
+        name: editingUser.name,
+        role: editingUser.role,
+        location_id: editingUser.location_id || null,
+        phone: editingUser.phone || null,
+        laser_type: editingUser.laser_type || null,
+        serial_number: editingUser.serial_number || null,
+        tracker_status: editingUser.tracker_status || null,
+      });
+      toast.success('User updated');
       setShowEditForm(false);
       setEditingUser(null);
-    } catch (error) {
+    } catch {
       toast.error('Failed to update user');
-      console.error('Update user error:', error);
     }
   };
 
-  // Handle deleting user
-  const handleDeleteUser = async (userId) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      try {
-        await deleteEngineer(userId);
-        toast.success('User deleted successfully');
-      } catch (error) {
-        toast.error('Failed to delete user');
-        console.error('Delete user error:', error);
-      }
-    }
-  };
-
-  // Handle add location
-  const handleAddLocation = async (e) => {
-    e.preventDefault();
-
-    if (!newLocation.name.trim()) {
-      toast.error('Location name is required');
-      return;
-    }
-
-    try {
-      await supabaseService.createLocation(newLocation);
-      toast.success('Location added successfully');
-      setShowLocationForm(false);
-      setNewLocation({
-        name: '',
-        address: '',
-        city: '',
-        state: '',
-        pincode: ''
-      });
-      // Refresh locations
-      const locationData = await supabaseService.getLocations();
-      setLocations(locationData.map(loc => ({ id: loc.id, name: loc.name })));
-    } catch (error) {
-      toast.error('Failed to add location');
-      console.error('Add location error:', error);
-    }
-  };
-
-  // Handle password change
-  const handlePasswordChange = async (e) => {
-    e.preventDefault();
-
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.error('New passwords do not match');
-      return;
-    }
-
-    if (passwordData.newPassword.length < 6) {
-      toast.error('New password must be at least 6 characters');
-      return;
-    }
-
-    try {
-      const success = await changePassword(passwordData.currentPassword, passwordData.newPassword);
-      if (success) {
-        setShowPasswordForm(false);
-        setPasswordData({
-          currentPassword: '',
-          newPassword: '',
-          confirmPassword: ''
-        });
-      }
-    } catch (error) {
-      toast.error('Failed to change password');
-      console.error('Password change error:', error);
-    }
-  };
-
-  // Handle skill addition
-  const addSkill = (skill) => {
-    if (!newUser.skills.includes(skill)) {
-      setNewUser(prev => ({
-        ...prev,
-        skills: [...prev.skills, skill]
-      }));
-    }
-  };
-
-  // Handle skill removal
-  const removeSkill = (skill) => {
-    setNewUser(prev => ({
-      ...prev,
-      skills: prev.skills.filter(s => s !== skill)
-    }));
-  };
-
-  // Handle certification addition
-  const addCertification = (cert) => {
-    if (!newUser.certifications.includes(cert)) {
-      setNewUser(prev => ({
-        ...prev,
-        certifications: [...prev.certifications, cert]
-      }));
-    }
-  };
-
-  // Handle certification removal
-  const removeCertification = (cert) => {
-    setNewUser(prev => ({
-      ...prev,
-      certifications: prev.certifications.filter(c => c !== cert)
-    }));
-  };
-
-  // Get role icon
-  const getRoleIcon = (role) => {
-    const roleObj = roles.find(r => r.value === role);
-    return roleObj?.icon || '👤';
-  };
-
-  // Get role label
-  const getRoleLabel = (role) => {
-    const roleObj = roles.find(r => r.value === role);
-    return roleObj?.label || role;
-  };
-
-  const getEngineerName = (engineerId) => engineers.find(e => e.id === engineerId)?.name || 'Unknown';
-
-  const openEditLeave = (leave) => {
-    setEditingLeave(leave);
-    setLeaveForm({
-      id: leave.id,
-      engineer_id: leave.engineer_id,
-      start_date: leave.start_date,
-      end_date: leave.end_date,
-      reason: leave.reason || ''
-    });
-    setShowLeaveModal(true);
-  };
-
-  const handleUpdateLeave = async (e) => {
-    e.preventDefault();
-    try {
-      await updateLeave(leaveForm.id, {
-        engineer_id: leaveForm.engineer_id,
-        start_date: leaveForm.start_date,
-        end_date: leaveForm.end_date,
-        reason: leaveForm.reason,
-        status: 'approved'
-      });
-      setShowLeaveModal(false);
-      setEditingLeave(null);
-    } catch (error) {
-      // handled in context
-    }
-  };
-
-  const iconBtnStyle = {
-    width: 36, height: 36, border: 'none', borderRadius: 6, cursor: 'pointer',
-    transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center'
-  };
+  const iconBtn = (extra = {}) => ({
+    width: 34, height: 34, border: 'none', borderRadius: 8, cursor: 'pointer',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', ...extra
+  });
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: 20, color: '#f1f5f9' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30, paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+
+      {/* ── Header ── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, paddingBottom: 16, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
         <div>
-          <h2 style={{ margin: '0 0 5px 0', color: '#fff', fontSize: 28, fontWeight: 700 }}>User Management</h2>
-          <p style={{ margin: 0, color: '#94a3b8' }}>Manage service engineers and user accounts</p>
+          <h2 style={{ margin: '0 0 4px 0', color: '#fff', fontSize: 26, fontWeight: 700 }}>User Management</h2>
+          <p style={{ margin: 0, color: '#64748b', fontSize: 13 }}>Manage user accounts and access</p>
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button
-            className="glass-btn-secondary"
-            onClick={() => setShowLocationForm(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: 8 }}
-          >
-            <Plus size={20} />
-            Add Location
-          </button>
-          <button
-            className="glass-btn-primary"
-            onClick={() => setShowAddForm(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: 8 }}
-          >
-            <UserPlus size={20} />
-            Add New User
-          </button>
-        </div>
+        <button className="glass-btn-primary" onClick={() => setShowInviteForm(true)}
+          style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Mail size={16} /> Invite User
+        </button>
       </div>
 
-      {/* Search and Filter */}
-      <div style={{ display: 'flex', gap: 16, marginBottom: 24, flexWrap: 'wrap' }}>
-        <input
-          type="text"
-          placeholder="Search users..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="glass-input"
-          style={{ flex: 1, minWidth: 200 }}
-        />
-        <select
-          value={filterRole}
-          onChange={(e) => setFilterRole(e.target.value)}
-          className="glass-select"
-          style={{ minWidth: 150 }}
-        >
-          <option value="all">All Roles</option>
-          <option value="engineer">Engineers</option>
-          <option value="manager">Managers</option>
-          <option value="admin">Administrators</option>
-        </select>
-        <select
-          value={filterApproval}
-          onChange={(e) => setFilterApproval(e.target.value)}
-          className="glass-select"
-          style={{ minWidth: 160 }}
-        >
-          <option value="all">All Status</option>
-          <option value="pending">Pending Approval</option>
-          <option value="approved">Approved Only</option>
-        </select>
-      </div>
-
-      {/* Users List */}
-      <div style={{ display: 'grid', gap: 16 }}>
-        {filteredUsers.map((engineer) => (
-          <div key={engineer.id} className="glass-panel-sm" style={{ padding: 20, display: 'flex', alignItems: 'center', gap: 20, transition: 'all 0.2s' }}>
-            <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(123,97,255,0.15)', border: '1px solid rgba(123,97,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0 }}>
-              <span>{engineer.avatar || '👤'}</span>
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 18, fontWeight: 600, color: '#fff', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-                {engineer.name}
-                {!engineer.is_approved && (
-                  <span style={{ background: 'rgba(245,158,11,0.15)', color: '#fbbf24', padding: '2px 8px', borderRadius: 12, fontSize: 10, fontWeight: 700, border: '1px solid rgba(245,158,11,0.3)' }}>
-                    PENDING
-                  </span>
-                )}
-              </div>
-              <div style={{ color: '#94a3b8', marginBottom: 8 }}>{engineer.email}</div>
-              <div style={{ display: 'flex', gap: 16, marginBottom: 8, flexWrap: 'wrap' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 14, color: '#94a3b8' }}>
-                  {getRoleIcon(engineer.role)} {getRoleLabel(engineer.role)}
-                  {engineer.role === 'admin' && (
-                    <span style={{ background: '#dc2626', color: 'white', padding: '2px 6px', borderRadius: 10, fontSize: 10, fontWeight: 'bold', marginLeft: 4 }}>ADMIN</span>
-                  )}
-                </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 14, color: '#94a3b8' }}>
-                  <MapPin size={14} />
-                  {locations.find(l => l.id === engineer.location_id)?.name || 'Unknown'}
-                </span>
-                {engineer.phone && (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 14, color: '#94a3b8' }}>
-                    <Phone size={14} />
-                    {engineer.phone}
-                  </span>
-                )}
-              </div>
-              {engineer.skills && engineer.skills.length > 0 && (
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {engineer.skills.slice(0, 3).map((skill, index) => (
-                    <span key={index} style={{ background: 'rgba(123,97,255,0.15)', color: '#a78bfa', padding: '3px 8px', borderRadius: 4, fontSize: 12, fontWeight: 500 }}>{skill}</span>
-                  ))}
-                  {engineer.skills.length > 3 && (
-                    <span style={{ color: '#64748b', fontSize: 12 }}>+{engineer.skills.length - 3} more</span>
-                  )}
-                </div>
-              )}
-            </div>
-            <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-              {!engineer.is_approved && (
-                <button
-                  style={{ ...iconBtnStyle, background: 'rgba(34,197,94,0.15)', color: '#4ade80', border: '1px solid rgba(34,197,94,0.3)' }}
-                  onClick={() => approveUser(engineer.id)}
-                  title="Approve User"
-                >
-                  <Save size={16} />
-                </button>
-              )}
-              <button
-                style={{ ...iconBtnStyle, background: 'rgba(123,97,255,0.15)', color: '#a78bfa', border: '1px solid rgba(123,97,255,0.2)' }}
-                onClick={() => handleViewUser(engineer)}
-                title="View Profile"
-              >
-                <Eye size={16} />
-              </button>
-              <button
-                style={{ ...iconBtnStyle, background: 'rgba(255,255,255,0.05)', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.1)' }}
-                onClick={() => { setEditingUser(engineer); setShowEditForm(true); }}
-                title="Edit User"
-              >
-                <Edit size={16} />
-              </button>
-              <button
-                style={{ ...iconBtnStyle, background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}
-                onClick={() => handleDeleteUser(engineer.id)}
-                title="Delete User"
-              >
-                <Trash2 size={16} />
-              </button>
-            </div>
+      {/* ── Stats bar ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 20 }}>
+        {[
+          { label: 'Total Users', value: totalUsers, color: '#a78bfa' },
+          { label: 'Engineers', value: engineerCount, color: '#60a5fa' },
+          { label: 'Pending Activation', value: pendingCount, color: '#fbbf24', clickStatus: 'pending' },
+          { label: 'Admins', value: adminCount, color: '#f87171' },
+        ].map(stat => (
+          <div key={stat.label}
+            onClick={() => stat.clickStatus && setFilterStatus(f => f === stat.clickStatus ? 'all' : stat.clickStatus)}
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              border: `1px solid ${stat.clickStatus && filterStatus === stat.clickStatus ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.08)'}`,
+              borderRadius: 12, padding: '14px 16px',
+              cursor: stat.clickStatus ? 'pointer' : 'default',
+            }}>
+            <div style={{ fontSize: 26, fontWeight: 700, color: stat.color }}>{stat.value}</div>
+            <div style={{ fontSize: 12, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 2 }}>{stat.label}</div>
           </div>
         ))}
       </div>
 
-      {/* Leaves Management */}
-      <div style={{ marginTop: 30, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 16 }}>
-          <h3 style={{ margin: 0, color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Calendar size={18} /> Engineers' Leaves
-          </h3>
-          <p style={{ margin: 0, color: '#94a3b8', fontSize: 14 }}>View and modify leave requests</p>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {(leaves || []).length === 0 ? (
-            <div style={{ textAlign: 'center', padding: 24, color: '#64748b' }}>No leaves found</div>
-          ) : (
-            (leaves || []).map(leave => (
-              <div key={leave.id} className="glass-panel-sm" style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontWeight: 600, color: '#fff', marginBottom: 4 }}>{getEngineerName(leave.engineer_id)}</div>
-                  <div style={{ color: '#94a3b8', fontSize: 14 }}>{new Date(leave.start_date).toLocaleDateString()} - {new Date(leave.end_date).toLocaleDateString()}</div>
-                  <div style={{ color: '#64748b', fontSize: 14 }}>{leave.reason || 'No reason'}</div>
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button style={{ ...iconBtnStyle, background: 'rgba(255,255,255,0.05)', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.1)' }} onClick={() => openEditLeave(leave)} title="Edit Leave">
-                    <Edit size={16} />
-                  </button>
-                  <button style={{ ...iconBtnStyle, background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }} onClick={() => deleteLeave(leave.id)} title="Cancel Leave">
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+      {/* ── Filters ── */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
+        <input type="text" placeholder="Search users…" value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)} className="glass-input" style={{ flex: 1, minWidth: 200 }} />
+        <select value={filterRole} onChange={e => setFilterRole(e.target.value)} className="glass-select" style={{ minWidth: 140 }}>
+          <option value="all">All Roles</option>
+          <option value="engineer">Engineers</option>
+          <option value="manager">Managers</option>
+          <option value="admin">Admins</option>
+        </select>
+        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="glass-select" style={{ minWidth: 160 }}>
+          <option value="all">All Users</option>
+          <option value="active">Active</option>
+          <option value="pending">Pending Activation</option>
+          <option value="not_invited">Not Invited</option>
+        </select>
       </div>
 
-      {/* Add User Modal */}
-      {showAddForm && (
-        <div className="glass-modal-backdrop">
-          <div className="glass-modal-wide">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h3 style={{ margin: 0, color: '#fff', fontSize: '1.125rem', fontWeight: 700 }}>Add New User</h3>
-              <button onClick={() => setShowAddForm(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex' }}>
-                <X size={20} />
-              </button>
-            </div>
+      {/* ── User list ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {filteredUsers.length === 0 && (
+          <div style={{ textAlign: 'center', padding: 32, color: '#475569' }}>No users found</div>
+        )}
+        {filteredUsers.map(engineer => {
+          const status = getStatus(engineer);
+          const sc = STATUS_CONFIG[status];
+          return (
+            <div key={engineer.id} style={{
+              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+              borderRadius: 14, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16
+            }}>
+              {/* Avatar */}
+              <div style={{ width: 52, height: 52, borderRadius: '50%', background: AVATAR_COLORS[status], display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                {getInitials(engineer.name)}
+              </div>
 
-            <form onSubmit={handleAddUser}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+              {/* Info */}
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 16, fontWeight: 600, color: '#fff' }}>{engineer.name}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, padding: '2px 8px', borderRadius: 20, background: sc.bg, color: sc.color, border: `1px solid ${sc.border}` }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: sc.color, display: 'inline-block' }} />
+                    {sc.label}
+                  </span>
+                  <span style={{ background: 'rgba(123,97,255,0.15)', color: '#a78bfa', padding: '2px 8px', borderRadius: 4, fontSize: 12, fontWeight: 600 }}>
+                    {getRoleLabel(engineer.role)}
+                  </span>
+                </div>
+                <div style={{ color: '#64748b', fontSize: 13 }}>
+                  {engineer.email}
+                  {engineer.location_id && ` · 📍 ${getLocationName(engineer.location_id)}`}
+                  {engineer.phone && ` · 📞 ${engineer.phone}`}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div style={{ display: 'flex', gap: 7, flexShrink: 0, alignItems: 'center' }}>
+                {!engineer.is_approved && (
+                  <button onClick={() => approveUser(engineer.id)} title="Approve"
+                    style={iconBtn({ background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)', color: '#4ade80' })}>
+                    <CheckCircle size={16} />
+                  </button>
+                )}
+                {(status === 'pending' || status === 'not_invited') && (
+                  <button onClick={() => handleResendInvite(engineer)}
+                    title={status === 'pending' ? 'Resend Invite' : 'Send Invite'}
+                    style={{ ...iconBtn({ border: '1px solid rgba(99,102,241,0.3)', color: '#818cf8', background: 'rgba(99,102,241,0.12)' }), padding: '0 12px', width: 'auto', fontSize: 12, fontWeight: 600, gap: 4, display: 'flex' }}>
+                    <Mail size={13} /> {status === 'pending' ? 'Resend' : 'Send Invite'}
+                  </button>
+                )}
+                <button onClick={() => { setEditingUser({ ...engineer }); setShowEditForm(true); }} title="Edit"
+                  style={iconBtn({ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8' })}>
+                  <Edit size={15} />
+                </button>
+
+                {deletingId === engineer.id ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, padding: '6px 10px' }}>
+                    <span style={{ fontSize: 12, color: '#f87171', whiteSpace: 'nowrap' }}>Delete user?</span>
+                    <button onClick={() => handleDeleteConfirm(engineer)}
+                      style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)', color: '#f87171', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                      Confirm
+                    </button>
+                    <button onClick={() => setDeletingId(null)}
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', padding: '3px 10px', borderRadius: 6, fontSize: 12, cursor: 'pointer' }}>
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={() => setDeletingId(engineer.id)} title="Delete"
+                    style={iconBtn({ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171' })}>
+                    <Trash2 size={15} />
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── Invite Modal ── */}
+      {showInviteForm && (
+        <div className="glass-modal-backdrop">
+          <div className="glass-modal">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+              <h3 style={{ margin: 0, color: '#fff', fontSize: '1.1rem', fontWeight: 700 }}>✉ Invite User</h3>
+              <button onClick={() => setShowInviteForm(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X size={20} /></button>
+            </div>
+            <p style={{ margin: '0 0 18px 0', color: '#64748b', fontSize: 13 }}>An invite email will be sent — user sets their own password on first login.</p>
+            <form onSubmit={handleInvite}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
                 <div>
                   <div className="section-label">Full Name *</div>
-                  <input type="text" value={newUser.name} onChange={(e) => setNewUser(prev => ({ ...prev, name: e.target.value }))} required className="glass-input" />
+                  <input required className="glass-input" value={inviteForm.name}
+                    onChange={e => setInviteForm(p => ({ ...p, name: e.target.value }))} />
                 </div>
                 <div>
                   <div className="section-label">Email *</div>
-                  <input type="email" value={newUser.email} onChange={(e) => setNewUser(prev => ({ ...prev, email: e.target.value }))} required className="glass-input" />
+                  <input required type="email" className="glass-input" value={inviteForm.email}
+                    onChange={e => setInviteForm(p => ({ ...p, email: e.target.value }))} />
                 </div>
               </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
-                <div>
-                  <div className="section-label">Password *</div>
-                  <div style={{ position: 'relative' }}>
-                    <input type={showPasswords.new ? 'text' : 'password'} value={newUser.password} onChange={(e) => setNewUser(prev => ({ ...prev, password: e.target.value }))} required className="glass-input" style={{ paddingRight: 40 }} />
-                    <button type="button" onClick={() => setShowPasswords(prev => ({ ...prev, new: !prev.new }))} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 4 }}>
-                      {showPasswords.new ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <div className="section-label">Confirm Password *</div>
-                  <div style={{ position: 'relative' }}>
-                    <input type={showPasswords.confirm ? 'text' : 'password'} value={newUser.confirmPassword} onChange={(e) => setNewUser(prev => ({ ...prev, confirmPassword: e.target.value }))} required className="glass-input" style={{ paddingRight: 40 }} />
-                    <button type="button" onClick={() => setShowPasswords(prev => ({ ...prev, confirm: !prev.confirm }))} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 4 }}>
-                      {showPasswords.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
                 <div>
                   <div className="section-label">Role *</div>
-                  <select value={newUser.role} onChange={(e) => setNewUser(prev => ({ ...prev, role: e.target.value }))} required className="glass-select">
-                    {roles.map(role => <option key={role.value} value={role.value}>{role.icon} {role.label}</option>)}
+                  <select required className="glass-select" value={inviteForm.role}
+                    onChange={e => setInviteForm(p => ({ ...p, role: e.target.value }))}>
+                    <option value="engineer">🔧 Engineer</option>
+                    <option value="manager">👨‍💼 Manager</option>
+                    <option value="admin">🛡️ Admin</option>
                   </select>
                 </div>
                 <div>
-                  <div className="section-label">Location *</div>
-                  <select value={newUser.location_id} onChange={(e) => setNewUser(prev => ({ ...prev, location_id: parseInt(e.target.value) }))} required className="glass-select">
-                    {locations.map(location => <option key={location.id} value={location.id}>{location.name}</option>)}
+                  <div className="section-label">Location</div>
+                  <select className="glass-select" value={inviteForm.location_id}
+                    onChange={e => setInviteForm(p => ({ ...p, location_id: e.target.value }))}>
+                    <option value="">No location</option>
+                    {(locationObjects || []).map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
                   </select>
                 </div>
               </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
-                <div>
-                  <div className="section-label">Phone</div>
-                  <input type="tel" value={newUser.phone} onChange={(e) => setNewUser(prev => ({ ...prev, phone: e.target.value }))} className="glass-input" />
-                </div>
-                <div>
-                  <div className="section-label">Experience (Years)</div>
-                  <input type="number" min="0" value={newUser.experience_years} onChange={(e) => setNewUser(prev => ({ ...prev, experience_years: parseInt(e.target.value) || 0 }))} className="glass-input" />
-                </div>
+              <div style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#818cf8', marginBottom: 16 }}>
+                ℹ A secure invite link will be emailed. No password needed — the user creates their own when they accept.
               </div>
-
-              <div style={{ marginBottom: 14 }}>
-                <div className="section-label">Bio</div>
-                <textarea value={newUser.bio} onChange={(e) => setNewUser(prev => ({ ...prev, bio: e.target.value }))} rows="3" className="glass-textarea" />
-              </div>
-
-              <div style={{ marginBottom: 14 }}>
-                <div className="section-label">Skills</div>
-                <div style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: 12 }}>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
-                    {newUser.skills.map((skill, index) => (
-                      <span key={index} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(123,97,255,0.2)', color: '#a78bfa', padding: '4px 10px', borderRadius: 20, fontSize: 13 }}>
-                        {skill}
-                        <button type="button" onClick={() => removeSkill(skill)} style={{ background: 'none', border: 'none', color: '#a78bfa', cursor: 'pointer', padding: 0, display: 'flex' }}>
-                          <X size={12} />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {availableSkills.filter(skill => !newUser.skills.includes(skill)).map(skill => (
-                      <button key={skill} type="button" className="glass-btn-secondary" onClick={() => addSkill(skill)} style={{ padding: '4px 10px', fontSize: 12 }}>{skill}</button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ marginBottom: 20 }}>
-                <div className="section-label">Certifications</div>
-                <div style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: 12 }}>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
-                    {newUser.certifications.map((cert, index) => (
-                      <span key={index} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(6,182,212,0.15)', color: '#22d3ee', padding: '4px 10px', borderRadius: 20, fontSize: 13 }}>
-                        {cert}
-                        <button type="button" onClick={() => removeCertification(cert)} style={{ background: 'none', border: 'none', color: '#22d3ee', cursor: 'pointer', padding: 0, display: 'flex' }}>
-                          <X size={12} />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {availableCertifications.filter(cert => !newUser.certifications.includes(cert)).map(cert => (
-                      <button key={cert} type="button" className="glass-btn-secondary" onClick={() => addCertification(cert)} style={{ padding: '4px 10px', fontSize: 12 }}>{cert}</button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-                <button type="button" className="glass-btn-secondary" onClick={() => setShowAddForm(false)}>Cancel</button>
-                <button type="submit" className="glass-btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Save size={16} />
-                  Add User
+                <button type="button" className="glass-btn-secondary" onClick={() => setShowInviteForm(false)}>Cancel</button>
+                <button type="submit" className="glass-btn-primary" disabled={inviteLoading}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Mail size={15} /> {inviteLoading ? 'Sending…' : 'Send Invite'}
                 </button>
               </div>
             </form>
@@ -662,286 +332,78 @@ const UserManagement = () => {
         </div>
       )}
 
-      {/* Edit User Modal */}
+      {/* ── Edit Modal ── */}
       {showEditForm && editingUser && (
         <div className="glass-modal-backdrop">
-          <div className="glass-modal-wide">
+          <div className="glass-modal">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h3 style={{ margin: 0, color: '#fff', fontSize: '1.125rem', fontWeight: 700 }}>Edit User</h3>
-              <button onClick={() => { setShowEditForm(false); setEditingUser(null); }} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex' }}>
-                <X size={20} />
-              </button>
+              <h3 style={{ margin: 0, color: '#fff', fontSize: '1.1rem', fontWeight: 700 }}>Edit User</h3>
+              <button onClick={() => { setShowEditForm(false); setEditingUser(null); }} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X size={20} /></button>
             </div>
-
-            <form onSubmit={handleEditUser}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+            <form onSubmit={handleEditSubmit}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
                 <div>
                   <div className="section-label">Full Name *</div>
-                  <input type="text" value={editingUser.name} onChange={(e) => setEditingUser(prev => ({ ...prev, name: e.target.value }))} required className="glass-input" />
+                  <input required className="glass-input" value={editingUser.name || ''}
+                    onChange={e => setEditingUser(p => ({ ...p, name: e.target.value }))} />
                 </div>
                 <div>
-                  <div className="section-label">Email *</div>
-                  <input type="email" value={editingUser.email} onChange={(e) => setEditingUser(prev => ({ ...prev, email: e.target.value }))} required className="glass-input" />
+                  <div className="section-label">Email</div>
+                  <input readOnly className="glass-input" value={editingUser.email || ''} style={{ opacity: 0.6 }} />
                 </div>
               </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
                 <div>
                   <div className="section-label">Role *</div>
-                  <select value={editingUser.role} onChange={(e) => setEditingUser(prev => ({ ...prev, role: e.target.value }))} required className="glass-select">
-                    {roles.map(role => <option key={role.value} value={role.value}>{role.icon} {role.label}</option>)}
+                  <select required className="glass-select" value={editingUser.role || 'engineer'}
+                    onChange={e => setEditingUser(p => ({ ...p, role: e.target.value }))}>
+                    <option value="engineer">🔧 Engineer</option>
+                    <option value="manager">👨‍💼 Manager</option>
+                    <option value="admin">🛡️ Admin</option>
                   </select>
                 </div>
                 <div>
-                  <div className="section-label">Location *</div>
-                  <select value={editingUser.location_id} onChange={(e) => setEditingUser(prev => ({ ...prev, location_id: parseInt(e.target.value) }))} required className="glass-select">
-                    {locations.map(location => <option key={location.id} value={location.id}>{location.name}</option>)}
+                  <div className="section-label">Location</div>
+                  <select className="glass-select" value={editingUser.location_id || ''}
+                    onChange={e => setEditingUser(p => ({ ...p, location_id: e.target.value || null }))}>
+                    <option value="">No location</option>
+                    {(locationObjects || []).map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
                   </select>
                 </div>
               </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+              <div style={{ marginBottom: 12 }}>
+                <div className="section-label">Phone</div>
+                <input type="tel" className="glass-input" value={editingUser.phone || ''}
+                  onChange={e => setEditingUser(p => ({ ...p, phone: e.target.value }))} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
                 <div>
-                  <div className="section-label">Phone</div>
-                  <input type="tel" value={editingUser.phone || ''} onChange={(e) => setEditingUser(prev => ({ ...prev, phone: e.target.value }))} className="glass-input" />
+                  <div className="section-label">Laser Type</div>
+                  <input className="glass-input" value={editingUser.laser_type || ''}
+                    onChange={e => setEditingUser(p => ({ ...p, laser_type: e.target.value }))} />
                 </div>
                 <div>
-                  <div className="section-label">Experience (Years)</div>
-                  <input type="number" min="0" value={editingUser.experience_years || 0} onChange={(e) => setEditingUser(prev => ({ ...prev, experience_years: parseInt(e.target.value) || 0 }))} className="glass-input" />
+                  <div className="section-label">Serial Number</div>
+                  <input className="glass-input" value={editingUser.serial_number || ''}
+                    onChange={e => setEditingUser(p => ({ ...p, serial_number: e.target.value }))} />
                 </div>
               </div>
-
               <div style={{ marginBottom: 20 }}>
-                <div className="section-label">Bio</div>
-                <textarea value={editingUser.bio || ''} onChange={(e) => setEditingUser(prev => ({ ...prev, bio: e.target.value }))} rows="3" className="glass-textarea" />
+                <div className="section-label">Tracker Status</div>
+                <select className="glass-select" value={editingUser.tracker_status || ''}
+                  onChange={e => setEditingUser(p => ({ ...p, tracker_status: e.target.value }))}>
+                  <option value="">Not set</option>
+                  <option value="Available">Available</option>
+                  <option value="Not Available">Not Available</option>
+                </select>
               </div>
-
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
                 <button type="button" className="glass-btn-secondary" onClick={() => { setShowEditForm(false); setEditingUser(null); }}>Cancel</button>
                 <button type="submit" className="glass-btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Save size={16} />
-                  Update User
+                  <Save size={15} /> Update User
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Leave Modal */}
-      {showLeaveModal && editingLeave && (
-        <div className="glass-modal-backdrop">
-          <div className="glass-modal">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h3 style={{ margin: 0, color: '#fff', fontSize: '1.125rem', fontWeight: 700 }}>Edit Leave</h3>
-              <button onClick={() => { setShowLeaveModal(false); setEditingLeave(null); }} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex' }}>
-                <X size={20} />
-              </button>
-            </div>
-
-            <form onSubmit={handleUpdateLeave}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
-                <div>
-                  <div className="section-label">Engineer</div>
-                  <input type="text" value={getEngineerName(leaveForm.engineer_id)} readOnly className="glass-input" style={{ opacity: 0.7 }} />
-                </div>
-                <div>
-                  <div className="section-label">Status</div>
-                  <input type="text" value="Approved" readOnly className="glass-input" style={{ opacity: 0.7 }} />
-                </div>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
-                <div>
-                  <div className="section-label">Start Date</div>
-                  <input type="date" value={leaveForm.start_date} onChange={(e) => setLeaveForm(prev => ({ ...prev, start_date: e.target.value }))} required className="glass-input" />
-                </div>
-                <div>
-                  <div className="section-label">End Date</div>
-                  <input type="date" value={leaveForm.end_date} onChange={(e) => setLeaveForm(prev => ({ ...prev, end_date: e.target.value }))} required className="glass-input" />
-                </div>
-              </div>
-              <div style={{ marginBottom: 20 }}>
-                <div className="section-label">Reason</div>
-                <textarea rows="3" value={leaveForm.reason} onChange={(e) => setLeaveForm(prev => ({ ...prev, reason: e.target.value }))} className="glass-textarea" />
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-                <button type="button" className="glass-btn-secondary" onClick={() => { setShowLeaveModal(false); setEditingLeave(null); }}>Cancel</button>
-                <button type="submit" className="glass-btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Save size={16} />Update Leave
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Add Location Modal */}
-      {showLocationForm && (
-        <div className="glass-modal-backdrop">
-          <div className="glass-modal">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h3 style={{ margin: 0, color: '#fff', fontSize: '1.125rem', fontWeight: 700 }}>Add New Location</h3>
-              <button onClick={() => setShowLocationForm(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex' }}>
-                <X size={20} />
-              </button>
-            </div>
-
-            <form onSubmit={handleAddLocation}>
-              <div style={{ marginBottom: 14 }}>
-                <div className="section-label">Location Name *</div>
-                <input type="text" value={newLocation.name} onChange={(e) => setNewLocation(prev => ({ ...prev, name: e.target.value }))} required placeholder="e.g., Mumbai Office" className="glass-input" />
-              </div>
-              <div style={{ marginBottom: 14 }}>
-                <div className="section-label">Address</div>
-                <input type="text" value={newLocation.address} onChange={(e) => setNewLocation(prev => ({ ...prev, address: e.target.value }))} placeholder="Street address" className="glass-input" />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
-                <div>
-                  <div className="section-label">City</div>
-                  <input type="text" value={newLocation.city} onChange={(e) => setNewLocation(prev => ({ ...prev, city: e.target.value }))} placeholder="City name" className="glass-input" />
-                </div>
-                <div>
-                  <div className="section-label">State</div>
-                  <input type="text" value={newLocation.state} onChange={(e) => setNewLocation(prev => ({ ...prev, state: e.target.value }))} placeholder="State name" className="glass-input" />
-                </div>
-              </div>
-              <div style={{ marginBottom: 20 }}>
-                <div className="section-label">Pincode</div>
-                <input type="text" value={newLocation.pincode} onChange={(e) => setNewLocation(prev => ({ ...prev, pincode: e.target.value }))} placeholder="PIN code" className="glass-input" />
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-                <button type="button" className="glass-btn-secondary" onClick={() => setShowLocationForm(false)}>Cancel</button>
-                <button type="submit" className="glass-btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Plus size={16} />
-                  Add Location
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Password Change Modal */}
-      {showPasswordForm && (
-        <div className="glass-modal-backdrop">
-          <div className="glass-modal">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h3 style={{ margin: 0, color: '#fff', fontSize: '1.125rem', fontWeight: 700 }}>Change Password</h3>
-              <button onClick={() => setShowPasswordForm(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex' }}>
-                <X size={20} />
-              </button>
-            </div>
-
-            <form onSubmit={handlePasswordChange}>
-              <div style={{ marginBottom: 16 }}>
-                <div className="section-label">Current Password *</div>
-                <div style={{ position: 'relative' }}>
-                  <input type={showPasswords.current ? 'text' : 'password'} value={passwordData.currentPassword} onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))} required className="glass-input" style={{ paddingRight: 40 }} />
-                  <button type="button" onClick={() => setShowPasswords(prev => ({ ...prev, current: !prev.current }))} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 4 }}>
-                    {showPasswords.current ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </div>
-              <div style={{ marginBottom: 16 }}>
-                <div className="section-label">New Password *</div>
-                <div style={{ position: 'relative' }}>
-                  <input type={showPasswords.new ? 'text' : 'password'} value={passwordData.newPassword} onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))} required className="glass-input" style={{ paddingRight: 40 }} />
-                  <button type="button" onClick={() => setShowPasswords(prev => ({ ...prev, new: !prev.new }))} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 4 }}>
-                    {showPasswords.new ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </div>
-              <div style={{ marginBottom: 16 }}>
-                <div className="section-label">Confirm New Password *</div>
-                <div style={{ position: 'relative' }}>
-                  <input type={showPasswords.confirm ? 'text' : 'password'} value={passwordData.confirmPassword} onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))} required className="glass-input" style={{ paddingRight: 40 }} />
-                  <button type="button" onClick={() => setShowPasswords(prev => ({ ...prev, confirm: !prev.confirm }))} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 4 }}>
-                    {showPasswords.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </div>
-              <div style={{ background: 'rgba(13,17,23,0.5)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 6, padding: 12, marginBottom: 20 }}>
-                <h4 style={{ margin: '0 0 8px 0', color: '#94a3b8', fontSize: 14 }}>Password Requirements:</h4>
-                <ul style={{ margin: 0, paddingLeft: 20, color: '#64748b', fontSize: 14 }}>
-                  <li>At least 6 characters long</li>
-                  <li>Must be different from current password</li>
-                </ul>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-                <button type="button" className="glass-btn-secondary" onClick={() => setShowPasswordForm(false)}>Cancel</button>
-                <button type="submit" className="glass-btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Shield size={16} />
-                  Change Password
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* View User Modal */}
-      {showViewModal && selectedUser && (
-        <div className="glass-modal-backdrop">
-          <div className="glass-modal">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h3 style={{ margin: 0, color: '#fff', fontSize: '1.125rem', fontWeight: 700 }}>User Profile</h3>
-              <button onClick={() => { setShowViewModal(false); setSelectedUser(null); }} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex' }}>
-                <X size={20} />
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
-              <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(123,97,255,0.15)', border: '1px solid rgba(123,97,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0 }}>
-                {selectedUser.avatar || '👤'}
-              </div>
-              <div>
-                <h4 style={{ margin: '0 0 4px 0', color: '#fff', fontSize: 18 }}>{selectedUser.name}</h4>
-                <span style={{ background: 'rgba(123,97,255,0.15)', color: '#a78bfa', padding: '3px 10px', borderRadius: 12, fontSize: 13, fontWeight: 500 }}>
-                  {getRoleLabel(selectedUser.role)}
-                </span>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
-              <div style={{ display: 'flex', gap: 12 }}>
-                <span style={{ color: '#64748b', fontSize: 14, minWidth: 80 }}>Email:</span>
-                <span style={{ color: '#e2e8f0', fontSize: 14 }}>{selectedUser.email}</span>
-              </div>
-              <div style={{ display: 'flex', gap: 12 }}>
-                <span style={{ color: '#64748b', fontSize: 14, minWidth: 80 }}>Phone:</span>
-                <span style={{ color: '#e2e8f0', fontSize: 14 }}>{selectedUser.phone || 'N/A'}</span>
-              </div>
-              <div style={{ display: 'flex', gap: 12 }}>
-                <span style={{ color: '#64748b', fontSize: 14, minWidth: 80 }}>Location:</span>
-                <span style={{ color: '#e2e8f0', fontSize: 14 }}>{locations.find(l => l.id === selectedUser.location_id)?.name || 'N/A'}</span>
-              </div>
-            </div>
-
-            {selectedUser.role === 'engineer' && (
-              <div style={{ background: 'rgba(13,17,23,0.4)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: 16 }}>
-                <h5 style={{ margin: '0 0 12px 0', color: '#a78bfa', fontSize: 14, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Laser Equipment Details</h5>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <div>
-                    <div style={{ color: '#64748b', fontSize: 12, marginBottom: 4 }}>Laser Type</div>
-                    <div style={{ color: '#e2e8f0' }}>{selectedUser.laser_type || 'Not specified'}</div>
-                  </div>
-                  <div>
-                    <div style={{ color: '#64748b', fontSize: 12, marginBottom: 4 }}>Serial Number</div>
-                    <div style={{ color: '#e2e8f0' }}>{selectedUser.serial_number || 'Not specified'}</div>
-                  </div>
-                  <div>
-                    <div style={{ color: '#64748b', fontSize: 12, marginBottom: 4 }}>Tracker Status</div>
-                    <span style={{ background: selectedUser.tracker_status === 'Available' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.1)', color: selectedUser.tracker_status === 'Available' ? '#4ade80' : '#f87171', padding: '3px 8px', borderRadius: 12, fontSize: 13, fontWeight: 600 }}>
-                      {selectedUser.tracker_status || 'Not Available'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 20 }}>
-              <button type="button" className="glass-btn-secondary" onClick={() => { setShowViewModal(false); setSelectedUser(null); }}>Close</button>
-            </div>
           </div>
         </div>
       )}
