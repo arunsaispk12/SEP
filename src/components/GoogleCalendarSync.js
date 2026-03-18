@@ -6,13 +6,13 @@ import { Calendar, RefreshCw, CheckCircle, AlertCircle, User, Key, Clock, MapPin
 import toast from 'react-hot-toast';
 
 const GoogleCalendarSync = () => {
-  const { 
-    schedules, 
-    setGoogleCalendarConnected 
+  const {
+    schedules,
+    setGoogleCalendarConnected
   } = useEngineerContext();
-  
+
   const { profile } = useAuth();
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [syncStatus, setSyncStatus] = useState('disconnected');
   const [lastSyncTime, setLastSyncTime] = useState(null);
@@ -47,14 +47,14 @@ const GoogleCalendarSync = () => {
       try {
         const isAuth = googleCalendarService.isAuthenticated();
         setIsAuthenticated(isAuth);
-        
+
         if (isAuth) {
           setSyncStatus('connected');
           setGoogleCalendarConnected(true);
-          
+
           // Get user profile
-          const profile = await googleCalendarService.getUserProfile();
-          setUserProfile(profile);
+          const p = await googleCalendarService.getUserProfile();
+          setUserProfile(p);
         }
       } catch (error) {
         console.error('Error checking auth status:', error);
@@ -78,7 +78,7 @@ const GoogleCalendarSync = () => {
   // Connect to Google Calendar
   const connectToGoogleCalendar = async () => {
     setIsLoading(true);
-    
+
     try {
       // Initialize Google Calendar service
       const initialized = await googleCalendarService.initialize();
@@ -88,7 +88,7 @@ const GoogleCalendarSync = () => {
 
       // Sign in to Google
       const result = await googleCalendarService.signIn();
-      
+
       if (result.success) {
         setIsAuthenticated(true);
         setSyncStatus('connected');
@@ -111,7 +111,7 @@ const GoogleCalendarSync = () => {
   const disconnectFromGoogleCalendar = async () => {
     try {
       const result = await googleCalendarService.signOut();
-      
+
       if (result.success) {
         setIsAuthenticated(false);
         setSyncStatus('disconnected');
@@ -161,11 +161,11 @@ const GoogleCalendarSync = () => {
       }));
 
       setLastSyncTime(new Date());
-      
+
       if (successCount > 0) {
         toast.success(`Synced ${successCount} items to Google Calendar`);
       }
-      
+
       if (errorCount > 0) {
         toast.error(`Failed to sync ${errorCount} items`);
       }
@@ -204,52 +204,49 @@ const GoogleCalendarSync = () => {
   };
 
   return (
-    <div className="google-calendar-sync">
-      <div className="sync-header">
-        <div className="sync-title">
-          <Calendar size={24} />
-          <h2>Google Calendar Integration</h2>
+    <div style={{ maxWidth: 800, margin: '0 auto', padding: 20, color: '#f1f5f9' }}>
+      {/* Header */}
+      <div className="glass-panel" style={{ padding: '16px 20px', marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Calendar size={24} style={{ color: '#a78bfa' }} />
+          <h2 style={{ margin: 0, color: '#f1f5f9', fontSize: 24, fontWeight: 700 }}>Google Calendar Integration</h2>
         </div>
-        <div className="sync-status">
-          <div 
-            className="status-indicator"
-            style={{ color: getStatusColor(syncStatus) }}
-          >
-            {getStatusIcon(syncStatus)}
-            <span className="status-text">
-              {syncStatus === 'disabled' ? 'Disabled' : 
-               syncStatus === 'connected' ? 'Connected' : 'Disconnected'}
-            </span>
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600, color: getStatusColor(syncStatus) }}>
+          {getStatusIcon(syncStatus)}
+          <span style={{ textTransform: 'capitalize' }}>
+            {syncStatus === 'disabled' ? 'Disabled' :
+             syncStatus === 'connected' ? 'Connected' : 'Disconnected'}
+          </span>
         </div>
       </div>
 
       {syncStatus === 'disabled' && (
-        <div className="sync-disabled">
-          <AlertCircle size={48} />
-          <h3>Google Calendar Integration Disabled</h3>
-          <p>Google Calendar API credentials are not configured. Please contact your administrator.</p>
+        <div className="glass-panel" style={{ padding: '60px 20px', textAlign: 'center', borderColor: 'rgba(220,38,38,0.3)', background: 'rgba(220,38,38,0.05)' }}>
+          <AlertCircle size={48} style={{ color: '#f87171', marginBottom: 20 }} />
+          <h3 style={{ margin: '0 0 10px 0', fontSize: 20, color: '#f87171' }}>Google Calendar Integration Disabled</h3>
+          <p style={{ margin: 0, color: '#94a3b8' }}>Google Calendar API credentials are not configured. Please contact your administrator.</p>
         </div>
       )}
 
       {syncStatus !== 'disabled' && (
         <>
           {/* Connection Section */}
-          <div className="sync-section">
-            <h3>Connection</h3>
-            <div className="connection-card">
+          <div style={{ marginBottom: 24 }}>
+            <div className="section-label" style={{ fontSize: 14, marginBottom: 12 }}>Connection</div>
+            <div className="glass-panel" style={{ padding: 30 }}>
               {!isAuthenticated ? (
-                <div className="connection-disconnected">
-                  <Calendar size={48} />
-                  <h4>Connect to Google Calendar</h4>
-                  <p>Sync your schedules and cases with Google Calendar for better time management.</p>
-                  <button 
-                    className="connect-btn"
+                <div style={{ textAlign: 'center' }}>
+                  <Calendar size={48} style={{ color: '#a78bfa', marginBottom: 20 }} />
+                  <h4 style={{ margin: '0 0 10px 0', color: '#f1f5f9', fontSize: 18 }}>Connect to Google Calendar</h4>
+                  <p style={{ margin: '0 0 30px 0', color: '#94a3b8' }}>Sync your schedules and cases with Google Calendar for better time management.</p>
+                  <button
+                    className="glass-btn-primary"
                     onClick={connectToGoogleCalendar}
                     disabled={isLoading}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 24px' }}
                   >
                     {isLoading ? (
-                      <RefreshCw size={20} className="spinning" />
+                      <RefreshCw size={20} style={{ animation: 'spin 1s linear infinite' }} />
                     ) : (
                       <LogIn size={20} />
                     )}
@@ -257,23 +254,24 @@ const GoogleCalendarSync = () => {
                   </button>
                 </div>
               ) : (
-                <div className="connection-connected">
-                  <div className="user-info">
-                    <div className="user-avatar">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
+                    <div style={{ width: 50, height: 50, borderRadius: '50%', background: 'rgba(123,97,255,0.15)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', color: '#a78bfa', flexShrink: 0 }}>
                       {userProfile?.getImageUrl ? (
-                        <img src={userProfile.getImageUrl()} alt="Profile" />
+                        <img src={userProfile.getImageUrl()} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
                         <User size={24} />
                       )}
                     </div>
-                    <div className="user-details">
-                      <h4>{userProfile?.getName() || 'Google User'}</h4>
-                      <p>{userProfile?.getEmail() || 'Connected to Google Calendar'}</p>
+                    <div>
+                      <h4 style={{ margin: '0 0 5px 0', color: '#f1f5f9', fontSize: 16 }}>{userProfile?.getName() || 'Google User'}</h4>
+                      <p style={{ margin: 0, color: '#94a3b8', fontSize: 14 }}>{userProfile?.getEmail() || 'Connected to Google Calendar'}</p>
                     </div>
                   </div>
-                  <button 
-                    className="disconnect-btn"
+                  <button
+                    className="glass-btn-danger"
                     onClick={disconnectFromGoogleCalendar}
+                    style={{ display: 'flex', alignItems: 'center', gap: 8 }}
                   >
                     <LogOut size={20} />
                     Disconnect
@@ -285,24 +283,25 @@ const GoogleCalendarSync = () => {
 
           {/* Sync Controls */}
           {isAuthenticated && (
-            <div className="sync-section">
-              <h3>Sync Controls</h3>
-              <div className="sync-controls">
-                <button 
-                  className="sync-btn"
+            <div style={{ marginBottom: 24 }}>
+              <div className="section-label" style={{ fontSize: 14, marginBottom: 12 }}>Sync Controls</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+                <button
+                  className="glass-btn-primary"
                   onClick={performSync}
                   disabled={isLoading}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8 }}
                 >
                   {isLoading ? (
-                    <RefreshCw size={20} className="spinning" />
+                    <RefreshCw size={20} style={{ animation: 'spin 1s linear infinite' }} />
                   ) : (
                     <RotateCcw size={20} />
                   )}
                   {isLoading ? 'Syncing...' : 'Sync Now'}
                 </button>
-                
+
                 {lastSyncTime && (
-                  <div className="last-sync">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#94a3b8', fontSize: 14 }}>
                     <Clock size={16} />
                     <span>Last sync: {lastSyncTime.toLocaleString()}</span>
                   </div>
@@ -313,88 +312,50 @@ const GoogleCalendarSync = () => {
 
           {/* Sync Statistics */}
           {isAuthenticated && (
-            <div className="sync-section">
-              <h3>Sync Statistics</h3>
-              <div className="sync-stats">
-                <div className="stat-item">
-                  <div className="stat-value">{syncStats.totalSynced}</div>
-                  <div className="stat-label">Total Synced</div>
-                </div>
-                <div className="stat-item">
-                  <div className="stat-value success">{syncStats.lastSyncSuccess}</div>
-                  <div className="stat-label">Last Sync Success</div>
-                </div>
-                <div className="stat-item">
-                  <div className="stat-value error">{syncStats.lastSyncError}</div>
-                  <div className="stat-label">Last Sync Errors</div>
-                </div>
+            <div style={{ marginBottom: 24 }}>
+              <div className="section-label" style={{ fontSize: 14, marginBottom: 12 }}>Sync Statistics</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16 }}>
+                {[
+                  { value: syncStats.totalSynced, label: 'Total Synced', color: '#f1f5f9' },
+                  { value: syncStats.lastSyncSuccess, label: 'Last Sync Success', color: '#34d399' },
+                  { value: syncStats.lastSyncError, label: 'Last Sync Errors', color: '#f87171' },
+                ].map((stat, i) => (
+                  <div key={i} className="glass-panel-sm" style={{ textAlign: 'center', padding: 20 }}>
+                    <div style={{ fontSize: 24, fontWeight: 700, color: stat.color, marginBottom: 5 }}>{stat.value}</div>
+                    <div style={{ fontSize: 14, color: '#94a3b8' }}>{stat.label}</div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
 
           {/* Sync Settings */}
           {isAuthenticated && (
-            <div className="sync-section">
-              <h3>Sync Settings</h3>
-              <div className="sync-settings">
-                <div className="setting-group">
-                  <label className="setting-label">
-                    <input
-                      type="checkbox"
-                      checked={syncSettings.autoSync}
-                      onChange={(e) => updateSyncSettings({ autoSync: e.target.checked })}
-                    />
-                    <span>Enable Auto Sync</span>
-                  </label>
-                  <p className="setting-description">
-                    Automatically sync changes every {syncSettings.syncInterval} minutes
-                  </p>
-                </div>
+            <div style={{ marginBottom: 24 }}>
+              <div className="section-label" style={{ fontSize: 14, marginBottom: 12 }}>Sync Settings</div>
+              <div className="glass-panel" style={{ padding: 20 }}>
+                {[
+                  { key: 'autoSync', label: 'Enable Auto Sync', desc: `Automatically sync changes every ${syncSettings.syncInterval} minutes` },
+                  { key: 'syncSchedules', label: 'Sync Schedules', desc: 'Sync engineer schedules to Google Calendar' },
+                  { key: 'syncCases', label: 'Sync Cases', desc: 'Sync case assignments to Google Calendar' },
+                  { key: 'syncNotifications', label: 'Sync Notifications', desc: 'Sync important notifications to Google Calendar' },
+                ].map((setting, i) => (
+                  <div key={i} style={{ marginBottom: 20, paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontWeight: 600, color: '#e2e8f0', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={syncSettings[setting.key]}
+                        onChange={(e) => updateSyncSettings({ [setting.key]: e.target.checked })}
+                        style={{ width: 18, height: 18, accentColor: '#7b61ff' }}
+                      />
+                      <span>{setting.label}</span>
+                    </label>
+                    <p style={{ margin: '6px 0 0 28px', color: '#94a3b8', fontSize: 14 }}>{setting.desc}</p>
+                  </div>
+                ))}
 
-                <div className="setting-group">
-                  <label className="setting-label">
-                    <input
-                      type="checkbox"
-                      checked={syncSettings.syncSchedules}
-                      onChange={(e) => updateSyncSettings({ syncSchedules: e.target.checked })}
-                    />
-                    <span>Sync Schedules</span>
-                  </label>
-                  <p className="setting-description">
-                    Sync engineer schedules to Google Calendar
-                  </p>
-                </div>
-
-                <div className="setting-group">
-                  <label className="setting-label">
-                    <input
-                      type="checkbox"
-                      checked={syncSettings.syncCases}
-                      onChange={(e) => updateSyncSettings({ syncCases: e.target.checked })}
-                    />
-                    <span>Sync Cases</span>
-                  </label>
-                  <p className="setting-description">
-                    Sync case assignments to Google Calendar
-                  </p>
-                </div>
-
-                <div className="setting-group">
-                  <label className="setting-label">
-                    <input
-                      type="checkbox"
-                      checked={syncSettings.syncNotifications}
-                      onChange={(e) => updateSyncSettings({ syncNotifications: e.target.checked })}
-                    />
-                    <span>Sync Notifications</span>
-                  </label>
-                  <p className="setting-description">
-                    Sync important notifications to Google Calendar
-                  </p>
-                </div>
-
-                <div className="setting-group">
-                  <label className="setting-label">
+                <div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontWeight: 600, color: '#e2e8f0' }}>
                     <span>Sync Interval (minutes)</span>
                     <input
                       type="number"
@@ -402,6 +363,8 @@ const GoogleCalendarSync = () => {
                       max="1440"
                       value={syncSettings.syncInterval}
                       onChange={(e) => updateSyncSettings({ syncInterval: parseInt(e.target.value) })}
+                      className="glass-input"
+                      style={{ width: 80, marginLeft: 10 }}
                     />
                   </label>
                 </div>
@@ -410,31 +373,26 @@ const GoogleCalendarSync = () => {
           )}
 
           {/* Profile Management */}
-          <div className="sync-section">
-            <h3>Profile Management</h3>
-            <div className="profile-management">
-              <div className="profile-card">
-                <div className="profile-header">
+          <div>
+            <div className="section-label" style={{ fontSize: 14, marginBottom: 12 }}>Profile Management</div>
+            <div className="glass-panel" style={{ padding: 20 }}>
+              <div className="glass-panel-sm" style={{ padding: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 15, color: '#a78bfa' }}>
                   <User size={24} />
-                  <h4>User Profile</h4>
+                  <h4 style={{ margin: 0, color: '#f1f5f9', fontSize: 16 }}>User Profile</h4>
                 </div>
-                <div className="profile-info">
-                  <div className="info-item">
-                    <Key size={16} />
-                    <span>Name: {profile?.name || 'Not available'}</span>
-                  </div>
-                  <div className="info-item">
-                    <Key size={16} />
-                    <span>Email: {profile?.email || 'Not available'}</span>
-                  </div>
-                  <div className="info-item">
-                    <MapPin size={16} />
-                    <span>Location: {profile?.location?.name || 'Not assigned'}</span>
-                  </div>
-                  <div className="info-item">
-                    <Bell size={16} />
-                    <span>Role: {profile?.role || 'Not assigned'}</span>
-                  </div>
+                <div style={{ display: 'grid', gap: 10 }}>
+                  {[
+                    { icon: <Key size={16} />, text: `Name: ${profile?.name || 'Not available'}` },
+                    { icon: <Key size={16} />, text: `Email: ${profile?.email || 'Not available'}` },
+                    { icon: <MapPin size={16} />, text: `Location: ${profile?.location?.name || 'Not assigned'}` },
+                    { icon: <Bell size={16} />, text: `Role: ${profile?.role || 'Not assigned'}` },
+                  ].map((item, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#94a3b8', fontSize: 14 }}>
+                      <span style={{ color: '#a78bfa', flexShrink: 0 }}>{item.icon}</span>
+                      <span>{item.text}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -443,414 +401,13 @@ const GoogleCalendarSync = () => {
       )}
 
       <style jsx>{`
-        .google-calendar-sync {
-          max-width: 800px;
-          margin: 0 auto;
-          padding: 20px;
-        }
-
-        .sync-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 30px;
-          padding-bottom: 20px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-          flex-wrap: wrap;
-          gap: 12px;
-        }
-
-        .sync-title {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .sync-title h2 {
-          margin: 0;
-          color: #f1f5f9;
-          font-size: 24px;
-          font-weight: 700;
-        }
-
-        .sync-status {
-          display: flex;
-          align-items: center;
-        }
-
-        .status-indicator {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-weight: 600;
-        }
-
-        .status-text {
-          text-transform: capitalize;
-        }
-
-        .sync-disabled {
-          text-align: center;
-          padding: 60px 20px;
-          background: rgba(220, 38, 38, 0.1);
-          border: 1px solid rgba(220, 38, 38, 0.3);
-          border-radius: 12px;
-          color: #f87171;
-        }
-
-        .sync-disabled h3 {
-          margin: 20px 0 10px 0;
-          font-size: 20px;
-          color: #f87171;
-        }
-
-        .sync-disabled p {
-          margin: 0;
-          color: #94a3b8;
-        }
-
-        .sync-section {
-          margin-bottom: 30px;
-        }
-
-        .sync-section h3 {
-          margin: 0 0 15px 0;
-          color: #f1f5f9;
-          font-size: 18px;
-          font-weight: 600;
-        }
-
-        .connection-card {
-          background: rgba(22, 27, 34, 0.85);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 12px;
-          padding: 30px;
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-        }
-
-        .connection-disconnected {
-          text-align: center;
-        }
-
-        .connection-disconnected svg {
-          color: #a78bfa;
-        }
-
-        .connection-disconnected h4 {
-          margin: 20px 0 10px 0;
-          color: #f1f5f9;
-          font-size: 18px;
-        }
-
-        .connection-disconnected p {
-          margin: 0 0 30px 0;
-          color: #94a3b8;
-        }
-
-        .connect-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 12px 24px;
-          background: linear-gradient(135deg, #7b61ff 0%, #06b6d4 100%);
-          color: white;
-          border: none;
-          border-radius: 8px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
-          min-height: 44px;
-        }
-
-        .connect-btn:hover:not(:disabled) {
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(123, 97, 255, 0.4);
-        }
-
-        .connect-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        .connection-connected {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 16px;
-        }
-
-        .user-info {
-          display: flex;
-          align-items: center;
-          gap: 15px;
-        }
-
-        .user-avatar {
-          width: 50px;
-          height: 50px;
-          border-radius: 50%;
-          background: rgba(123, 97, 255, 0.15);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          overflow: hidden;
-          color: #a78bfa;
-          flex-shrink: 0;
-        }
-
-        .user-avatar img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-
-        .user-details h4 {
-          margin: 0 0 5px 0;
-          color: #f1f5f9;
-          font-size: 16px;
-        }
-
-        .user-details p {
-          margin: 0;
-          color: #94a3b8;
-          font-size: 14px;
-        }
-
-        .disconnect-btn {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 8px 16px;
-          background: rgba(239, 68, 68, 0.15);
-          color: #f87171;
-          border: 1px solid rgba(239, 68, 68, 0.3);
-          border-radius: 6px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s;
-          min-height: 40px;
-          flex-shrink: 0;
-        }
-
-        .disconnect-btn:hover {
-          background: #dc2626;
-          color: white;
-          border-color: #dc2626;
-        }
-
-        .sync-controls {
-          display: flex;
-          align-items: center;
-          gap: 20px;
-          flex-wrap: wrap;
-        }
-
-        .sync-btn {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 10px 20px;
-          background: rgba(16, 185, 129, 0.15);
-          color: #34d399;
-          border: 1px solid rgba(16, 185, 129, 0.3);
-          border-radius: 6px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
-          min-height: 44px;
-        }
-
-        .sync-btn:hover:not(:disabled) {
-          background: #10b981;
-          color: white;
-          border-color: #10b981;
-        }
-
-        .sync-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        .last-sync {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          color: #94a3b8;
-          font-size: 14px;
-        }
-
-        .sync-stats {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-          gap: 16px;
-        }
-
-        .stat-item {
-          text-align: center;
-          padding: 20px;
-          background: rgba(13, 17, 23, 0.5);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 8px;
-        }
-
-        .stat-value {
-          font-size: 24px;
-          font-weight: 700;
-          color: #f1f5f9;
-          margin-bottom: 5px;
-        }
-
-        .stat-value.success {
-          color: #34d399;
-        }
-
-        .stat-value.error {
-          color: #f87171;
-        }
-
-        .stat-label {
-          font-size: 14px;
-          color: #94a3b8;
-        }
-
-        .sync-settings {
-          background: rgba(22, 27, 34, 0.85);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 12px;
-          padding: 20px;
-        }
-
-        .setting-group {
-          margin-bottom: 20px;
-          padding-bottom: 20px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-        }
-
-        .setting-group:last-child {
-          margin-bottom: 0;
-          padding-bottom: 0;
-          border-bottom: none;
-        }
-
-        .setting-label {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          font-weight: 600;
-          color: #e2e8f0;
-          cursor: pointer;
-        }
-
-        .setting-label input[type="checkbox"] {
-          width: 18px;
-          height: 18px;
-          accent-color: #7b61ff;
-        }
-
-        .setting-label input[type="number"] {
-          width: 80px;
-          padding: 4px 8px;
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          border-radius: 4px;
-          margin-left: 10px;
-          background: rgba(13, 17, 23, 0.5);
-          color: #e2e8f0;
-          outline: none;
-        }
-
-        .setting-description {
-          margin: 6px 0 0 28px;
-          color: #94a3b8;
-          font-size: 14px;
-        }
-
-        .profile-management {
-          background: rgba(22, 27, 34, 0.85);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 12px;
-          padding: 20px;
-        }
-
-        .profile-card {
-          border: 1px solid rgba(255, 255, 255, 0.06);
-          border-radius: 8px;
-          padding: 20px;
-          background: rgba(13, 17, 23, 0.3);
-        }
-
-        .profile-header {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          margin-bottom: 15px;
-          color: #a78bfa;
-        }
-
-        .profile-header h4 {
-          margin: 0;
-          color: #f1f5f9;
-          font-size: 16px;
-        }
-
-        .profile-info {
-          display: grid;
-          gap: 10px;
-        }
-
-        .info-item {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          color: #94a3b8;
-          font-size: 14px;
-        }
-
-        .info-item svg {
-          color: #a78bfa;
-          flex-shrink: 0;
-        }
-
-        .spinning {
-          animation: spin 1s linear infinite;
-        }
-
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
-
         @media (max-width: 768px) {
-          .google-calendar-sync {
-            padding: 15px;
-          }
-
-          .sync-header {
-            flex-direction: column;
-            gap: 12px;
-            align-items: flex-start;
-          }
-
-          .connection-connected {
-            flex-direction: column;
-            gap: 15px;
-            align-items: flex-start;
-          }
-
-          .sync-controls {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 10px;
-          }
-
-          .sync-stats {
-            grid-template-columns: repeat(2, 1fr);
-          }
-        }
-
-        @media (max-width: 480px) {
-          .sync-stats {
-            grid-template-columns: 1fr;
+          div[style*="maxWidth: 800"] {
+            padding: 15px !important;
           }
         }
       `}</style>
