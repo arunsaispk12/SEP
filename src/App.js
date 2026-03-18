@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import Navbar from './components/Navbar';
-import SidebarTabs from './components/SidebarTabs';
+import GlassSidebar from './components/GlassSidebar';
+import GlassTopBar from './components/GlassTopBar';
 import UnifiedDashboard from './components/UnifiedDashboard';
 import ScheduleCalendar from './components/ScheduleCalendar';
 import CaseManager from './components/CaseManager';
@@ -25,19 +25,7 @@ import './App.css';
 function AppContent() {
   const { user, profile, isAuthenticated, loading, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [isDark, setIsDark] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  // Theme toggle functionality
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-    document.documentElement.classList.toggle('dark', !isDark);
-  };
-
-  // Initialize theme on mount
-  useEffect(() => {
-    document.documentElement.classList.add('dark');
-  }, []);
 
   // Close sidebar when navigating (mobile UX)
   useEffect(() => {
@@ -109,46 +97,43 @@ function AppContent() {
   const tabs = getTabsForUser();
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-navy-dark' : 'bg-gray-50'} transition-colors duration-300`}>
-      <Toaster position="top-right" />
-
-      {/* Navbar */}
-      <Navbar
-        user={user}
-        logout={logout}
-        isDark={isDark}
-        toggleTheme={toggleTheme}
-        sidebarOpen={sidebarOpen}
-        onMenuToggle={() => setSidebarOpen(prev => !prev)}
-      />
+    <div style={{ minHeight: '100vh', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif' }}>
+      <Toaster position="top-right" toastOptions={{ style: { background: 'rgba(30,27,75,0.95)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', backdropFilter: 'blur(12px)' } }} />
 
       {/* Mobile backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 md:hidden"
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 35 }}
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
-      <SidebarTabs
+      <GlassSidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         tabs={tabs}
+        user={user}
+        profile={profile}
+        logout={logout}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
 
-      {/* Main Content */}
-      <div className="md:ml-64 pt-16">
+      <GlassTopBar
+        activeTab={activeTab}
+        onMenuClick={() => setSidebarOpen(prev => !prev)}
+      />
+
+      {/* Main content area */}
+      <div style={{ marginLeft: 240, paddingTop: 48 }} className="content-area">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-            className="p-4 sm:p-6"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            style={{ padding: '24px' }}
           >
             {activeTab === 'admin' && <AdminPanel />}
             {activeTab === 'dashboard' && <UnifiedDashboard />}
