@@ -24,7 +24,7 @@ const ScheduleCalendar = () => {
     leaves
   } = useEngineerContext();
   const { user } = useAuth();
-  
+
   const [showModal, setShowModal] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState(null);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -50,7 +50,7 @@ const ScheduleCalendar = () => {
   const scheduleEvents = schedules.map(schedule => {
     const engineer = getEngineerById(schedule.engineer_id);
     const priority = priorities.find(p => p.value === schedule.priority);
-    
+
     return {
       id: schedule.id,
       title: `${schedule.title} - ${engineer?.name || 'Unknown'}`,
@@ -209,7 +209,7 @@ const ScheduleCalendar = () => {
   const CustomEvent = ({ event }) => {
     const engineer = event.resource?.engineer;
     const location = event.resource?.location;
-    
+
     return (
       <div className="custom-event">
         <div className="event-title">{event.title}</div>
@@ -225,20 +225,22 @@ const ScheduleCalendar = () => {
 
   return (
     <div className="calendar-container">
-      <div className="calendar-header">
-        <h2>Schedule Calendar</h2>
-        <div className="header-actions">
+      <div className="glass-panel" style={{ padding: '16px 20px', marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2 style={{ margin: 0, color: '#f1f5f9', fontSize: '1.25rem', fontWeight: 700 }}>Schedule Calendar</h2>
+        <div style={{ display: 'flex', gap: 10 }}>
           <button
-            className="btn secondary"
+            className="glass-btn-secondary"
             onClick={handleSyncWithCases}
             disabled={isSyncing}
+            style={{ display: 'flex', alignItems: 'center', gap: 6 }}
           >
             <RotateCcw size={16} />
             {isSyncing ? 'Syncing...' : 'Sync with Cases'}
           </button>
           <button
-            className="btn"
+            className="glass-btn-primary"
             onClick={() => setShowModal(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: 6 }}
           >
             <Plus size={16} />
             Add Schedule
@@ -246,7 +248,7 @@ const ScheduleCalendar = () => {
         </div>
       </div>
 
-      <div className="calendar-wrapper">
+      <div className="glass-panel" style={{ padding: 20 }}>
         <Calendar
           localizer={localizer}
           events={events}
@@ -267,31 +269,38 @@ const ScheduleCalendar = () => {
 
       {/* Schedule Modal */}
       {showModal && (
-        <div className="modal">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2>{editingSchedule ? 'Edit Schedule' : 'Add New Schedule'}</h2>
-              <button className="close-btn" onClick={resetForm}>
+        <div className="glass-modal-backdrop">
+          <div className="glass-modal">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h2 style={{ margin: 0, color: '#f1f5f9', fontSize: '1.125rem', fontWeight: 700 }}>
+                {editingSchedule ? 'Edit Schedule' : 'Add New Schedule'}
+              </h2>
+              <button
+                onClick={resetForm}
+                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 22, lineHeight: 1 }}
+              >
                 ×
               </button>
             </div>
 
             <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label>Title *</label>
+              <div style={{ marginBottom: 14 }}>
+                <div className="section-label">Title *</div>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                   required
+                  className="glass-input"
                 />
               </div>
 
-              <div className="form-group">
-                <label>Engineer *</label>
+              <div style={{ marginBottom: 14 }}>
+                <div className="section-label">Engineer *</div>
                 <select
                   value={formData.engineerId}
                   onChange={(e) => setFormData(prev => ({ ...prev, engineerId: e.target.value }))}
+                  className="glass-select"
                 >
                   <option value="">Select Engineer</option>
                   {engineers.map(engineer => (
@@ -302,12 +311,13 @@ const ScheduleCalendar = () => {
                 </select>
               </div>
 
-              <div className="form-group">
-                <label>Location *</label>
+              <div style={{ marginBottom: 14 }}>
+                <div className="section-label">Location *</div>
                 <select
                   value={formData.location}
                   onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
                   required
+                  className="glass-select"
                 >
                   <option value="">Select Location</option>
                   {locations.map(location => (
@@ -318,39 +328,42 @@ const ScheduleCalendar = () => {
                 </select>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Start Time *</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+                <div>
+                  <div className="section-label">Start Time *</div>
                   <input
                     type="datetime-local"
                     value={moment(formData.start).format('YYYY-MM-DDTHH:mm')}
-                    onChange={(e) => setFormData(prev => ({ 
-                      ...prev, 
-                      start: new Date(e.target.value) 
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      start: new Date(e.target.value)
                     }))}
                     required
+                    className="glass-input"
                   />
                 </div>
 
-                <div className="form-group">
-                  <label>End Time *</label>
+                <div>
+                  <div className="section-label">End Time *</div>
                   <input
                     type="datetime-local"
                     value={moment(formData.end).format('YYYY-MM-DDTHH:mm')}
-                    onChange={(e) => setFormData(prev => ({ 
-                      ...prev, 
-                      end: new Date(e.target.value) 
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      end: new Date(e.target.value)
                     }))}
                     required
+                    className="glass-input"
                   />
                 </div>
               </div>
 
-              <div className="form-group">
-                <label>Priority</label>
+              <div style={{ marginBottom: 14 }}>
+                <div className="section-label">Priority</div>
                 <select
                   value={formData.priority}
                   onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value }))}
+                  className="glass-select"
                 >
                   {priorities.map(priority => (
                     <option key={priority.value} value={priority.value}>
@@ -360,21 +373,23 @@ const ScheduleCalendar = () => {
                 </select>
               </div>
 
-              <div className="form-group">
-                <label>Description</label>
+              <div style={{ marginBottom: 14 }}>
+                <div className="section-label">Description</div>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   rows="3"
+                  className="glass-textarea"
                 />
               </div>
 
-              <div className="modal-actions">
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 20 }}>
                 {editingSchedule && (
                   <button
                     type="button"
-                    className="btn btn-danger"
+                    className="glass-btn-danger"
                     onClick={handleDelete}
+                    style={{ display: 'flex', alignItems: 'center', gap: 5 }}
                   >
                     <Trash2 size={16} />
                     Delete
@@ -382,12 +397,12 @@ const ScheduleCalendar = () => {
                 )}
                 <button
                   type="button"
-                  className="btn btn-secondary"
+                  className="glass-btn-secondary"
                   onClick={resetForm}
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn">
+                <button type="submit" className="glass-btn-primary">
                   {editingSchedule ? 'Update' : 'Create'} Schedule
                 </button>
               </div>
@@ -397,27 +412,6 @@ const ScheduleCalendar = () => {
       )}
 
       <style jsx>{`
-        .calendar-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 20px;
-        }
-
-        .calendar-header h2 {
-          margin: 0;
-          color: #f1f5f9;
-        }
-
-        .calendar-wrapper {
-          background: rgba(22, 27, 34, 0.5);
-          border-radius: 16px;
-          padding: 20px;
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          backdrop-filter: blur(20px);
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
         .custom-event {
           padding: 2px 4px;
         }
@@ -439,32 +433,9 @@ const ScheduleCalendar = () => {
           margin: 1px 0;
         }
 
-        .form-row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 15px;
-        }
-
-        .modal-actions {
-          display: flex;
-          gap: 10px;
-          justify-content: flex-end;
-          margin-top: 20px;
-        }
-
-        .modal-actions .btn {
-          display: flex;
-          align-items: center;
-          gap: 5px;
-        }
-
         @media (max-width: 768px) {
-          .form-row {
-            grid-template-columns: 1fr;
-          }
-          
-          .modal-actions {
-            flex-direction: column;
+          .glass-modal {
+            width: 95vw !important;
           }
         }
       `}</style>
