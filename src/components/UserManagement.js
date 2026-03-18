@@ -26,7 +26,7 @@ const UserManagement = () => {
 
   // ── Derived stats ───────────────────────────────────────────────
   const totalUsers = engineers.length;
-  const engineerCount = engineers.filter(e => e.role === 'engineer').length;
+  const engineerCount = engineers.filter(e => (e.role || 'engineer') === 'engineer').length;
   const pendingCount = engineers.filter(e => !e.is_active && e.invite_sent_at).length;
   const adminCount = engineers.filter(e => e.role === 'admin').length;
 
@@ -34,7 +34,7 @@ const UserManagement = () => {
   const filteredUsers = engineers.filter(e => {
     const matchSearch = (e.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                         (e.email || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const matchRole = filterRole === 'all' || e.role === filterRole;
+    const matchRole = filterRole === 'all' || (e.role || 'engineer') === filterRole;
     let matchStatus = true;
     if (filterStatus === 'active') matchStatus = e.is_active === true;
     else if (filterStatus === 'pending') matchStatus = !e.is_active && !!e.invite_sent_at;

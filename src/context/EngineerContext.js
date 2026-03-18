@@ -562,18 +562,7 @@ export function EngineerProvider({ children }) {
   const updateEngineer = useCallback(async (id, updates) => {
     try {
       if (isSupabaseConfigured()) {
-        // Map common engineer fields to profile table if needed
-        const { data, error } = await supabase
-          .from('profiles')
-          .update({
-            ...updates,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', id)
-          .select()
-          .single();
-
-        if (error) throw error;
+        const data = await supabaseService.updateEngineer(id, updates);
         dispatch({ type: 'UPDATE_ENGINEER', payload: { id, updates: data } });
         toast.success('Profile updated successfully');
         return data;

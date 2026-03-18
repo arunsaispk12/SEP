@@ -86,7 +86,7 @@ class SupabaseService {
     }
 
     return data;
-  },
+  }
 
   async createEngineer(engineer) {
     const { data, error } = await supabase
