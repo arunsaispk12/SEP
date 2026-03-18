@@ -88,6 +88,14 @@ const ScheduleCalendar = () => {
     description: '',
     priority: 'normal'
   });
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  React.useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') setSelectedEvent(null); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, []);
 
   // locations is now coming from context
   const priorities = [
@@ -156,21 +164,12 @@ const ScheduleCalendar = () => {
   };
 
   const handleSelectEvent = (event) => {
-    const schedule = schedules.find(s => s.id === event.id);
-    if (schedule) {
-      setEditingSchedule(schedule);
-      setFormData({
-        title: schedule.title,
-        engineerId: schedule.engineer_id || '',
-        location: schedule.location || '',
-        client_id: schedule.client_id || null,
-        start: new Date(schedule.start || schedule.start_time),
-        end: new Date(schedule.end || schedule.end_time),
-        description: schedule.description || '',
-        priority: schedule.priority || 'normal'
-      });
-      setShowModal(true);
-    }
+    // Leave events: do nothing
+    if (typeof event.id === 'string' && event.id.startsWith('leave-')) return;
+
+    // Open popup
+    setSelectedEvent(event);
+    setShowDeleteConfirm(false);
   };
 
   const handleSubmit = async (e) => {
@@ -274,6 +273,36 @@ const ScheduleCalendar = () => {
       toast.error('Failed to add client');
     } finally {
       setSavingClient(false);
+    }
+  };
+
+  const handleEditFromPopup = () => {
+    const schedule = selectedEvent?.resource?.schedule;
+    if (!schedule) return;
+    setSelectedEvent(null);
+    setEditingSchedule(schedule);
+    setFormData({
+      title: schedule.title,
+      engineerId: schedule.engineer_id || '',
+      location: (locationObjects || []).find(l => l.id === schedule.location_id)?.name || '',
+      client_id: schedule.client_id || null,
+      start: new Date(schedule.start_time || schedule.start),
+      end: new Date(schedule.end_time || schedule.end),
+      description: schedule.description || '',
+      priority: schedule.priority || 'normal'
+    });
+    setShowModal(true);
+  };
+
+  const handleDeleteFromPopup = async () => {
+    const schedule = selectedEvent?.resource?.schedule;
+    if (!schedule) return;
+    try {
+      await deleteSchedule(schedule.id);
+      setSelectedEvent(null);
+      toast.success('Schedule deleted');
+    } catch {
+      toast.error('Failed to delete schedule');
     }
   };
 
@@ -616,6 +645,120 @@ const ScheduleCalendar = () => {
           </div>
         </div>
       )}
+
+      {/* Event detail popup */}
+      {selectedEvent && (() => {
+        const { schedule, engineer, engineerStatus, linkedCase } = selectedEvent.resource || {};
+        const statusCfg = engineerStatus ? ENGINEER_STATUS_CONFIG[engineerStatus] : null;
+        const locationName = (locationObjects || []).find(l => l.id === schedule?.location_id)?.name || schedule?.location || '—';
+        const client = schedule?.client_id ? (clients || []).find(c => c.id === schedule.client_id) : null;
+        const caseSC = linkedCase ? STATUS_COLORS[linkedCase.status] : null;
+        const startD = new Date(schedule?.start_time || schedule?.start);
+        const endD = new Date(schedule?.end_time || schedule?.end);
+        const fmt = (d) => d.toLocaleString('en-GB', { weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+
+        return (
+          <>
+            {/* Backdrop */}
+            <div
+              onClick={() => setSelectedEvent(null)}
+              style={{ position:'fixed', inset:0, background:'rgba(15,12,41,0.7)', zIndex:200 }}
+            />
+            {/* Panel */}
+            <div className="event-popup-panel">
+              {/* Header */}
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:16 }}>
+                <div>
+                  <div style={{ fontSize:16, fontWeight:700, color:'#fff', marginBottom:4 }}>{selectedEvent.title}</div>
+                  <div style={{ fontSize:12, color:'rgba(255,255,255,0.5)' }}>{fmt(startD)} – {endD.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div>
+                </div>
+                <button onClick={() => setSelectedEvent(null)}
+                  style={{ background:'none', border:'none', color:'rgba(255,255,255,0.4)', cursor:'pointer', fontSize:20, lineHeight:1, padding:0 }}>×</button>
+              </div>
+
+              {/* Priority + status badges */}
+              <div style={{ display:'flex', gap:8, marginBottom:16, flexWrap:'wrap' }}>
+                <span style={{ fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20, background: PRIORITY_COLORS[schedule?.priority] || '#6b7280', color:'#fff' }}>
+                  {schedule?.priority || 'normal'}
+                </span>
+                {caseSC && (
+                  <span style={{ fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20, border:`1px solid ${caseSC.border}`, color:caseSC.border }}>
+                    {caseSC.label}
+                  </span>
+                )}
+              </div>
+
+              {/* Location */}
+              <div style={{ display:'flex', gap:8, marginBottom:10, color:'rgba(255,255,255,0.7)', fontSize:13 }}>
+                <span>📍</span><span>{locationName}</span>
+              </div>
+
+              {/* Engineer */}
+              <div style={{ display:'flex', gap:10, alignItems:'center', marginBottom:10, padding:'10px 12px', background:'rgba(255,255,255,0.04)', borderRadius:10 }}>
+                {engineer ? (
+                  <>
+                    <div style={{ width:36, height:36, borderRadius:'50%', background:'linear-gradient(135deg,#3b82f6,#8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, color:'#fff', flexShrink:0 }}>
+                      {engineer.name?.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
+                    </div>
+                    <div>
+                      <div style={{ fontSize:13, fontWeight:600, color:'#fff' }}>{engineer.name}</div>
+                      {statusCfg && (
+                        <div style={{ fontSize:11, color:'rgba(255,255,255,0.5)', display:'flex', alignItems:'center', gap:5 }}>
+                          <span style={{ width:6, height:6, borderRadius:'50%', background:statusCfg.color, display:'inline-block' }} />
+                          {statusCfg.label}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <span style={{ fontSize:13, color:'rgba(255,255,255,0.3)' }}>Unassigned</span>
+                )}
+              </div>
+
+              {/* Linked case */}
+              {linkedCase && (
+                <div style={{ marginBottom:10, padding:'8px 12px', background:'rgba(255,255,255,0.04)', borderRadius:10, borderLeft: caseSC ? `3px solid ${caseSC.border}` : 'none' }}>
+                  <div style={{ fontSize:11, color:'rgba(255,255,255,0.4)', marginBottom:3 }}>LINKED CASE</div>
+                  <div style={{ fontSize:13, color:'#fff' }}>#{linkedCase.id} — {linkedCase.title || linkedCase.description?.slice(0,40) || 'Case'}</div>
+                </div>
+              )}
+
+              {/* Client */}
+              {client && (
+                <div style={{ display:'flex', gap:8, marginBottom:10, color:'rgba(255,255,255,0.7)', fontSize:13 }}>
+                  <span>🏢</span><span>{client.name}</span>
+                </div>
+              )}
+
+              {/* Description */}
+              {schedule?.description && (
+                <div style={{ fontSize:12, color:'rgba(255,255,255,0.4)', marginBottom:12, lineHeight:1.6 }}>
+                  {schedule.description}
+                </div>
+              )}
+
+              {/* Actions */}
+              <div style={{ height:1, background:'rgba(255,255,255,0.08)', margin:'12px 0' }} />
+              {showDeleteConfirm ? (
+                <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
+                  <span style={{ fontSize:12, color:'rgba(255,255,255,0.6)', flex:1 }}>Delete this schedule?</span>
+                  <button className="glass-btn-secondary" style={{ fontSize:12, padding:'6px 12px' }}
+                    onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
+                  <button className="glass-btn-danger" style={{ fontSize:12, padding:'6px 12px' }}
+                    onClick={handleDeleteFromPopup}>Confirm</button>
+                </div>
+              ) : (
+                <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
+                  <button className="glass-btn-secondary" style={{ fontSize:12, padding:'6px 14px' }}
+                    onClick={handleEditFromPopup}>Edit</button>
+                  <button className="glass-btn-danger" style={{ fontSize:12, padding:'6px 14px' }}
+                    onClick={() => setShowDeleteConfirm(true)}>Delete</button>
+                </div>
+              )}
+            </div>
+          </>
+        );
+      })()}
 
       <style jsx>{`
         .custom-event {

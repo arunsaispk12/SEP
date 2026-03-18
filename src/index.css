@@ -878,3 +878,21 @@ select:focus {
 }
 .location-combobox-option:first-child { border-radius: 10px 10px 0 0; }
 .location-combobox-option:last-child  { border-radius: 0 0 10px 10px; }
+
+/* Event detail popup */
+.event-popup-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(480px, 90vw);
+  max-height: 85vh;
+  overflow-y: auto;
+  background: rgba(15, 12, 41, 0.96);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px;
+  backdrop-filter: blur(20px);
+  padding: 20px;
+  z-index: 201;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+}
