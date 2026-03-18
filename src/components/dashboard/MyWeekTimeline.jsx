@@ -1,7 +1,7 @@
 // src/components/dashboard/MyWeekTimeline.jsx
 import React, { useState } from 'react';
 import GlassPanel from './GlassPanel';
-import { getWeekStart, getWeekDays, formatDayLabel, isToday, STATUS_COLORS } from './dashboardUtils';
+import { getWeekDays, formatDayLabel, isToday, STATUS_COLORS } from './dashboardUtils';
 
 export default function MyWeekTimeline({ schedules, cases, engineerId, weekStart, onWeekChange, onGoToCase }) {
   const [popover, setPopover] = useState(null); // { caseObj, dayIdx }

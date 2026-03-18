@@ -33,21 +33,21 @@ export default function UnifiedDashboard() {
       .catch(() => setPendingLeaves([]));
   }, []);
 
-  // KPI counts
-  const today = new Date(); today.setHours(0,0,0,0);
-  const in7days = new Date(today); in7days.setDate(today.getDate() + 7);
+  // Stable date anchors (recomputed once per mount)
+  const today = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d; }, []);
+  const in7days = useMemo(() => { const d = new Date(today); d.setDate(today.getDate() + 7); return d; }, [today]);
 
   const counts = useMemo(() => ({
     total:      cases.length,
     upcoming:   cases.filter(c => c.scheduled_start && new Date(c.scheduled_start) >= today && new Date(c.scheduled_start) <= in7days && !['completed','cancelled'].includes(c.status)).length,
     unassigned: cases.filter(c => !c.assigned_engineer_id && !['completed','cancelled'].includes(c.status)).length,
     available:  engineers.filter(e => e.is_available).length,
-  }), [cases, engineers]);
+  }), [cases, engineers, today, in7days]);
 
   const upcomingCases = useMemo(() =>
     cases.filter(c => c.scheduled_start && new Date(c.scheduled_start) >= today && new Date(c.scheduled_start) <= in7days && !['completed','cancelled'].includes(c.status))
       .sort((a,b) => new Date(a.scheduled_start) - new Date(b.scheduled_start)),
-  [cases]);
+  [cases, today, in7days]);
 
   const unassignedCases = useMemo(() =>
     cases.filter(c => !c.assigned_engineer_id && !['completed','cancelled'].includes(c.status)),

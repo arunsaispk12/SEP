@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import GlassPanel from './GlassPanel';
 import CaseCompletionModal from '../CaseCompletionModal';
-import { STATUS_COLORS, formatShortDate, formatTime } from './dashboardUtils';
+import { STATUS_COLORS, formatTime } from './dashboardUtils';
 
 const NEXT_STATUSES = {
   assigned:    ['in_progress', 'cancelled'],

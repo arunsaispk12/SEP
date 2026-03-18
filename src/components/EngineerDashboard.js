@@ -26,8 +26,8 @@ export default function EngineerDashboard({ onGoToCases }) {
   const engineerIndex = engineers.indexOf(currentEngineer);
 
   // Active case: in_progress first, then assigned today
-  const today = new Date(); today.setHours(0,0,0,0);
-  const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+  const today = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d; }, []);
+  const tomorrow = useMemo(() => { const d = new Date(today); d.setDate(today.getDate() + 1); return d; }, [today]);
 
   const activeCase = useMemo(() => {
     const myCases = cases.filter(c => c.assigned_engineer_id === profile?.id);
@@ -39,7 +39,7 @@ export default function EngineerDashboard({ onGoToCases }) {
       new Date(c.scheduled_start) >= today && new Date(c.scheduled_start) < tomorrow
     ).sort((a,b) => new Date(a.scheduled_start) - new Date(b.scheduled_start));
     return assignedToday[0] || null;
-  }, [cases, profile?.id]);
+  }, [cases, profile?.id, today, tomorrow]);
 
   // NOTE: updateCase/updateEngineer in context already show their own toasts.
   // Do NOT add extra toast.success() calls here — it would fire two toasts per action.
