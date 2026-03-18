@@ -1,714 +1,347 @@
+// src/components/SignupPage.js
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { UserPlus, Mail, Lock, User, Phone, MapPin, Briefcase, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import toast from 'react-hot-toast';
+import { motion } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
 import supabaseService from '../services/supabaseService';
 
-const SignupPage = () => {
+const BG = 'linear-gradient(135deg,#0f0c29,#302b63,#24243e)';
+const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif';
+
+const ROLES = [
+  { value: 'engineer',  label: 'Field Engineer', icon: '🔧', desc: 'Handles on-site service cases' },
+  { value: 'manager',   label: 'Manager',        icon: '👨‍💼', desc: 'Oversees teams & approvals' },
+  { value: 'executive', label: 'Executive',       icon: '👔', desc: 'Analytics & reporting' },
+  { value: 'client',    label: 'Client',          icon: '🏥', desc: 'Submit service requests' },
+];
+
+const STEPS = [
+  { n: 1, label: 'Account' },
+  { n: 2, label: 'Work Profile' },
+  { n: 3, label: 'Review' },
+];
+
+const LBL = { fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '.7px', marginBottom: 6 };
+const SECTION = { marginBottom: 14 };
+
+const LogoMark = () => (
+  <div style={{ width: 48, height: 48, borderRadius: 14, background: 'linear-gradient(135deg,#a78bfa,#ec4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 1px rgba(167,139,250,0.3),0 0 28px rgba(167,139,250,0.45)', marginBottom: 12 }}>
+    <svg width="24" height="24" viewBox="0 0 22 22" fill="none">
+      <circle cx="5" cy="5" r="1.8" fill="white"/>
+      <circle cx="11" cy="5" r="1.8" fill="white"/>
+      <circle cx="17" cy="5" r="1.8" fill="white"/>
+      <circle cx="5" cy="11" r="1.8" fill="rgba(255,255,255,0.5)"/>
+      <circle cx="11" cy="11" r="2.5" fill="white"/>
+      <circle cx="17" cy="11" r="1.8" fill="rgba(255,255,255,0.5)"/>
+      <circle cx="5" cy="17" r="1.8" fill="rgba(255,255,255,0.5)"/>
+      <circle cx="11" cy="17" r="1.8" fill="white"/>
+      <circle cx="17" cy="17" r="1.8" fill="rgba(255,255,255,0.5)"/>
+      <line x1="11" y1="5" x2="11" y2="11" stroke="rgba(255,255,255,0.4)" strokeWidth="1"/>
+      <line x1="5" y1="5" x2="11" y2="11" stroke="rgba(255,255,255,0.4)" strokeWidth="1"/>
+      <line x1="17" y1="5" x2="11" y2="11" stroke="rgba(255,255,255,0.4)" strokeWidth="1"/>
+      <line x1="11" y1="11" x2="11" y2="17" stroke="rgba(255,255,255,0.4)" strokeWidth="1"/>
+    </svg>
+  </div>
+);
+
+function DarkInput({ type = 'text', value, onChange, placeholder, focused, onFocus, onBlur, autoFocus }) {
+  return (
+    <input
+      type={type}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      autoFocus={autoFocus}
+      onFocus={onFocus}
+      onBlur={onBlur}
+      style={{
+        width: '100%', height: 42, padding: '0 14px',
+        background: focused ? 'rgba(167,139,250,0.04)' : 'rgba(255,255,255,0.05)',
+        border: focused ? '1px solid rgba(167,139,250,0.6)' : '1px solid rgba(255,255,255,0.1)',
+        boxShadow: focused ? '0 0 0 3px rgba(167,139,250,0.12)' : 'none',
+        borderRadius: 10, color: '#fff', fontSize: 14,
+        fontFamily: FONT, outline: 'none', boxSizing: 'border-box',
+        transition: 'border-color .15s, box-shadow .15s',
+      }}
+    />
+  );
+}
+
+function FieldError({ msg }) {
+  if (!msg) return null;
+  return <div style={{ fontSize: 11, color: '#f87171', marginTop: 4 }}>{msg}</div>;
+}
+
+export default function SignupPage() {
   const { signUp, loading } = useAuth();
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    role: 'engineer',
-    location_id: 1,
-    phone: '',
-    bio: '',
-    skills: [],
-    certifications: [],
-    experience_years: 0,
-    avatar: '👨‍🔧'
-  });
 
-// Always use quick mode - simplified signup
-const [quickMode] = useState(true);
-  
-  const [showPasswords, setShowPasswords] = useState({
-    password: false,
-    confirmPassword: false
-  });
-  
-  const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [step, setStep] = useState(1);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [locationId, setLocationId] = useState('');
+  const [role, setRole] = useState('engineer');
   const [locations, setLocations] = useState([]);
+  const [errors, setErrors] = useState({});
+  const [focused, setFocused] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
+  const [locationsLoading, setLocationsLoading] = useState(true);
 
-  // Load locations from database
   useEffect(() => {
-    const loadLocations = async () => {
-      try {
-        const locationData = await supabaseService.getLocations();
-        setLocations(locationData.map(loc => ({ id: loc.id, name: loc.name })));
-      } catch (error) {
-        console.error('Error loading locations:', error);
-        // Fallback to hardcoded locations
-        setLocations([
-          { id: 1, name: 'Hyderabad' },
-          { id: 2, name: 'Bangalore' },
-          { id: 3, name: 'Coimbatore' },
-          { id: 4, name: 'Chennai' }
-        ]);
-      }
-    };
-
-    loadLocations();
+    supabaseService.getLocations()
+      .then(data => { setLocations(data.map(l => ({ id: l.id, name: l.name }))); setLocationsLoading(false); })
+      .catch(() => { setLocations([
+        { id: 1, name: 'Hyderabad' },
+        { id: 2, name: 'Bangalore' },
+        { id: 3, name: 'Coimbatore' },
+        { id: 4, name: 'Chennai' },
+      ]); setLocationsLoading(false); });
   }, []);
 
-  // Available roles
-  const roles = [
-    { value: 'engineer', label: 'Service Engineer', icon: '🔧' },
-    { value: 'manager', label: 'Manager', icon: '👨‍💼' },
-    { value: 'admin', label: 'Administrator', icon: '🛡️' },
-    { value: 'executive', label: 'Executive', icon: '👔' },
-    { value: 'client', label: 'Client (Hospital)', icon: '🏥' }
-  ];
-
-  // Available skills
-  const availableSkills = [
-    'Hardware Repair', 'Software Installation', 'Network Setup', 'System Maintenance',
-    'Database Management', 'Cloud Services', 'Technical Analysis', 'Problem Solving',
-    'Equipment Setup', 'Industrial Systems', 'Manufacturing Equipment', 'Safety Protocols',
-    'Team Management', 'Operations Planning', 'Strategic Planning'
-  ];
-
-  // Available certifications
-  const availableCertifications = [
-    'CCNA', 'CompTIA A+', 'AWS Certified', 'Microsoft Azure', 'PMP', 'ITIL Foundation',
-    'OSHA Safety', 'Industrial Automation', 'Six Sigma Black Belt', 'Google Cloud Certified'
-  ];
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
+  const validateStep1 = () => {
+    const e = {};
+    if (!name.trim() || name.trim().length < 2) e.name = 'Name must be at least 2 characters';
+    if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) e.email = 'Please enter a valid email';
+    if (!password || password.length < 6) e.password = 'Password must be at least 6 characters';
+    if (password !== confirmPassword) e.confirmPassword = 'Passwords do not match';
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
-  const handleSkillToggle = (skill) => {
-    setFormData(prev => ({
-      ...prev,
-      skills: prev.skills.includes(skill)
-        ? prev.skills.filter(s => s !== skill)
-        : [...prev.skills, skill]
-    }));
+  const validateStep2 = () => {
+    const e = {};
+    if (!locationId) e.location = 'Please select your location';
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
-  const handleCertificationToggle = (cert) => {
-    setFormData(prev => ({
-      ...prev,
-      certifications: prev.certifications.includes(cert)
-        ? prev.certifications.filter(c => c !== cert)
-        : [...prev.certifications, cert]
-    }));
+  const handleNext = () => {
+    if (step === 1 && validateStep1()) setStep(2);
+    if (step === 2 && validateStep2()) setStep(3);
   };
 
-  const validateForm = () => {
-    const newErrors = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
-    } else if (formData.name.trim().length < 2) {
-      newErrors.name = 'Name must be at least 2 characters';
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
-    }
-
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    if (!formData.location_id) {
-      newErrors.location = 'Please select your location';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      toast.error('Please fix the errors below');
-      return;
-    }
-
-    setIsSubmitting(true);
-
+  const handleSubmit = async () => {
+    setSubmitting(true);
     try {
-      const success = await signUp(
-        formData.email,
-        formData.password,
-        {
-          name: formData.name,
-          role: formData.role,
-          location_id: formData.location_id,
-          phone: formData.phone || '',
-          bio: '',
-          skills: [],
-          certifications: [],
-          experience_years: 0,
-          avatar: '👨‍🔧',
-          is_available: true,
-          is_active: true
-        }
-      );
-
-      if (success) {
-        // Form will be reset by the auth context
-        setFormData({
-          name: '',
-          email: '',
-          password: '',
-          confirmPassword: '',
-          role: 'engineer',
-          location_id: '',
-          phone: '',
-          bio: '',
-          skills: [],
-          certifications: [],
-          experience_years: 0,
-          avatar: '👨‍🔧'
-        });
-
-        // Redirect to dashboard after successful signup
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 1000);
-      } else {
-        console.log('Signup failed but no exception was thrown');
-      }
-    } catch (error) {
-      console.error('Signup error in SignupPage:', error);
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
+      const ok = await signUp(email, password, {
+        name,
+        role,
+        location_id: Number(locationId),
+        phone: '',
+        bio: '',
+        skills: [],
+        certifications: [],
+        experience_years: 0,
+        avatar: '👤',
+        is_available: true,
+        is_active: true,
       });
+      if (ok) setDone(true);
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
   };
+
+  const fld = (id) => ({
+    onFocus: () => setFocused(id),
+    onBlur: () => setFocused(null),
+    focused: focused === id,
+  });
+
+  const selectedLocation = locations.find(l => String(l.id) === String(locationId));
+  const selectedRole = ROLES.find(r => r.value === role);
+
+  // ── SUCCESS STATE ──
+  if (done) {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: FONT }}>
+        <div style={{ width: '100%', maxWidth: 480, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.11)', borderRadius: 18, backdropFilter: 'blur(20px)', padding: '48px 40px', textAlign: 'center' }}>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>✅</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: '#fff', marginBottom: 8 }}>Account created!</div>
+          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.7, marginBottom: 28 }}>
+            Your request is pending admin approval.<br/>You'll receive an email once your access is activated.
+          </div>
+          <Link to="/login" style={{ display: 'inline-block', background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', borderRadius: 10, padding: '12px 28px', color: '#fff', fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>← Back to Sign In</Link>
+        </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </motion.div>
+    );
+  }
 
   return (
-    <div className="signup-page">
-      <div className="signup-container">
-        <div className="signup-header">
-          <Link to="/login" className="back-link">
-            <ArrowLeft size={20} />
-            Back to Login
-          </Link>
-          <h1>Create Account</h1>
-          <p>Join the Service Engineer Planner team</p>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: FONT, position: 'relative' }}>
+
+      {/* radial glow behind card */}
+      <div style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%)', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none' }} />
+
+      <div style={{ width: '100%', maxWidth: 480, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.11)', borderRadius: 18, backdropFilter: 'blur(20px)', boxShadow: '0 32px 64px rgba(0,0,0,0.5),0 0 40px rgba(139,92,246,0.08)', overflow: 'hidden', position: 'relative', zIndex: 1 }}>
+
+        {/* ── CARD HEADER ── */}
+        <div style={{ padding: '28px 28px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+          <LogoMark />
+          <div style={{ fontSize: 14, fontWeight: 800, color: '#fff', letterSpacing: '-0.3px', marginBottom: 2 }}>Service Engineer Planner</div>
+          <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: 1 }}>Field Operations Platform</div>
         </div>
 
-
-        <form onSubmit={handleSubmit} className="signup-form">
-          {/* Basic Information */}
-          <div className="form-section">
-            <h3>Basic Information</h3>
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="name">
-                  <User size={16} />
-                  Full Name *
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className={errors.name ? 'error' : ''}
-                  placeholder="Enter your full name"
-                />
-                {errors.name && <span className="error-message">{errors.name}</span>}
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="email">
-                  <Mail size={16} />
-                  Email Address *
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className={errors.email ? 'error' : ''}
-                  placeholder="Enter your email"
-                />
-                {errors.email && <span className="error-message">{errors.email}</span>}
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="password">
-                  <Lock size={16} />
-                  Password *
-                </label>
-                <div className="password-input">
-                  <input
-                    type={showPasswords.password ? 'text' : 'password'}
-                    id="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    className={errors.password ? 'error' : ''}
-                    placeholder="Create a password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPasswords(prev => ({ ...prev, password: !prev.password }))}
-                    className="password-toggle"
-                  >
-                    {showPasswords.password ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
+        {/* ── STEP PROGRESS ── */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', padding: '20px 28px 0' }}>
+          {STEPS.map((s, i) => (
+            <React.Fragment key={s.n}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flex: 1 }}>
+                <div style={{
+                  width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: step > s.n ? 13 : 11, fontWeight: 700,
+                  background: step > s.n ? 'rgba(52,211,153,0.15)' : step === s.n ? 'rgba(167,139,250,0.2)' : 'rgba(255,255,255,0.05)',
+                  border: step > s.n ? '1px solid rgba(52,211,153,0.5)' : step === s.n ? '1px solid rgba(167,139,250,0.65)' : '1px solid rgba(255,255,255,0.1)',
+                  color: step > s.n ? '#34d399' : step === s.n ? '#c4b5fd' : 'rgba(255,255,255,0.2)',
+                  boxShadow: step === s.n ? '0 0 0 4px rgba(167,139,250,0.1),0 0 16px rgba(167,139,250,0.25)' : 'none',
+                }}>
+                  {step > s.n ? '✓' : s.n}
                 </div>
-                {errors.password && <span className="error-message">{errors.password}</span>}
+                <div style={{ fontSize: 9.5, fontWeight: 600, color: step === s.n ? '#c4b5fd' : step > s.n ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap' }}>{s.label}</div>
               </div>
-
-              <div className="form-group">
-                <label htmlFor="confirmPassword">
-                  <Lock size={16} />
-                  Confirm Password *
-                </label>
-                <div className="password-input">
-                  <input
-                    type={showPasswords.confirmPassword ? 'text' : 'password'}
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleInputChange}
-                    className={errors.confirmPassword ? 'error' : ''}
-                    placeholder="Confirm your password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPasswords(prev => ({ ...prev, confirmPassword: !prev.confirmPassword }))}
-                    className="password-toggle"
-                  >
-                    {showPasswords.confirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-                {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
-              </div>
-            </div>
-          </div>
-
-          {/* Professional Information */}
-          <div className="form-section">
-            <h3>Professional Information</h3>
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="role">Role *</label>
-                <select
-                  id="role"
-                  name="role"
-                  value={formData.role}
-                  onChange={handleInputChange}
-                >
-                  {roles.map(role => (
-                    <option key={role.value} value={role.value}>
-                      {role.icon} {role.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="location_id">
-                  <MapPin size={16} />
-                  Location *
-                </label>
-                <select
-                  id="location_id"
-                  name="location_id"
-                  value={formData.location_id}
-                  onChange={handleInputChange}
-                >
-                  <option value="">Select your location</option>
-                  {locations.map(location => (
-                    <option key={location.id} value={location.id}>
-                      {location.name}
-                    </option>
-                  ))}
-                </select>
-                {errors.location && <span className="error-message">{errors.location}</span>}
-              </div>
-            </div>
-
-          </div>
-
-
-          {/* Submit Button */}
-          <div className="form-actions">
-            <button
-              type="submit"
-              className="signup-btn"
-              disabled={isSubmitting || loading}
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="spinner"></div>
-                  Creating Account...
-                </>
-              ) : (
-                <>
-                  <UserPlus size={20} />
-                  Create Account
-                </>
+              {i < STEPS.length - 1 && (
+                <div style={{ flex: 1, height: 1, background: step > s.n ? 'rgba(52,211,153,0.4)' : 'rgba(255,255,255,0.1)', marginTop: 14 }} />
               )}
-            </button>
-          </div>
+            </React.Fragment>
+          ))}
+        </div>
 
-          <div className="signup-footer">
-            <p>Already have an account? <Link to="/login">Sign in here</Link></p>
-          </div>
-        </form>
+        {/* ── CARD BODY ── */}
+        <div style={{ padding: '20px 28px 28px' }}>
+
+          {/* STEP 1 */}
+          {step === 1 && (
+            <>
+              <div style={{ fontSize: 20, fontWeight: 800, color: '#fff', letterSpacing: '-0.4px', marginBottom: 4 }}>Create your account</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginBottom: 20 }}>Start with your name and credentials</div>
+              <div style={SECTION}>
+                <div style={LBL}>Full Name</div>
+                <DarkInput value={name} onChange={e => setName(e.target.value)} placeholder="Your full name" autoFocus {...fld('name')} />
+                <FieldError msg={errors.name} />
+              </div>
+              <div style={SECTION}>
+                <div style={LBL}>Work Email</div>
+                <DarkInput type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@company.com" {...fld('email')} />
+                <FieldError msg={errors.email} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+                <div>
+                  <div style={LBL}>Password</div>
+                  <DarkInput type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" {...fld('password')} />
+                  <FieldError msg={errors.password} />
+                </div>
+                <div>
+                  <div style={LBL}>Confirm</div>
+                  <DarkInput type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="••••••••" {...fld('confirm')} />
+                  <FieldError msg={errors.confirmPassword} />
+                </div>
+              </div>
+              <button onClick={handleNext} style={{ background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', borderRadius: 11, height: 46, width: '100%', border: 'none', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 20px rgba(99,102,241,0.4)', fontFamily: FONT, marginTop: 6 }}>Continue →</button>
+              <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', margin: '16px 0' }} />
+              <div style={{ textAlign: 'center', fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>
+                Already have an account?{' '}
+                <Link to="/login" style={{ color: '#60a5fa', textDecoration: 'none', fontWeight: 600 }}>Sign in</Link>
+              </div>
+            </>
+          )}
+
+          {/* STEP 2 */}
+          {step === 2 && (
+            <>
+              <div style={{ fontSize: 20, fontWeight: 800, color: '#fff', letterSpacing: '-0.4px', marginBottom: 4 }}>Your work profile</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginBottom: 20 }}>Tell us where you're based and what you do</div>
+              <div style={SECTION}>
+                <div style={LBL}>Location</div>
+                <select
+                  value={locationId}
+                  onChange={e => setLocationId(e.target.value)}
+                  disabled={locationsLoading}
+                  style={{ width: '100%', height: 42, padding: '0 14px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: locationId ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: 14, fontFamily: FONT, outline: 'none', boxSizing: 'border-box', cursor: locationsLoading ? 'wait' : 'pointer', opacity: locationsLoading ? 0.5 : 1 }}
+                >
+                  <option value="" style={{ background: '#1e1b4b', color: '#fff' }}>{locationsLoading ? 'Loading cities…' : 'Select your city'}</option>
+                  {locations.map(l => (
+                    <option key={l.id} value={l.id} style={{ background: '#1e1b4b', color: '#fff' }}>{l.name}</option>
+                  ))}
+                </select>
+                <FieldError msg={errors.location} />
+              </div>
+              <div style={SECTION}>
+                <div style={LBL}>Role</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  {ROLES.map(r => (
+                    <div
+                      key={r.value}
+                      onClick={() => setRole(r.value)}
+                      style={{
+                        background: role === r.value ? 'rgba(167,139,250,0.08)' : 'rgba(255,255,255,0.04)',
+                        border: role === r.value ? '1px solid rgba(167,139,250,0.55)' : '1px solid rgba(255,255,255,0.09)',
+                        boxShadow: role === r.value ? '0 0 0 1px rgba(167,139,250,0.15),0 0 20px rgba(167,139,250,0.1)' : 'none',
+                        borderRadius: 12, padding: 14, cursor: 'pointer', userSelect: 'none',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                        <div style={{ width: 30, height: 30, borderRadius: 8, background: role === r.value ? 'rgba(167,139,250,0.15)' : 'rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>{r.icon}</div>
+                        <div style={{ width: 16, height: 16, borderRadius: '50%', border: role === r.value ? '1.5px solid #a78bfa' : '1.5px solid rgba(255,255,255,0.15)', background: role === r.value ? 'rgba(167,139,250,0.2)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {role === r.value && <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#a78bfa' }} />}
+                        </div>
+                      </div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: role === r.value ? '#c4b5fd' : 'rgba(255,255,255,0.75)', marginBottom: 3 }}>{r.label}</div>
+                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.28)', lineHeight: 1.4 }}>{r.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <button onClick={handleNext} style={{ background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', borderRadius: 11, height: 46, width: '100%', border: 'none', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 20px rgba(99,102,241,0.4)', fontFamily: FONT, marginTop: 6 }}>Continue →</button>
+              <div style={{ textAlign: 'center', marginTop: 12 }}>
+                <button type="button" onClick={() => setStep(1)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 12, cursor: 'pointer', fontFamily: FONT }}>← Back</button>
+              </div>
+            </>
+          )}
+
+          {/* STEP 3 */}
+          {step === 3 && (
+            <>
+              <div style={{ fontSize: 20, fontWeight: 800, color: '#fff', letterSpacing: '-0.4px', marginBottom: 4 }}>Review your details</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginBottom: 20 }}>Everything look right? You can go back to edit.</div>
+              <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 12, overflow: 'hidden', marginBottom: 16 }}>
+                {[
+                  { icon: '👤', iconBg: 'rgba(96,165,250,0.1)',    key: 'Full Name',   val: name },
+                  { icon: '✉',  iconBg: 'rgba(52,211,153,0.1)',   key: 'Work Email',  val: email },
+                  { icon: '📍', iconBg: 'rgba(251,191,36,0.1)',   key: 'Location',    val: selectedLocation?.name || '—' },
+                  { icon: selectedRole?.icon, iconBg: 'rgba(167,139,250,0.12)', key: 'Role', val: null, chip: selectedRole?.label },
+                ].map((row, i, arr) => (
+                  <div key={row.key} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 9, background: row.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>{row.icon}</div>
+                    <div>
+                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', letterSpacing: '.3px', marginBottom: 2 }}>{row.key}</div>
+                      {row.chip
+                        ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(167,139,250,0.12)', border: '1px solid rgba(167,139,250,0.3)', color: '#a78bfa', fontSize: 12, fontWeight: 700, padding: '2px 10px', borderRadius: 6 }}>{row.chip}</span>
+                        : <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>{row.val}</div>
+                      }
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button type="button" onClick={handleSubmit} disabled={submitting || loading} style={{ background: submitting || loading ? 'rgba(71,85,105,0.6)' : 'linear-gradient(135deg,#3b82f6,#8b5cf6)', borderRadius: 11, height: 46, width: '100%', border: 'none', color: '#fff', fontSize: 14, fontWeight: 700, cursor: submitting || loading ? 'not-allowed' : 'pointer', boxShadow: submitting || loading ? 'none' : '0 4px 20px rgba(99,102,241,0.4)', fontFamily: FONT, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                {submitting || loading
+                  ? <><div style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.3)', borderTop: '2px solid #fff', borderRadius: '50%', animation: 'spin 1s linear infinite' }} /> Creating account...</>
+                  : 'Create Account →'}
+              </button>
+              <div style={{ textAlign: 'center', marginTop: 12 }}>
+                <button type="button" onClick={() => setStep(2)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 12, cursor: 'pointer', fontFamily: FONT }}>← Back</button>
+              </div>
+              <div style={{ marginTop: 16, padding: '10px 14px', background: 'rgba(52,211,153,0.06)', border: '1px solid rgba(52,211,153,0.18)', borderRadius: 10, fontSize: 11, color: 'rgba(52,211,153,0.7)', lineHeight: 1.7, display: 'flex', gap: 10 }}>
+                <span style={{ fontSize: 14, flexShrink: 0 }}>✓</span>
+                <span>Your account will be reviewed by an admin. You'll receive an email once access is approved — usually within 24 hours.</span>
+              </div>
+            </>
+          )}
+        </div>
       </div>
-
-      <style jsx>{`
-        .signup-page {
-          min-height: 100vh;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 20px;
-        }
-
-        .signup-container {
-          background: white;
-          border-radius: 16px;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-          width: 100%;
-          max-width: 800px;
-          max-height: 90vh;
-          overflow-y: auto;
-        }
-
-        .signup-header {
-          padding: 30px 30px 20px;
-          border-bottom: 1px solid #e5e7eb;
-        }
-
-        .back-link {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          color: #6b7280;
-          text-decoration: none;
-          font-size: 14px;
-          margin-bottom: 20px;
-          transition: color 0.2s;
-        }
-
-        .back-link:hover {
-          color: #3b82f6;
-        }
-
-        .mode-toggle {
-          display: flex;
-          justify-content: center;
-          margin-bottom: 20px;
-          gap: 10px;
-        }
-
-        .mode-btn {
-          padding: 8px 16px;
-          border: 2px solid #e5e7eb;
-          background: white;
-          color: #6b7280;
-          border-radius: 20px;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .mode-btn.active {
-          border-color: #3b82f6;
-          background: #3b82f6;
-          color: white;
-        }
-
-        .mode-btn:hover {
-          border-color: #3b82f6;
-          color: #3b82f6;
-        }
-
-        .signup-header h1 {
-          margin: 0 0 8px 0;
-          color: #1f2937;
-          font-size: 28px;
-          font-weight: 700;
-        }
-
-        .signup-header p {
-          margin: 0;
-          color: #6b7280;
-          font-size: 16px;
-        }
-
-        .signup-form {
-          padding: 30px;
-        }
-
-        .form-section {
-          margin-bottom: 30px;
-        }
-
-        .form-section h3 {
-          margin: 0 0 20px 0;
-          color: #1f2937;
-          font-size: 18px;
-          font-weight: 600;
-          padding-bottom: 8px;
-          border-bottom: 2px solid #e5e7eb;
-        }
-
-        .form-row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 20px;
-          margin-bottom: 20px;
-        }
-
-        .form-group {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-
-        .form-group label {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-weight: 600;
-          color: #374151;
-          font-size: 14px;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-          padding: 12px 16px;
-          border: 1px solid #d1d5db;
-          border-radius: 8px;
-          font-size: 16px;
-          transition: all 0.2s;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-          outline: none;
-          border-color: #3b82f6;
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .form-group input.error,
-        .form-group select.error,
-        .form-group textarea.error {
-          border-color: #ef4444;
-        }
-
-        .password-input {
-          position: relative;
-          display: flex;
-          align-items: center;
-        }
-
-        .password-input input {
-          width: 100%;
-          padding-right: 40px;
-        }
-
-        .password-toggle {
-          position: absolute;
-          right: 12px;
-          background: none;
-          border: none;
-          color: #6b7280;
-          cursor: pointer;
-          padding: 4px;
-        }
-
-        .error-message {
-          color: #ef4444;
-          font-size: 12px;
-          margin-top: 4px;
-        }
-
-        .skills-container,
-        .certifications-container {
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          padding: 16px;
-        }
-
-        .selected-skills,
-        .selected-certifications {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-          margin-bottom: 16px;
-        }
-
-        .skill-tag,
-        .cert-tag {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          background: #dbeafe;
-          color: #1e40af;
-          padding: 6px 12px;
-          border-radius: 20px;
-          font-size: 14px;
-          font-weight: 500;
-        }
-
-        .remove-skill,
-        .remove-cert {
-          background: none;
-          border: none;
-          color: #1e40af;
-          cursor: pointer;
-          font-size: 16px;
-          line-height: 1;
-          padding: 0;
-          margin-left: 4px;
-        }
-
-        .available-skills,
-        .available-certifications {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-
-        .skill-option,
-        .cert-option {
-          background: #f3f4f6;
-          color: #6b7280;
-          border: 1px solid #d1d5db;
-          padding: 6px 12px;
-          border-radius: 20px;
-          font-size: 14px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .skill-option:hover,
-        .cert-option:hover {
-          background: #e5e7eb;
-          color: #374151;
-        }
-
-        .form-actions {
-          margin-top: 30px;
-        }
-
-        .signup-btn {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 12px;
-          padding: 16px 24px;
-          background: #3b82f6;
-          color: white;
-          border: none;
-          border-radius: 8px;
-          font-size: 16px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .signup-btn:hover:not(:disabled) {
-          background: #2563eb;
-          transform: translateY(-1px);
-        }
-
-        .signup-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        .spinner {
-          width: 20px;
-          height: 20px;
-          border: 2px solid transparent;
-          border-top: 2px solid white;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-
-        .signup-footer {
-          text-align: center;
-          margin-top: 20px;
-          padding-top: 20px;
-          border-top: 1px solid #e5e7eb;
-        }
-
-        .signup-footer a {
-          color: #3b82f6;
-          text-decoration: none;
-          font-weight: 600;
-        }
-
-        .signup-footer a:hover {
-          text-decoration: underline;
-        }
-
-        @media (max-width: 768px) {
-          .form-row {
-            grid-template-columns: 1fr;
-          }
-
-          .signup-container {
-            margin: 10px;
-          }
-
-          .signup-form {
-            padding: 20px;
-          }
-        }
-      `}</style>
-    </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </motion.div>
   );
-};
-
-export default SignupPage;
+}
