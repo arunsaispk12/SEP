@@ -79,7 +79,8 @@ create table if not exists public.profiles (
   serial_number text,
   tracker_status text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  invite_sent_at timestamptz
 );
 
 -- engineers table - engineer-specific information
@@ -95,6 +96,12 @@ create table if not exists public.engineers (
   experience_years integer default 0,
   is_available boolean default true,
   is_active boolean default true,
+  role text not null default 'engineer' check (role in ('engineer', 'manager', 'admin')),
+  is_approved boolean default false,
+  invite_sent_at timestamptz,
+  laser_type text,
+  serial_number text,
+  tracker_status text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -543,3 +550,20 @@ insert into public.locations (name, address, city, state, pincode) values
 ('Coimbatore Office', '789 Industrial Area, Peelamedu', 'Coimbatore', 'Tamil Nadu', '641004'),
 ('Chennai Office', '321 IT Corridor, T. Nagar', 'Chennai', 'Tamil Nadu', '600017')
 on conflict (name) do nothing;
+
+-- Trigger: auto-activate users when they accept invite link
+create or replace function public.handle_user_confirmed()
+returns trigger language plpgsql security definer as $$
+begin
+  if old.email_confirmed_at is null and new.email_confirmed_at is not null then
+    update public.profiles set is_active = true, updated_at = now() where id = new.id;
+    update public.engineers set is_active = true, updated_at = now() where id = new.id;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_user_confirmed on auth.users;
+create trigger on_user_confirmed
+  after update on auth.users
+  for each row execute procedure public.handle_user_confirmed();
