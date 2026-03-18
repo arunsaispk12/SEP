@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  MapPin, 
-  Plus, 
-  Search, 
-  Edit2, 
-  Trash2, 
+import {
+  MapPin,
+  Plus,
+  Search,
+  Edit2,
+  Trash2,
   Map as MapIcon,
   Navigation,
   Globe,
@@ -21,7 +21,7 @@ const LocationManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingLocation, setEditingLocation] = useState(null);
-  
+
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -107,101 +107,115 @@ const LocationManagement = () => {
     setShowModal(false);
   };
 
-  const filteredLocations = locations.filter(loc => 
+  const filteredLocations = locations.filter(loc =>
     loc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (loc.city && loc.city.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
-    <div className="location-management">
-      <div className="page-header">
-        <div className="header-info">
-          <h1>Location Data</h1>
-          <p>Manage office locations and service regions</p>
+    <div style={{ padding: 24, color: '#f1f5f9' }}>
+      {/* Page Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
+        <div>
+          <h1 style={{ fontSize: '2rem', fontWeight: 700, margin: '0 0 4px 0', background: 'linear-gradient(135deg, #fff 0%, #94a3b8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            Location Data
+          </h1>
+          <p style={{ color: '#94a3b8', margin: 0 }}>Manage office locations and service regions</p>
         </div>
-        <button className="add-btn" onClick={() => setShowModal(true)}>
+        <button className="glass-btn-primary" onClick={() => setShowModal(true)} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Plus size={20} />
           Add Location
         </button>
       </div>
 
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon-wrapper blue">
+      {/* Stats Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 24, marginBottom: 32 }}>
+        <div className="glass-panel-sm" style={{ padding: 24, display: 'flex', alignItems: 'center', gap: 20 }}>
+          <div style={{ width: 56, height: 56, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(123,97,255,0.15)', color: '#a78bfa' }}>
             <Building size={24} />
           </div>
-          <div className="stat-data">
-            <span className="stat-value">{locations.length}</span>
-            <span className="stat-label">Total Locations</span>
+          <div>
+            <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: 700, color: '#fff' }}>{locations.length}</span>
+            <span style={{ color: '#94a3b8', fontSize: '0.875rem', fontWeight: 500 }}>Total Locations</span>
           </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon-wrapper purple">
+        <div className="glass-panel-sm" style={{ padding: 24, display: 'flex', alignItems: 'center', gap: 20 }}>
+          <div style={{ width: 56, height: 56, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(168,85,247,0.15)', color: '#c084fc' }}>
             <Globe size={24} />
           </div>
-          <div className="stat-data">
-            <span className="stat-value">
+          <div>
+            <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: 700, color: '#fff' }}>
               {new Set(locations.map(l => l.state).filter(Boolean)).size}
             </span>
-            <span className="stat-label">States Covered</span>
+            <span style={{ color: '#94a3b8', fontSize: '0.875rem', fontWeight: 500 }}>States Covered</span>
           </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon-wrapper green">
+        <div className="glass-panel-sm" style={{ padding: 24, display: 'flex', alignItems: 'center', gap: 20 }}>
+          <div style={{ width: 56, height: 56, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(34,197,94,0.15)', color: '#4ade80' }}>
             <Navigation size={24} />
           </div>
-          <div className="stat-data">
-            <span className="stat-value">
+          <div>
+            <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: 700, color: '#fff' }}>
               {new Set(locations.map(l => l.city).filter(Boolean)).size}
             </span>
-            <span className="stat-label">Cities</span>
+            <span style={{ color: '#94a3b8', fontSize: '0.875rem', fontWeight: 500 }}>Cities</span>
           </div>
         </div>
       </div>
 
-      <div className="search-bar">
-        <div className="search-input-wrapper">
-          <Search size={20} />
-          <input 
-            type="text" 
-            placeholder="Search by name or city..." 
+      {/* Search Bar */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: '0 16px', maxWidth: 500 }}>
+          <Search size={20} style={{ color: '#94a3b8', flexShrink: 0 }} />
+          <input
+            type="text"
+            placeholder="Search by name or city..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            style={{ background: 'transparent', border: 'none', color: '#f1f5f9', padding: '12px 0', width: '100%', outline: 'none', fontSize: '1rem' }}
           />
         </div>
       </div>
 
       {loading ? (
-        <div className="loading-state">Loading locations...</div>
+        <div style={{ textAlign: 'center', padding: 48, color: '#94a3b8', fontSize: '1.125rem' }}>Loading locations...</div>
       ) : (
-        <div className="locations-grid">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 24 }}>
           {filteredLocations.map(location => (
-            <div key={location.id} className="location-card">
-              <div className="location-card-header">
-                <div className="location-icon">
+            <div key={location.id} className="glass-panel-sm" style={{ overflow: 'hidden', transition: 'all 0.2s' }}>
+              <div style={{ padding: 20, display: 'flex', gap: 16, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ width: 48, height: 48, background: 'rgba(123,97,255,0.15)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a78bfa', flexShrink: 0 }}>
                   <MapPin size={24} />
                 </div>
-                <div className="location-title">
-                  <h3>{location.name}</h3>
-                  <span className="city-state">{location.city}, {location.state}</span>
-                </div>
-              </div>
-              
-              <div className="location-body">
-                <div className="address-box">
-                  <span className="label">Address</span>
-                  <p>{location.address || 'No address provided'}</p>
-                  {location.pincode && <span className="pincode">PIN: {location.pincode}</span>}
+                <div>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '1.125rem', color: '#fff' }}>{location.name}</h3>
+                  <span style={{ color: '#94a3b8', fontSize: '0.875rem' }}>{location.city}, {location.state}</span>
                 </div>
               </div>
 
-              <div className="location-footer">
-                <button className="icon-btn edit" onClick={() => handleEdit(location)}>
-                  <Edit2 size={16} />
+              <div style={{ padding: 20 }}>
+                <div style={{ background: 'rgba(13,17,23,0.4)', padding: 12, borderRadius: 8 }}>
+                  <span style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', color: '#64748b', marginBottom: 4 }}>Address</span>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '0.9375rem', lineHeight: 1.5, color: '#cbd5e1' }}>{location.address || 'No address provided'}</p>
+                  {location.pincode && <span style={{ fontSize: '0.8125rem', color: '#94a3b8', fontWeight: 500 }}>PIN: {location.pincode}</span>}
+                </div>
+              </div>
+
+              <div style={{ padding: '14px 20px', background: 'rgba(13,17,23,0.3)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+                <button
+                  className="glass-btn-secondary"
+                  onClick={() => handleEdit(location)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', fontSize: '0.875rem' }}
+                >
+                  <Edit2 size={15} />
                   Edit
                 </button>
-                <button className="icon-btn delete" onClick={() => handleDelete(location.id)}>
-                  <Trash2 size={16} />
+                <button
+                  className="glass-btn-danger"
+                  onClick={() => handleDelete(location.id)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', fontSize: '0.875rem' }}
+                >
+                  <Trash2 size={15} />
                   Delete
                 </button>
               </div>
@@ -211,17 +225,20 @@ const LocationManagement = () => {
       )}
 
       {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2>{editingLocation ? 'Edit Location' : 'Add New Location'}</h2>
-              <button className="close-btn" onClick={resetForm}>
+        <div className="glass-modal-backdrop">
+          <div className="glass-modal">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h2 style={{ margin: 0, fontSize: '1.25rem', color: '#fff', fontWeight: 700 }}>
+                {editingLocation ? 'Edit Location' : 'Add New Location'}
+              </h2>
+              <button onClick={resetForm} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex' }}>
                 <X size={24} />
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="location-form">
-              <div className="form-group">
-                <label>Location Name *</label>
+
+            <form onSubmit={handleSubmit}>
+              <div style={{ marginBottom: 18 }}>
+                <div className="section-label">Location Name *</div>
                 <input
                   type="text"
                   name="name"
@@ -229,23 +246,25 @@ const LocationManagement = () => {
                   onChange={handleInputChange}
                   placeholder="e.g., Bangalore Head Office"
                   required
+                  className="glass-input"
                 />
               </div>
 
-              <div className="form-group">
-                <label>Street Address</label>
+              <div style={{ marginBottom: 18 }}>
+                <div className="section-label">Street Address</div>
                 <textarea
                   name="address"
                   value={formData.address}
                   onChange={handleInputChange}
                   placeholder="Full street address"
                   rows="3"
+                  className="glass-textarea"
                 />
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>City *</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 18 }}>
+                <div>
+                  <div className="section-label">City *</div>
                   <input
                     type="text"
                     name="city"
@@ -253,10 +272,11 @@ const LocationManagement = () => {
                     onChange={handleInputChange}
                     placeholder="City"
                     required
+                    className="glass-input"
                   />
                 </div>
-                <div className="form-group">
-                  <label>State *</label>
+                <div>
+                  <div className="section-label">State *</div>
                   <input
                     type="text"
                     name="state"
@@ -264,24 +284,26 @@ const LocationManagement = () => {
                     onChange={handleInputChange}
                     placeholder="State"
                     required
+                    className="glass-input"
                   />
                 </div>
               </div>
 
-              <div className="form-group">
-                <label>Pincode</label>
+              <div style={{ marginBottom: 24 }}>
+                <div className="section-label">Pincode</div>
                 <input
                   type="text"
                   name="pincode"
                   value={formData.pincode}
                   onChange={handleInputChange}
                   placeholder="6-digit PIN"
+                  className="glass-input"
                 />
               </div>
 
-              <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={resetForm}>Cancel</button>
-                <button type="submit" className="btn-primary">
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+                <button type="button" className="glass-btn-secondary" onClick={resetForm}>Cancel</button>
+                <button type="submit" className="glass-btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Save size={18} />
                   {editingLocation ? 'Update Location' : 'Create Location'}
                 </button>
@@ -290,373 +312,6 @@ const LocationManagement = () => {
           </div>
         </div>
       )}
-
-      <style jsx>{`
-        .location-management {
-          padding: 24px;
-          color: #1e293b;
-        }
-
-        .page-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 32px;
-        }
-
-        .header-info h1 {
-          font-size: 2rem;
-          font-weight: 700;
-          color: #0f172a;
-          margin: 0 0 4px 0;
-        }
-
-        .header-info p {
-          color: #64748b;
-          margin: 0;
-        }
-
-        .add-btn {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          background: #3b82f6;
-          color: white;
-          border: none;
-          padding: 12px 24px;
-          border-radius: 12px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
-          box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2);
-        }
-
-        .add-btn:hover {
-          background: #2563eb;
-          transform: translateY(-1px);
-          box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
-        }
-
-        .stats-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-          gap: 24px;
-          margin-bottom: 32px;
-        }
-
-        .stat-card {
-          background: white;
-          padding: 24px;
-          border-radius: 16px;
-          display: flex;
-          align-items: center;
-          gap: 20px;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-          border: 1px solid #f1f5f9;
-        }
-
-        .stat-icon-wrapper {
-          width: 56px;
-          height: 56px;
-          border-radius: 14px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .stat-icon-wrapper.blue { background: #eff6ff; color: #3b82f6; }
-        .stat-icon-wrapper.purple { background: #faf5ff; color: #a855f7; }
-        .stat-icon-wrapper.green { background: #f0fdf4; color: #22c55e; }
-
-        .stat-value {
-          display: block;
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: #0f172a;
-        }
-
-        .stat-label {
-          color: #64748b;
-          font-size: 0.875rem;
-          font-weight: 500;
-        }
-
-        .search-bar {
-          margin-bottom: 24px;
-        }
-
-        .search-input-wrapper {
-          position: relative;
-          display: flex;
-          align-items: center;
-          background: white;
-          border: 1px solid #e2e8f0;
-          border-radius: 12px;
-          padding: 0 16px;
-          max-width: 500px;
-        }
-
-        .search-input-wrapper svg {
-          color: #94a3b8;
-        }
-
-        .search-input-wrapper input {
-          width: 100%;
-          padding: 12px;
-          border: none;
-          outline: none;
-          font-size: 1rem;
-          color: #1e293b;
-        }
-
-        .locations-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-          gap: 24px;
-        }
-
-        .location-card {
-          background: white;
-          border-radius: 16px;
-          border: 1px solid #f1f5f9;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-          overflow: hidden;
-          transition: all 0.2s;
-        }
-
-        .location-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1);
-        }
-
-        .location-card-header {
-          padding: 20px;
-          display: flex;
-          gap: 16px;
-          border-bottom: 1px solid #f8fafc;
-        }
-
-        .location-icon {
-          width: 48px;
-          height: 48px;
-          background: #f8fafc;
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #3b82f6;
-        }
-
-        .location-title h3 {
-          margin: 0 0 4px 0;
-          font-size: 1.125rem;
-          color: #0f172a;
-        }
-
-        .city-state {
-          color: #64748b;
-          font-size: 0.875rem;
-        }
-
-        .location-body {
-          padding: 20px;
-        }
-
-        .address-box {
-          background: #f8fafc;
-          padding: 12px;
-          border-radius: 8px;
-        }
-
-        .address-box .label {
-          display: block;
-          font-size: 0.75rem;
-          font-weight: 600;
-          text-transform: uppercase;
-          color: #94a3b8;
-          margin-bottom: 4px;
-        }
-
-        .address-box p {
-          margin: 0 0 8px 0;
-          font-size: 0.9375rem;
-          line-height: 1.5;
-          color: #334155;
-        }
-
-        .pincode {
-          font-size: 0.8125rem;
-          color: #64748b;
-          font-weight: 500;
-        }
-
-        .location-footer {
-          padding: 16px 20px;
-          background: #f8fafc;
-          display: flex;
-          justify-content: flex-end;
-          gap: 12px;
-        }
-
-        .icon-btn {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          padding: 8px 12px;
-          border-radius: 8px;
-          font-size: 0.875rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
-          border: 1px solid transparent;
-        }
-
-        .icon-btn.edit {
-          background: #eff6ff;
-          color: #3b82f6;
-        }
-
-        .icon-btn.edit:hover {
-          background: #dbeafe;
-        }
-
-        .icon-btn.delete {
-          background: #fef2f2;
-          color: #ef4444;
-        }
-
-        .icon-btn.delete:hover {
-          background: #fee2e2;
-        }
-
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(15, 23, 42, 0.75);
-          backdrop-filter: blur(4px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1000;
-          padding: 20px;
-        }
-
-        .modal-content {
-          background: white;
-          width: 100%;
-          max-width: 500px;
-          border-radius: 20px;
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-          overflow: hidden;
-        }
-
-        .modal-header {
-          padding: 24px;
-          background: #f8fafc;
-          border-bottom: 1px solid #e2e8f0;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .modal-header h2 {
-          margin: 0;
-          font-size: 1.25rem;
-          color: #0f172a;
-        }
-
-        .close-btn {
-          background: none;
-          border: none;
-          color: #94a3b8;
-          cursor: pointer;
-        }
-
-        .location-form {
-          padding: 24px;
-        }
-
-        .form-group {
-          margin-bottom: 20px;
-        }
-
-        .form-group label {
-          display: block;
-          margin-bottom: 8px;
-          font-size: 0.875rem;
-          font-weight: 600;
-          color: #334155;
-        }
-
-        .form-group input, 
-        .form-group textarea {
-          width: 100%;
-          padding: 10px 12px;
-          border: 1px solid #e2e8f0;
-          border-radius: 8px;
-          font-size: 1rem;
-          outline: none;
-          transition: border-color 0.2s;
-        }
-
-        .form-group input:focus, 
-        .form-group textarea:focus {
-          border-color: #3b82f6;
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .form-row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 16px;
-        }
-
-        .modal-actions {
-          display: flex;
-          justify-content: flex-end;
-          gap: 12px;
-          margin-top: 32px;
-        }
-
-        .btn-primary {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          background: #3b82f6;
-          color: white;
-          border: none;
-          padding: 10px 24px;
-          border-radius: 10px;
-          font-weight: 600;
-          cursor: pointer;
-        }
-
-        .btn-secondary {
-          background: white;
-          color: #64748b;
-          border: 1px solid #e2e8f0;
-          padding: 10px 24px;
-          border-radius: 10px;
-          font-weight: 600;
-          cursor: pointer;
-        }
-
-        .loading-state {
-          text-align: center;
-          padding: 48px;
-          color: #64748b;
-          font-size: 1.125rem;
-        }
-
-        @media (max-width: 640px) {
-          .stats-grid { grid-template-columns: 1fr; }
-          .form-row { grid-template-columns: 1fr; }
-          .locations-grid { grid-template-columns: 1fr; }
-        }
-      `}</style>
     </div>
   );
 };
