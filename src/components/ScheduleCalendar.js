@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { Plus, RotateCcw, Trash2 } from 'lucide-react';
 import scheduleCaseSyncService from '../services/scheduleCaseSync';
 import toast from 'react-hot-toast';
+import { getEngineerStatus, ENGINEER_STATUS_CONFIG, STATUS_COLORS } from './dashboard/dashboardUtils';
 // import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 const localizer = momentLocalizer(moment);
@@ -54,6 +55,7 @@ const ScheduleCalendar = () => {
   const {
     schedules,
     engineers,
+    cases,
     clients,
     addClient,
     addSchedule,
@@ -65,7 +67,7 @@ const ScheduleCalendar = () => {
     isEngineerOnLeave,
     leaves
   } = useEngineerContext();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   const [showModal, setShowModal] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState(null);
@@ -75,6 +77,7 @@ const ScheduleCalendar = () => {
     name: '', contact_person: '', mobile: '', address: '', location: ''
   });
   const [savingClient, setSavingClient] = useState(false);
+  const [currentView, setCurrentView] = useState('week');
   const [formData, setFormData] = useState({
     title: '',
     engineerId: '',
@@ -94,22 +97,28 @@ const ScheduleCalendar = () => {
     { value: 'urgent', label: 'Urgent', color: '#7B61FF' }
   ];
 
+  const PRIORITY_COLORS = {
+    urgent: '#ef4444',
+    high:   '#f59e0b',
+    normal: '#3b82f6',
+    low:    '#22c55e',
+  };
+
   // Convert schedules and leaves to calendar events
   const scheduleEvents = schedules.map(schedule => {
     const engineer = getEngineerById(schedule.engineer_id);
-    const priority = priorities.find(p => p.value === schedule.priority);
-
+    const engineerStatus = engineer ? getEngineerStatus(engineer, schedules) : null;
+    const linkedCase = cases?.find(c => c.id === schedule.case_id) || null;
     return {
       id: schedule.id,
-      title: `${schedule.title} - ${engineer?.name || 'Unknown'}`,
-      start: new Date(schedule.start),
-      end: new Date(schedule.end),
+      title: schedule.title,
+      start: new Date(schedule.start_time || schedule.start),
+      end: new Date(schedule.end_time || schedule.end),
       resource: {
-        engineer: engineer,
-        location: schedule.location,
-        priority: schedule.priority,
-        description: schedule.description,
-        priorityColor: priority?.color || '#6c757d'
+        schedule,       // full source object
+        engineer,
+        engineerStatus,
+        linkedCase,
       }
     };
   });
@@ -268,32 +277,80 @@ const ScheduleCalendar = () => {
     }
   };
 
-  const eventStyleGetter = (event) => {
-    const priorityColor = event.resource?.priorityColor || '#6c757d';
+  const isEngineerRole = profile?.role === 'engineer';
+
+  const eventPropGetter = (event) => {
+    if (typeof event.id === 'string' && event.id.startsWith('leave-')) {
+      return {
+        style: {
+          backgroundColor: 'rgba(255,255,255,0.08)',
+          border: '1px dashed rgba(255,255,255,0.25)',
+          color: 'rgba(255,255,255,0.45)',
+          borderRadius: 4,
+          opacity: 0.7,
+          fontSize: 11,
+        }
+      };
+    }
+    const { schedule, linkedCase } = event.resource || {};
+    const priority = schedule?.priority || 'normal';
+    const isOwn = schedule?.engineer_id === user?.id;
+    const dim = isEngineerRole && !isOwn;
+    const caseAccent = linkedCase ? STATUS_COLORS[linkedCase.status]?.border : null;
+
     return {
       style: {
-        backgroundColor: priorityColor,
-        borderRadius: '4px',
-        opacity: 0.8,
-        color: 'white',
+        backgroundColor: PRIORITY_COLORS[priority] || '#6b7280',
+        borderLeft: caseAccent ? `3px solid ${caseAccent}` : 'none',
+        borderRadius: 4,
         border: 'none',
-        fontSize: '12px'
+        opacity: dim ? 0.5 : 1,
+        fontSize: 11,
+        color: '#fff',
       }
     };
   };
 
   const CustomEvent = ({ event }) => {
-    const engineer = event.resource?.engineer;
-    const location = event.resource?.location;
+    const { engineer, engineerStatus } = event.resource || {};
+    const statusCfg = engineerStatus ? ENGINEER_STATUS_CONFIG[engineerStatus] : null;
+    const isLeave = typeof event.id === 'string' && event.id.startsWith('leave-');
 
-    return (
-      <div className="custom-event">
-        <div className="event-title">{event.title}</div>
-        <div className="event-details">
-          <span className="event-location">📍 {location}</span>
-          {engineer && (
-            <span className="event-engineer">👤 {engineer.name}</span>
+    // Compact in all views except agenda (and always compact for leave blocks)
+    if (isLeave || currentView !== 'agenda') {
+      // Compact: status dot + title
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, overflow: 'hidden', padding: '1px 2px' }}>
+          {statusCfg && (
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: statusCfg.color, flexShrink: 0 }} />
           )}
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 11 }}>
+            {event.title}{engineer ? ` — ${engineer.name}` : ''}
+          </span>
+        </div>
+      );
+    }
+
+    // Agenda: verbose
+    const { schedule, linkedCase } = event.resource || {};
+    const locationName = (locationObjects || []).find(l => l.id === schedule?.location_id)?.name || schedule?.location || '';
+    return (
+      <div style={{ padding: '2px 4px' }}>
+        <div style={{ fontWeight: 600, marginBottom: 2 }}>{event.title}</div>
+        {locationName && <div style={{ fontSize: 10, opacity: 0.8 }}>📍 {locationName}</div>}
+        {engineer && (
+          <div style={{ fontSize: 10, opacity: 0.8, display: 'flex', alignItems: 'center', gap: 4 }}>
+            👤 {engineer.name}
+            {statusCfg && <span style={{ color: statusCfg.color }}>· {statusCfg.label}</span>}
+          </div>
+        )}
+        {linkedCase && (
+          <div style={{ fontSize: 10, opacity: 0.8 }}>🔗 Case #{linkedCase.id}</div>
+        )}
+        <div style={{ marginTop: 3 }}>
+          <span style={{ fontSize: 10, padding: '1px 5px', borderRadius: 3, background: PRIORITY_COLORS[schedule?.priority] || '#6b7280' }}>
+            {schedule?.priority || 'normal'}
+          </span>
         </div>
       </div>
     );
@@ -334,12 +391,13 @@ const ScheduleCalendar = () => {
           onSelectSlot={handleSelectSlot}
           onSelectEvent={handleSelectEvent}
           selectable
-          eventPropGetter={eventStyleGetter}
+          eventPropGetter={eventPropGetter}
           components={{
             event: CustomEvent
           }}
           views={['month', 'week', 'day', 'agenda']}
           defaultView="week"
+          onView={v => setCurrentView(v)}
         />
       </div>
 
