@@ -35,6 +35,7 @@ const ClientManagement = () => {
     contact_person: '',
     designation: '',
     mobile: '',
+    address: '',
     assigned_executive_id: null,
     is_disclosed: true
   });
@@ -75,6 +76,7 @@ const ClientManagement = () => {
       contact_person: '',
       designation: '',
       mobile: '',
+      address: '',
       assigned_executive_id: null,
       is_disclosed: true
     });
@@ -90,6 +92,7 @@ const ClientManagement = () => {
       contact_person: client.contact_person || '',
       designation: client.designation || '',
       mobile: client.mobile || '',
+      address: client.address || '',
       assigned_executive_id: client.assigned_executive_id,
       is_disclosed: client.is_disclosed
     });
@@ -327,6 +330,17 @@ const ClientManagement = () => {
                     onChange={handleInputChange}
                     placeholder="10-digit mobile"
                     required
+                    className="glass-input"
+                  />
+                </div>
+                <div style={{ marginTop: 14 }}>
+                  <div className="section-label">Address</div>
+                  <input
+                    type="text"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleInputChange}
+                    placeholder="Hospital address"
                     className="glass-input"
                   />
                 </div>
