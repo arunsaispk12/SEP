@@ -34,6 +34,8 @@ const PILLS = [
   { label: 'Leave & approvals',    color: '#fbbf24', bg: 'rgba(251,191,36,0.12)',  border: 'rgba(251,191,36,0.25)' },
 ];
 
+const LBL = { fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '.7px', marginBottom: 6 };
+
 function DarkInput({ type = 'text', value, onChange, placeholder, onFocus, onBlur, focused, autoFocus }) {
   return (
     <input
@@ -78,12 +80,17 @@ export default function LoginPage() {
     if (!resetEmail.trim()) { setResetError('Please enter your email address'); return; }
     setResetLoading(true);
     setResetError('');
-    const ok = await resetPassword(resetEmail);
-    setResetLoading(false);
-    if (ok) {
-      setResetSuccess(true);
-    } else {
+    try {
+      const ok = await resetPassword(resetEmail);
+      if (ok) {
+        setResetSuccess(true);
+      } else {
+        setResetError('Failed to send reset email. Please try again.');
+      }
+    } catch {
       setResetError('Failed to send reset email. Please try again.');
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -93,8 +100,6 @@ export default function LoginPage() {
     setResetError('');
     setResetSuccess(false);
   };
-
-  const LBL = { fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '.7px', marginBottom: 6 };
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ minHeight: '100vh', background: BG, display: 'flex', fontFamily: FONT }}>
