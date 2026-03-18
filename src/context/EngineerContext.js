@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect, useMemo, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import supabaseService from '../services/supabaseService';
-import { isSupabaseConfigured } from '../config/supabase';
+import { isSupabaseConfigured, supabase } from '../config/supabase';
 import { getMiddlewareManager } from '../middlewares';
 
 const EngineerContext = createContext();
@@ -612,7 +612,6 @@ export function EngineerProvider({ children }) {
   }, []);
 
   const deleteEngineer = useCallback(async (id) => {
-  const deleteEngineer = useCallback(async (id) => {
     try {
       if (isSupabaseConfigured()) {
         await supabaseService.deleteEngineer(id);
@@ -704,7 +703,7 @@ export function EngineerProvider({ children }) {
     getAvailableEngineers,
     getEngineersByLocation,
     loadData
-  }), [state, addCase, updateCase, updateEngineer, addEngineer, deleteEngineer, addSchedule, updateSchedule, deleteSchedule, addLeave, updateLeave, deleteLeave, isEngineerOnLeave, checkLocationConflict, checkScheduleOverlap, setGoogleCalendarConnected, getEngineerById, getCasesByEngineer, getAvailableEngineers, getEngineersByLocation, loadData]);
+  }), [state, addCase, updateCase, updateEngineer, addEngineer, deleteEngineer, addSchedule, updateSchedule, deleteSchedule, addLeave, updateLeave, deleteLeave, isEngineerOnLeave, approveUser, checkLocationConflict, checkScheduleOverlap, setGoogleCalendarConnected, getEngineerById, getCasesByEngineer, getAvailableEngineers, getEngineersByLocation, loadData]);
 
   return (
     <EngineerContext.Provider value={value}>

@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 
 const AdminPanel = () => {
-  const { user } = useAuth();
+  const { profile } = useAuth();
   const engineerContext = useEngineerContext();
   const {
     engineers,
@@ -68,7 +68,7 @@ const AdminPanel = () => {
   }, [cases]);
 
   // Check if user is admin
-  if (!user || user.role !== 'admin') {
+  if (!profile || profile.role !== 'admin') {
     return (
       <div className="admin-access-denied">
         <div className="denied-content">
@@ -350,7 +350,7 @@ const AdminPanel = () => {
           </div>
         </div>
         <div className="admin-info">
-          <span>Administrator: {user.name}</span>
+          <span>Administrator: {profile.name}</span>
         </div>
       </div>
 

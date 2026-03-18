@@ -7,6 +7,8 @@ import {
   Briefcase,
   CalendarCheck,
   Shield,
+  Users,
+  MapPin,
 } from 'lucide-react';
 
 const SidebarTabs = ({ activeTab, setActiveTab, tabs, isOpen, onClose }) => {

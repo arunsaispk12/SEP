@@ -98,3 +98,6 @@ typings/
 # Google Calendar credentials
 google-credentials.json
 .gemini/settings.json
+
+# Visual brainstorming companion
+.superpowers/
