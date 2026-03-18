@@ -5,6 +5,7 @@ import { Plus, Search, User, MapPin, Clock, AlertCircle, RotateCcw } from 'lucid
 import scheduleCaseSyncService from '../services/scheduleCaseSync';
 import toast from 'react-hot-toast';
 import CaseCompletionModal from './CaseCompletionModal';
+import CaseCalendarView from './CaseCalendarView';
 
 const CaseManager = () => {
   const {
@@ -20,8 +21,12 @@ const CaseManager = () => {
     checkScheduleOverlap,
     isEngineerOnLeave
   } = useEngineerContext();
-  const { user } = useAuth();
-  
+  const { user, profile } = useAuth();
+  const isEngineer = profile?.role === 'engineer';
+  const currentUserId = user?.id;
+
+  const [viewMode, setViewMode] = useState('list'); // 'list' | 'calendar'
+  const [selectedCase, setSelectedCase] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -297,140 +302,178 @@ const CaseManager = () => {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="filters-section">
-        <div className="search-box">
-          <Search size={16} />
-          <input
-            type="text"
-            placeholder="Search cases..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        
-        <div className="filter-controls">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="filter-select"
+      {/* View mode toggle */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+        {['list', 'calendar'].map(mode => (
+          <button
+            key={mode}
+            onClick={() => setViewMode(mode)}
+            style={{
+              padding: '6px 16px',
+              borderRadius: 9,
+              border: '1px solid',
+              borderColor: viewMode === mode ? 'rgba(167,139,250,0.5)' : 'rgba(255,255,255,0.1)',
+              background: viewMode === mode ? 'rgba(167,139,250,0.15)' : 'rgba(255,255,255,0.05)',
+              color: viewMode === mode ? '#a78bfa' : 'rgba(255,255,255,0.5)',
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer',
+              textTransform: 'capitalize',
+              fontFamily: 'inherit',
+              transition: 'all 0.15s',
+            }}
           >
-            <option value="all">All Status</option>
-            <option value="open">Open</option>
-            <option value="in_progress">In Progress</option>
-            <option value="completed">Completed</option>
-            <option value="on_hold">On Hold</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-          
-          <select
-            value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}
-            className="filter-select"
-          >
-            <option value="all">All Priority</option>
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-          </select>
-        </div>
+            {mode === 'list' ? '☰ List' : '📅 Calendar'}
+          </button>
+        ))}
       </div>
 
-      {/* Cases List */}
-      <div className="cases-list">
-        {filteredCases.length === 0 ? (
-          <div className="no-cases">
-            <p>No cases found matching your criteria</p>
-          </div>
-        ) : (
-          filteredCases.map(case_ => {
-            const assignedEngineer = case_.assigned_engineer_id ? 
-              getEngineerById(case_.assigned_engineer_id) : null;
-            
-            const hasOverlap = assignedEngineer && checkScheduleOverlap(assignedEngineer.id, case_.created_at, new Date(case_.created_at).setHours(23), case_.id).hasOverlap;
-            const isOnLeave = assignedEngineer && isEngineerOnLeave(case_.created_at, assignedEngineer.id);
+      {viewMode === 'list' ? (
+        <>
+          {/* Filters */}
+          <div className="filters-section">
+            <div className="search-box">
+              <Search size={16} />
+              <input
+                type="text"
+                placeholder="Search cases..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
 
-            return (
-              <div key={case_.id} className="case-card">
-                <div className="case-header">
-                  <div className="case-title-section">
-                    <div className="title-wrapper">
-                      <h3>{case_.title}</h3>
-                      {(hasOverlap || isOnLeave) && (
-                        <div className="warning-trigger" title={isOnLeave ? 'Engineer on Leave' : 'Schedule Overlap'}>
-                          <AlertCircle size={18} color="#fbbf24" />
+            <div className="filter-controls">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="filter-select"
+              >
+                <option value="all">All Status</option>
+                <option value="open">Open</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+                <option value="on_hold">On Hold</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+
+              <select
+                value={priorityFilter}
+                onChange={(e) => setPriorityFilter(e.target.value)}
+                className="filter-select"
+              >
+                <option value="all">All Priority</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Cases List */}
+          <div className="cases-list">
+            {filteredCases.length === 0 ? (
+              <div className="no-cases">
+                <p>No cases found matching your criteria</p>
+              </div>
+            ) : (
+              filteredCases.map(case_ => {
+                const assignedEngineer = case_.assigned_engineer_id ?
+                  getEngineerById(case_.assigned_engineer_id) : null;
+
+                const hasOverlap = assignedEngineer && checkScheduleOverlap(assignedEngineer.id, case_.created_at, new Date(case_.created_at).setHours(23), case_.id).hasOverlap;
+                const isOnLeave = assignedEngineer && isEngineerOnLeave(case_.created_at, assignedEngineer.id);
+
+                return (
+                  <div key={case_.id} className="case-card">
+                    <div className="case-header">
+                      <div className="case-title-section">
+                        <div className="title-wrapper">
+                          <h3>{case_.title}</h3>
+                          {(hasOverlap || isOnLeave) && (
+                            <div className="warning-trigger" title={isOnLeave ? 'Engineer on Leave' : 'Schedule Overlap'}>
+                              <AlertCircle size={18} color="#fbbf24" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="case-meta">
+                          <span className="case-id">#{case_.id}</span>
+                          <span
+                            className="priority-badge"
+                            style={{ backgroundColor: getPriorityColor(case_.priority) }}
+                          >
+                            {case_.priority.toUpperCase()}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="case-status">
+                        {getStatusIcon(case_.status)}
+                        <select
+                          value={case_.status}
+                          onChange={(e) => handleStatusChange(case_.id, e.target.value)}
+                          className="status-select"
+                        >
+                          {statuses.map(s => (
+                            <option key={s.value} value={s.value}>
+                              {s.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="case-details">
+                      <p className="case-description">{case_.description}</p>
+
+                      <div className="case-info">
+                        <div className="info-item">
+                          <MapPin size={14} />
+                          <span>{case_.location}</span>
+                        </div>
+                        <div className="info-item">
+                          <Clock size={14} />
+                          <span>{new Date(case_.created_at).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="case-assignment">
+                      {assignedEngineer ? (
+                        <div className="assigned-engineer">
+                          <User size={14} />
+                          <span>Assigned to: {assignedEngineer.name}</span>
+                        </div>
+                      ) : (
+                        <div className="assignment-controls">
+                          <select
+                            value=""
+                            onChange={(e) => handleAssignCase(case_.id, e.target.value)}
+                            className="assign-select"
+                          >
+                            <option value="">Assign to Engineer</option>
+                            {engineers.map(engineer => (
+                              <option key={engineer.id} value={engineer.id}>
+                                {engineer.name} - {engineer.location}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                       )}
                     </div>
-                    <div className="case-meta">
-                      <span className="case-id">#{case_.id}</span>
-                      <span 
-                        className="priority-badge"
-                        style={{ backgroundColor: getPriorityColor(case_.priority) }}
-                      >
-                        {case_.priority.toUpperCase()}
-                      </span>
-                    </div>
                   </div>
-                  <div className="case-status">
-                    {getStatusIcon(case_.status)}
-                    <select
-                      value={case_.status}
-                      onChange={(e) => handleStatusChange(case_.id, e.target.value)}
-                      className="status-select"
-                    >
-                      {statuses.map(s => (
-                        <option key={s.value} value={s.value}>
-                          {s.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="case-details">
-                  <p className="case-description">{case_.description}</p>
-                  
-                  <div className="case-info">
-                    <div className="info-item">
-                      <MapPin size={14} />
-                      <span>{case_.location}</span>
-                    </div>
-                    <div className="info-item">
-                      <Clock size={14} />
-                      <span>{new Date(case_.created_at).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="case-assignment">
-                  {assignedEngineer ? (
-                    <div className="assigned-engineer">
-                      <User size={14} />
-                      <span>Assigned to: {assignedEngineer.name}</span>
-                    </div>
-                  ) : (
-                    <div className="assignment-controls">
-                      <select
-                        value=""
-                        onChange={(e) => handleAssignCase(case_.id, e.target.value)}
-                        className="assign-select"
-                      >
-                        <option value="">Assign to Engineer</option>
-                        {engineers.map(engineer => (
-                          <option key={engineer.id} value={engineer.id}>
-                            {engineer.name} - {engineer.location}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
+                );
+              })
+            )}
+          </div>
+        </>
+      ) : (
+        <CaseCalendarView
+          cases={cases}
+          engineers={engineers}
+          currentUserId={currentUserId}
+          isEngineer={isEngineer}
+          onSelectCase={(caseObj) => setSelectedCase(caseObj)}
+        />
+      )}
 
       {/* Add Case Modal */}
       {showModal && (
