@@ -582,7 +582,7 @@ const UnifiedCalendar = () => {
 
               {c.location && (
                 <div style={{ display: 'flex', gap: 8, marginBottom: 10, color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>
-                  <span>📍</span><span>{c.location}</span>
+                  <span>📍</span><span>{c.location?.name || c.location}</span>
                 </div>
               )}
 
