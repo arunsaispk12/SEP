@@ -279,13 +279,6 @@ const AdminPanel = () => {
         </main>
       </div>
 
-      <style jsx>{`
-        @media (max-width: 900px) {
-          div[style*="gridTemplateColumns: '280px 1fr'"] {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}</style>
     </div>
   );
 };

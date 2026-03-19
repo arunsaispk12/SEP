@@ -106,7 +106,7 @@ const UnifiedCalendar = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   React.useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape') { setSelectedEvent(null); setShowDeleteConfirm(false); } };
+    const handler = (e) => { if (e.key === 'Escape') { setSelectedEvent(null); setShowDeleteConfirm(false); setShowModal(false); setEditingCase(null); } };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, []);
