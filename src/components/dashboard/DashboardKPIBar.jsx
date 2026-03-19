@@ -22,7 +22,7 @@ export default function DashboardKPIBar({ counts, activeFilter, onFilterChange }
               background: isActive ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)',
               border: `1px solid ${isActive ? card.color : 'rgba(255,255,255,0.1)'}`,
               borderRadius: 14,
-              padding: '8px 12px',
+              padding: '14px 18px',
               cursor: 'pointer',
               textAlign: 'left',
               position: 'relative',
@@ -37,10 +37,10 @@ export default function DashboardKPIBar({ counts, activeFilter, onFilterChange }
             {isActive && (
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: '#fbbf24' }} />
             )}
-            <div style={{ fontSize: 20, fontWeight: 800, color: '#fff', lineHeight: 1 }}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: '#fff', lineHeight: 1 }}>
               {counts[card.id] ?? 0}
             </div>
-            <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '.6px', marginTop: 3 }}>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '.6px', marginTop: 5 }}>
               {card.label}
             </div>
           </button>

@@ -34,17 +34,17 @@ export default function WeeklyGantt({ engineers, schedules, cases, leaves, weekS
   const weekDays = getWeekDays(weekStart);
 
   return (
-    <GlassPanel style={{ padding: '10px 12px' }}>
+    <GlassPanel style={{ padding: '14px 16px' }}>
       {/* Header: nav + day labels */}
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8, gap: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10, gap: 8 }}>
         <button
           onClick={() => { const d = new Date(weekStart); d.setDate(d.getDate() - 7); onWeekChange(d); }}
           className="glass-btn-secondary"
-          style={{ padding: '2px 8px', fontSize: 11 }}
+          style={{ padding: '3px 10px', fontSize: 13 }}
         >‹</button>
         <div style={{ flex: 1, display: 'flex' }}>
           {weekDays.map((d, i) => (
-            <div key={i} style={{ flex: 1, textAlign: 'center', fontSize: 8, color: isToday(d) ? '#a78bfa' : 'rgba(255,255,255,0.3)', fontWeight: isToday(d) ? 700 : 400, borderBottom: `1px solid ${isToday(d) ? 'rgba(167,139,250,0.4)' : 'rgba(255,255,255,0.06)'}`, paddingBottom: 3 }}>
+            <div key={i} style={{ flex: 1, textAlign: 'center', fontSize: 11, color: isToday(d) ? '#a78bfa' : 'rgba(255,255,255,0.3)', fontWeight: isToday(d) ? 700 : 400, borderBottom: `1px solid ${isToday(d) ? 'rgba(167,139,250,0.4)' : 'rgba(255,255,255,0.06)'}`, paddingBottom: 4 }}>
               {formatDayLabel(d)}{isToday(d) ? ' ●' : ''}
             </div>
           ))}
@@ -52,12 +52,12 @@ export default function WeeklyGantt({ engineers, schedules, cases, leaves, weekS
         <button
           onClick={() => { const d = new Date(weekStart); d.setDate(d.getDate() + 7); onWeekChange(d); }}
           className="glass-btn-secondary"
-          style={{ padding: '2px 8px', fontSize: 11 }}
+          style={{ padding: '3px 10px', fontSize: 13 }}
         >›</button>
       </div>
 
       {/* Engineer rows */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {engineers.map((eng, i) => {
           const engSchedules = schedules.filter(s =>
             s.engineer_id === eng.id &&
@@ -79,14 +79,14 @@ export default function WeeklyGantt({ engineers, schedules, cases, leaves, weekS
           const dimmed = activeFilter === 'available' && !eng.is_available;
 
           return (
-            <div key={eng.id} style={{ display: 'flex', alignItems: 'center', gap: 6, opacity: dimmed ? 0.3 : 1, transition: 'opacity 0.2s' }}>
+            <div key={eng.id} style={{ display: 'flex', alignItems: 'center', gap: 8, opacity: dimmed ? 0.3 : 1, transition: 'opacity 0.2s' }}>
               {/* Avatar */}
-              <div style={{ width: 20, height: 20, minWidth: 20, borderRadius: '50%', background: avatarGradient(i), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 7, color: '#fff', fontWeight: 700 }}>
+              <div style={{ width: 28, height: 28, minWidth: 28, borderRadius: '50%', background: avatarGradient(i), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#fff', fontWeight: 700 }}>
                 {getInitials(eng.name)}
               </div>
 
               {/* Track */}
-              <div style={{ flex: 1, height: 18, background: 'rgba(255,255,255,0.04)', borderRadius: 4, position: 'relative', overflow: 'hidden' }}>
+              <div style={{ flex: 1, height: 26, background: 'rgba(255,255,255,0.04)', borderRadius: 5, position: 'relative', overflow: 'hidden' }}>
                 {/* Case bars */}
                 {engSchedules.map(s => {
                   const relCase = cases.find(c => c.id === s.case_id);
@@ -108,7 +108,7 @@ export default function WeeklyGantt({ engineers, schedules, cases, leaves, weekS
                       }}
                       title={relCase?.title}
                     >
-                      <span style={{ fontSize: 6, color: sc.border, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <span style={{ fontSize: 10, color: sc.border, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {relCase ? `#${relCase.id} ${relCase.client_name || relCase.title || ''}` : s.title}
                       </span>
                     </div>

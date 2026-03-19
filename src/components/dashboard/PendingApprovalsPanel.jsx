@@ -13,37 +13,37 @@ export default function PendingApprovalsPanel({
   onReassignCase,      // (case) => void
 }) {
   return (
-    <GlassPanel style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 10, height: '100%' }}>
+    <GlassPanel style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 12, height: '100%' }}>
 
       {/* Leave Requests */}
       <div>
-        <div className="section-label" style={{ marginBottom: 6 }}>
+        <div className="section-label" style={{ marginBottom: 8 }}>
           Leave Requests
         </div>
         {pendingLeaves.length === 0 ? (
-          <div style={{ fontSize: 8, color: 'rgba(255,255,255,0.2)', fontStyle: 'italic' }}>No pending leave requests</div>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)', fontStyle: 'italic' }}>No pending leave requests</div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {pendingLeaves.slice(0, 3).map(l => (
-              <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 8, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontSize: 12, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {l.engineer?.name || '—'}
                   </div>
-                  <div style={{ fontSize: 6, color: 'rgba(255,255,255,0.35)' }}>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>
                     {formatShortDate(l.start_date)} – {formatShortDate(l.end_date)} · {l.leave_type}
                   </div>
                 </div>
                 <button
                   onClick={() => onApproveLeave(l.id)}
                   className="glass-btn-primary"
-                  style={{ width: 20, height: 20, borderRadius: 4, padding: 0, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  style={{ width: 26, height: 26, borderRadius: 6, padding: 0, fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   title="Approve"
                 >✓</button>
                 <button
                   onClick={() => onRejectLeave(l.id)}
                   className="glass-btn-danger"
-                  style={{ width: 20, height: 20, borderRadius: 4, padding: 0, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  style={{ width: 26, height: 26, borderRadius: 6, padding: 0, fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   title="Reject"
                 >✕</button>
               </div>
@@ -57,35 +57,35 @@ export default function PendingApprovalsPanel({
 
       {/* Unconfirmed Assignments */}
       <div>
-        <div className="section-label" style={{ marginBottom: 6 }}>
+        <div className="section-label" style={{ marginBottom: 8 }}>
           Unconfirmed Assignments
         </div>
         {unconfirmedCases.length === 0 ? (
-          <div style={{ fontSize: 8, color: 'rgba(255,255,255,0.2)', fontStyle: 'italic' }}>All assignments confirmed</div>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)', fontStyle: 'italic' }}>All assignments confirmed</div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {unconfirmedCases.slice(0, 3).map(c => {
               const eng = engineers.find(e => e.id === c.assigned_engineer_id);
               return (
-                <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 8, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div style={{ fontSize: 12, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       #{c.id} · {eng?.name || '—'}
                     </div>
-                    <div style={{ fontSize: 6, color: 'rgba(255,255,255,0.35)' }}>
+                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>
                       {c.scheduled_start ? formatShortDate(c.scheduled_start) : 'No date'}
                     </div>
                   </div>
                   <button
                     onClick={() => onConfirmCase(c.id)}
                     className="glass-btn-primary"
-                    style={{ width: 20, height: 20, borderRadius: 4, padding: 0, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    style={{ width: 26, height: 26, borderRadius: 6, padding: 0, fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     title="Confirm (start)"
                   >✓</button>
                   <button
                     onClick={() => onReassignCase(c)}
                     className="glass-btn-secondary"
-                    style={{ width: 20, height: 20, borderRadius: 4, padding: 0, fontSize: 9, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    style={{ width: 26, height: 26, borderRadius: 6, padding: 0, fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     title="Reassign"
                   >↻</button>
                 </div>
