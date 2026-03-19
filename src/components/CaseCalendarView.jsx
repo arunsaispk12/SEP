@@ -88,7 +88,7 @@ export default function CaseCalendarView({ cases, engineers = [], currentUserId,
   );
 
   return (
-    <div className="gcal-layout" style={{ height: 'calc(100vh - 96px)' }}>
+    <div className="gcal-layout" style={{ height: 'calc(100vh - 180px)' }}>
 
       {/* ── TOP BAR ── */}
       <div className="gcal-topbar">
@@ -142,7 +142,7 @@ export default function CaseCalendarView({ cases, engineers = [], currentUserId,
             eventPropGetter={eventPropGetter}
             components={{ toolbar: () => null, event: CustomEvent }}
             scrollToTime={new Date(2000, 0, 1, 8, 0, 0)}
-            style={{ height: '100%' }}
+            style={{ flex: 1, minHeight: 0 }}
             popup
           />
         </div>

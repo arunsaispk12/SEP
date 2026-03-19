@@ -316,7 +316,7 @@ const ScheduleCalendar = () => {
 
   // ── RENDER ──────────────────────────────────────────────────────────────────
   return (
-    <div className="gcal-layout">
+    <div className="gcal-layout" style={{ height: '100vh' }}>
 
       {/* ── TOP BAR ── */}
       <div className="gcal-topbar">
@@ -378,7 +378,7 @@ const ScheduleCalendar = () => {
             eventPropGetter={eventPropGetter}
             components={{ toolbar: () => null, event: CustomEvent }}
             scrollToTime={new Date(2000, 0, 1, 8, 0, 0)}
-            style={{ height: '100%' }}
+            style={{ flex: 1, minHeight: 0 }}
             popup
           />
         </div>

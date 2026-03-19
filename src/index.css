@@ -1129,16 +1129,81 @@ select:focus {
 }
 
 /* RBC overrides for gcal layout */
-.gcal-main .rbc-calendar { height: 100% !important; }
-.gcal-main .rbc-time-view,
-.gcal-main .rbc-month-view,
-.gcal-main .rbc-agenda-view { border-radius: 0 !important; border: none !important; height: 100%; }
+.gcal-main .rbc-calendar {
+  flex: 1 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+}
+
+/* Time-based views (week / day) */
+.gcal-main .rbc-time-view {
+  flex: 1 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  border: none !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+}
+
+.gcal-main .rbc-time-header {
+  flex-shrink: 0 !important;
+  display: flex !important;
+  flex-direction: row !important;
+}
+
+.gcal-main .rbc-time-header-content {
+  flex: 1 !important;
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.gcal-main .rbc-time-content {
+  flex: 1 !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+}
+
+/* Month view */
+.gcal-main .rbc-month-view {
+  flex: 1 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  border: none !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+  background: transparent !important;
+}
+
+.gcal-main .rbc-month-header {
+  flex-shrink: 0 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+}
+
+.gcal-main .rbc-month-row {
+  flex: 1 !important;
+  min-height: 90px !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.07) !important;
+  overflow: hidden !important;
+}
+
+.gcal-main .rbc-month-row + .rbc-month-row {
+  border-top: 1px solid rgba(255, 255, 255, 0.07) !important;
+}
+
+/* Column headers */
 .gcal-main .rbc-header {
   background: rgba(15, 12, 41, 0.6) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-  padding: 8px 4px;
-  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+  padding: 8px 4px !important;
+  text-align: center !important;
+  flex: 1 0 0% !important;
 }
+
 .gcal-main .rbc-header .rbc-button-link {
   display: flex;
   flex-direction: column;
@@ -1147,85 +1212,10 @@ select:focus {
   pointer-events: none;
 }
 
-/* Month view — Google Calendar grid style */
-.gcal-main .rbc-month-view {
+/* Agenda view */
+.gcal-main .rbc-agenda-view {
+  flex: 1 !important;
   border: none !important;
-  background: transparent;
-  flex: 1;
-}
-
-.gcal-main .rbc-month-header {
-  border-bottom: 1px solid rgba(255,255,255,0.07);
-}
-
-.gcal-main .rbc-month-row {
-  border-top: 1px solid rgba(255,255,255,0.07) !important;
-  overflow: visible;
-  min-height: 110px;
-}
-
-.gcal-main .rbc-day-bg + .rbc-day-bg {
-  border-left: 1px solid rgba(255,255,255,0.07) !important;
-}
-
-.gcal-main .rbc-day-bg.rbc-today {
-  background: rgba(167,139,250,0.05) !important;
-}
-
-.gcal-main .rbc-off-range-bg {
-  background: rgba(0,0,0,0.15) !important;
-}
-
-/* Date number in month cells */
-.gcal-main .rbc-date-cell {
-  padding: 5px 8px 3px;
-  text-align: right;
-}
-
-.gcal-main .rbc-date-cell .rbc-button-link {
-  font-size: 12px;
-  color: rgba(255,255,255,0.65);
-  border-radius: 50%;
-  width: 26px;
-  height: 26px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.1s;
-}
-
-.gcal-main .rbc-date-cell .rbc-button-link:hover {
-  background: rgba(255,255,255,0.1);
-}
-
-.gcal-main .rbc-now .rbc-button-link {
-  background: #a78bfa !important;
-  color: #fff !important;
-  font-weight: 700;
-}
-
-.gcal-main .rbc-date-cell.rbc-off-range .rbc-button-link {
-  color: rgba(255,255,255,0.22) !important;
-}
-
-/* Month event chips */
-.gcal-main .rbc-month-view .rbc-event {
-  font-size: 11px;
-  padding: 1px 6px;
-  border-radius: 3px !important;
-  border: none !important;
-  margin-bottom: 1px;
-}
-
-.gcal-main .rbc-show-more {
-  font-size: 10px;
-  color: rgba(167,139,250,0.7);
-  background: transparent;
-  padding: 0 6px;
-}
-
-/* Week/day view column header (WeekHeader component) */
-.gcal-main .rbc-header {
-  border-bottom: 1px solid rgba(255,255,255,0.07) !important;
-  padding: 6px 4px !important;
+  border-radius: 0 !important;
+  overflow: auto !important;
 }
