@@ -646,9 +646,9 @@ export function EngineerProvider({ children }) {
     const targetDate = new Date(date).toDateString();
     
     // Check existing cases for this engineer on the same day
-    const sameDayCases = state.cases.filter(c => 
-      c.assigned_engineer_id === engineerId && 
-      new Date(c.created_at).toDateString() === targetDate
+    const sameDayCases = state.cases.filter(c =>
+      c.assigned_engineer_id === engineerId &&
+      new Date(c.scheduled_start || c.created_at).toDateString() === targetDate
     );
 
     const conflictingCase = sameDayCases.find(c => c.location !== location);

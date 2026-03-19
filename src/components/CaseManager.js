@@ -19,7 +19,7 @@ const CaseManager = () => {
     checkScheduleOverlap,
     isEngineerOnLeave
   } = useEngineerContext();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -130,23 +130,29 @@ const CaseManager = () => {
     if (!engineerId) return;
 
     const targetCase = cases.find(c => c.id === caseId);
-    
+    if (!targetCase) return;
+
+    // Use scheduled_start as the reference date; fall back to created_at if not set
+    const caseDate = targetCase.scheduled_start || targetCase.created_at;
+    const caseDateEnd = new Date(caseDate);
+    caseDateEnd.setHours(23, 59, 59, 999);
+
     // Check Location Conflict (Mandatory Block)
-    const locationConflict = checkLocationConflict(engineerId, targetCase.created_at, targetCase.location);
+    const locationConflict = checkLocationConflict(engineerId, caseDate, targetCase.location);
     if (locationConflict.hasConflict) {
       toast.error(locationConflict.message);
       return;
     }
 
     // Check Leave (Warning)
-    if (isEngineerOnLeave(targetCase.created_at, engineerId)) {
+    if (isEngineerOnLeave(caseDate, engineerId)) {
       if (!window.confirm('Engineer is on leave during this period. Assign anyway?')) {
         return;
       }
     }
 
     // Check Overlap (Warning)
-    const overlap = checkScheduleOverlap(engineerId, targetCase.created_at, new Date(targetCase.created_at).setHours(23));
+    const overlap = checkScheduleOverlap(engineerId, caseDate, caseDateEnd.toISOString());
     if (overlap.hasOverlap) {
       if (!window.confirm(`${overlap.message} Assign anyway?`)) {
         return;
@@ -165,10 +171,12 @@ const CaseManager = () => {
 
   const handleStatusChange = async (caseId, newStatus) => {
     const targetCase = cases.find(c => c.id === caseId);
-    
+    if (!targetCase) return;
+
     // Permission Check: Only Admin or assigned Engineer can update
-    const isAssignedEngineer = user.role === 'engineer' && targetCase.assigned_engineer_id === user.id;
-    const isAdmin = user.role === 'admin';
+    // profile.role has the user's role; user.id has the auth UID
+    const isAssignedEngineer = profile?.role === 'engineer' && targetCase.assigned_engineer_id === user?.id;
+    const isAdmin = profile?.role === 'admin' || profile?.is_admin;
 
     if (!isAdmin && !isAssignedEngineer) {
       toast.error('You do not have permission to update this case.');
@@ -320,8 +328,11 @@ const CaseManager = () => {
                 const assignedEngineer = case_.assigned_engineer_id ?
                   getEngineerById(case_.assigned_engineer_id) : null;
 
-                const hasOverlap = assignedEngineer && checkScheduleOverlap(assignedEngineer.id, case_.created_at, new Date(case_.created_at).setHours(23), case_.id).hasOverlap;
-                const isOnLeave = assignedEngineer && isEngineerOnLeave(case_.created_at, assignedEngineer.id);
+                const caseRefDate = case_.scheduled_start || case_.created_at;
+                const caseRefDateEnd = new Date(caseRefDate);
+                caseRefDateEnd.setHours(23, 59, 59, 999);
+                const hasOverlap = assignedEngineer && checkScheduleOverlap(assignedEngineer.id, caseRefDate, caseRefDateEnd.toISOString(), case_.id).hasOverlap;
+                const isOnLeave = assignedEngineer && isEngineerOnLeave(caseRefDate, assignedEngineer.id);
 
                 return (
                   <div key={case_.id} className="case-card">

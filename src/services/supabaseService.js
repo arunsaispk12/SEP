@@ -257,16 +257,16 @@ class SupabaseService {
 
     if (error) throw error;
 
-    // Create notification for the assigned engineer
+    // Create notification for the assigned engineer (non-critical — don't let failure roll back schedule)
     if (scheduleData.engineer_id) {
-      await this.createNotification({
+      this.createNotification({
         user_id: scheduleData.engineer_id,
         title: 'New Schedule Assigned',
         message: `You have been assigned a new schedule: ${scheduleData.title}`,
         type: 'info',
         related_id: data.id,
         related_type: 'schedule'
-      });
+      }).catch(err => console.warn('Notification failed (non-critical):', err));
     }
 
     return data;

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useEngineerContext } from '../context/EngineerContext';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -10,8 +10,6 @@ import {
   BarChart3,
   AlertTriangle,
   CheckCircle,
-  Edit,
-  Trash2,
   Plus,
   Search
 } from 'lucide-react';
@@ -28,11 +26,6 @@ const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const handleUserAction = useCallback((action, userId) => {
-    // Handle user management actions
-    console.log(`${action} user:`, userId);
-  }, []);
-
   // System statistics — live from context data
   const systemStats = useMemo(() => {
     return {
@@ -47,9 +40,10 @@ const AdminPanel = () => {
 
   // Memoize filtered engineers to avoid recomputing on every render
   const filteredEngineers = useMemo(() => {
+    const term = searchTerm.toLowerCase();
     return engineers.filter(user =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      (user.name || '').toLowerCase().includes(term) ||
+      (user.email || '').toLowerCase().includes(term)
     );
   }, [engineers, searchTerm]);
 
@@ -170,14 +164,7 @@ const AdminPanel = () => {
                 {user.is_active ? 'Active' : 'Inactive'}
               </span>
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => handleUserAction('edit', user.id)} title="Edit user" style={{ padding: 6, border: 'none', borderRadius: 6, cursor: 'pointer', background: 'rgba(123,97,255,0.15)', color: '#a78bfa', minHeight: 32, minWidth: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Edit size={14} />
-              </button>
-              <button onClick={() => handleUserAction('delete', user.id)} title="Delete user" style={{ padding: 6, border: 'none', borderRadius: 6, cursor: 'pointer', background: 'rgba(239,68,68,0.15)', color: '#f87171', minHeight: 32, minWidth: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Trash2 size={14} />
-              </button>
-            </div>
+            <div />
           </div>
         ))}
       </div>
