@@ -1,6 +1,9 @@
 // src/components/ScheduleCalendar.js
-import React, { useState, useMemo } from 'react';
-import { Calendar, momentLocalizer } from 'react-big-calendar';
+import React, { useState, useMemo, useRef } from 'react';
+import FullCalendar from '@fullcalendar/react';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin from '@fullcalendar/interaction';
 import moment from 'moment';
 import { useEngineerContext } from '../context/EngineerContext';
 import { useAuth } from '../context/AuthContext';
@@ -9,8 +12,6 @@ import scheduleCaseSyncService from '../services/scheduleCaseSync';
 import toast from 'react-hot-toast';
 import { getEngineerStatus, ENGINEER_STATUS_CONFIG, STATUS_COLORS } from './dashboard/dashboardUtils';
 import MiniCalendar from './MiniCalendar';
-
-const localizer = momentLocalizer(moment);
 
 const ENGINEER_COLORS = [
   '#3b82f6', '#8b5cf6', '#10b981', '#f59e0b',
@@ -70,7 +71,7 @@ const ScheduleCalendar = () => {
 
   // ── Calendar state ──────────────────────────────────────────────────────────
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [currentView, setCurrentView] = useState('week');
+  const [currentView, setCurrentView] = useState('timeGridWeek');
   const [hiddenEngineers, setHiddenEngineers] = useState(new Set());
 
   // ── Modal / form state ──────────────────────────────────────────────────────
@@ -86,6 +87,7 @@ const ScheduleCalendar = () => {
   });
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const calendarRef = useRef(null);
 
   React.useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') setSelectedEvent(null); };
@@ -99,6 +101,8 @@ const ScheduleCalendar = () => {
   ];
 
   const PRIORITY_COLORS = { urgent: '#ef4444', high: '#f59e0b', normal: '#3b82f6', low: '#22c55e' };
+
+  const isEngineerRole = profile?.role === 'engineer';
 
   // ── Engineer color map ──────────────────────────────────────────────────────
   const engineerColorMap = useMemo(() => {
@@ -142,22 +146,58 @@ const ScheduleCalendar = () => {
     return [...filtered, ...leaveEvents];
   }, [scheduleEvents, leaveEvents, hiddenEngineers]);
 
+  const fcEvents = useMemo(() => filteredEvents.map(ev => {
+    if (typeof ev.id === 'string' && ev.id.startsWith('leave-')) {
+      return {
+        id: ev.id,
+        title: ev.title,
+        start: ev.start,
+        end: ev.end,
+        allDay: ev.allDay,
+        backgroundColor: 'rgba(255,255,255,0.06)',
+        borderColor: 'rgba(255,255,255,0.2)',
+        textColor: 'rgba(255,255,255,0.4)',
+        extendedProps: { ...ev.resource, dim: false },
+      };
+    }
+    const { schedule, engineer, linkedCase } = ev.resource || {};
+    const engColor = engineerColorMap[engineer?.id] || '#6b7280';
+    const caseAccent = linkedCase ? STATUS_COLORS[linkedCase.status]?.border : null;
+    const isOwn = schedule?.engineer_id === user?.id;
+    const dim = isEngineerRole && !isOwn;
+    return {
+      id: String(ev.id),
+      title: ev.title,
+      start: ev.start,
+      end: ev.end,
+      backgroundColor: engColor,
+      borderColor: caseAccent || engColor,
+      textColor: dim ? 'rgba(255,255,255,0.45)' : '#fff',
+      extendedProps: { ...ev.resource, dim },
+    };
+  }), [filteredEvents, engineerColorMap, user?.id, isEngineerRole]);
+
   // ── Date label ──────────────────────────────────────────────────────────────
   const dateLabel = useMemo(() => {
-    if (currentView === 'week') {
+    if (currentView === 'timeGridWeek') {
       const s = moment(currentDate).startOf('week');
       const e = moment(currentDate).endOf('week');
       return `${s.format('MMM D')} – ${e.format('D, YYYY')}`;
     }
-    if (currentView === 'day') return moment(currentDate).format('dddd, MMMM D, YYYY');
+    if (currentView === 'timeGridDay') return moment(currentDate).format('dddd, MMMM D, YYYY');
     return moment(currentDate).format('MMMM YYYY');
   }, [currentDate, currentView]);
 
   // ── Navigation ──────────────────────────────────────────────────────────────
   function navigate(direction) {
-    const unit = currentView === 'month' ? 'month' : currentView === 'week' ? 'week' : 'day';
-    const next = moment(currentDate)[direction === 'PREV' ? 'subtract' : 'add'](1, unit).toDate();
-    setCurrentDate(next);
+    const api = calendarRef.current?.getApi();
+    if (!api) return;
+    direction === 'PREV' ? api.prev() : api.next();
+  }
+
+  function handleToday() {
+    calendarRef.current?.getApi().today();
+    setCurrentDate(new Date());
   }
 
   function toggleEngineer(id) {
@@ -168,18 +208,7 @@ const ScheduleCalendar = () => {
     });
   }
 
-  // ── Handlers (unchanged logic) ──────────────────────────────────────────────
-  const handleSelectSlot = ({ start, end }) => {
-    setFormData(prev => ({ ...prev, start, end }));
-    setShowModal(true);
-  };
-
-  const handleSelectEvent = (event) => {
-    if (typeof event.id === 'string' && event.id.startsWith('leave-')) return;
-    setSelectedEvent(event);
-    setShowDeleteConfirm(false);
-  };
-
+  // ── Handlers ────────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -265,55 +294,6 @@ const ScheduleCalendar = () => {
     catch { toast.error('Failed to delete schedule'); }
   };
 
-  const isEngineerRole = profile?.role === 'engineer';
-
-  // ── eventPropGetter ─────────────────────────────────────────────────────────
-  const eventPropGetter = (event) => {
-    if (typeof event.id === 'string' && event.id.startsWith('leave-')) {
-      return { style: { backgroundColor: 'rgba(255,255,255,0.08)', border: '1px dashed rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.45)', borderRadius: 4, opacity: 0.7, fontSize: 11 } };
-    }
-    const { schedule, engineer, linkedCase } = event.resource || {};
-    const isOwn = schedule?.engineer_id === user?.id;
-    const dim = isEngineerRole && !isOwn;
-    const engColor = engineerColorMap[engineer?.id] || '#6b7280';
-    const caseAccent = linkedCase ? STATUS_COLORS[linkedCase.status]?.border : null;
-    return {
-      style: {
-        backgroundColor: engColor, border: 'none',
-        borderLeft: caseAccent ? `3px solid ${caseAccent}` : undefined,
-        borderRadius: 4, opacity: dim ? 0.5 : 1, fontSize: 11, color: '#fff',
-      }
-    };
-  };
-
-  // ── CustomEvent ─────────────────────────────────────────────────────────────
-  const CustomEvent = ({ event }) => {
-    const { engineer, engineerStatus } = event.resource || {};
-    const statusCfg = engineerStatus ? ENGINEER_STATUS_CONFIG[engineerStatus] : null;
-    const isLeave = typeof event.id === 'string' && event.id.startsWith('leave-');
-    if (isLeave || currentView !== 'agenda') {
-      return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, overflow: 'hidden', padding: '1px 2px' }}>
-          {statusCfg && <span style={{ width: 5, height: 5, borderRadius: '50%', background: statusCfg.color, flexShrink: 0 }} />}
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 11 }}>
-            {event.title}{engineer ? ` — ${engineer.name}` : ''}
-          </span>
-        </div>
-      );
-    }
-    const { schedule, linkedCase } = event.resource || {};
-    const locationName = (locationObjects || []).find(l => l.id === schedule?.location_id)?.name || schedule?.location || '';
-    return (
-      <div style={{ padding: '2px 4px' }}>
-        <div style={{ fontWeight: 600, marginBottom: 2 }}>{event.title}</div>
-        {locationName && <div style={{ fontSize: 10, opacity: 0.8 }}>📍 {locationName}</div>}
-        {engineer && <div style={{ fontSize: 10, opacity: 0.8 }}>👤 {engineer.name}{statusCfg && <span style={{ color: statusCfg.color }}> · {statusCfg.label}</span>}</div>}
-        {linkedCase && <div style={{ fontSize: 10, opacity: 0.8 }}>🔗 Case #{linkedCase.id}</div>}
-        <span style={{ fontSize: 10, padding: '1px 5px', borderRadius: 3, background: PRIORITY_COLORS[schedule?.priority] || '#6b7280' }}>{schedule?.priority || 'normal'}</span>
-      </div>
-    );
-  };
-
   // ── RENDER ──────────────────────────────────────────────────────────────────
   return (
     <div className="gcal-layout" style={{ height: '100vh' }}>
@@ -322,14 +302,26 @@ const ScheduleCalendar = () => {
       <div className="gcal-topbar">
         <span className="gcal-title">Schedule Calendar</span>
         <div className="gcal-divider" />
-        <button className="gcal-today-btn" onClick={() => setCurrentDate(new Date())}>Today</button>
+        <button className="gcal-today-btn" onClick={handleToday}>Today</button>
         <button className="gcal-nav-btn" onClick={() => navigate('PREV')}>‹</button>
         <button className="gcal-nav-btn" onClick={() => navigate('NEXT')}>›</button>
         <span className="gcal-date-label">{dateLabel}</span>
         <div className="gcal-view-switcher">
-          {['month', 'week', 'day', 'agenda'].map(v => (
-            <button key={v} className={`gcal-view-btn${currentView === v ? ' active' : ''}`} onClick={() => setCurrentView(v)}>
-              {v.charAt(0).toUpperCase() + v.slice(1)}
+          {[
+            { label: 'Month', value: 'dayGridMonth' },
+            { label: 'Week',  value: 'timeGridWeek' },
+            { label: 'Day',   value: 'timeGridDay' },
+            { label: 'Agenda', value: 'listWeek' },
+          ].map(({ label, value }) => (
+            <button
+              key={value}
+              className={`gcal-view-btn${currentView === value ? ' active' : ''}`}
+              onClick={() => {
+                setCurrentView(value);
+                calendarRef.current?.getApi().changeView(value);
+              }}
+            >
+              {label}
             </button>
           ))}
         </div>
@@ -365,21 +357,45 @@ const ScheduleCalendar = () => {
 
         {/* Main calendar */}
         <div className="gcal-main">
-          <Calendar
-            localizer={localizer}
-            events={filteredEvents}
-            view={currentView}
-            date={currentDate}
-            onView={setCurrentView}
-            onNavigate={setCurrentDate}
-            onSelectSlot={handleSelectSlot}
-            onSelectEvent={handleSelectEvent}
+          <FullCalendar
+            ref={calendarRef}
+            plugins={[timeGridPlugin, dayGridPlugin, interactionPlugin]}
+            initialView={currentView}
+            initialDate={currentDate}
+            headerToolbar={false}
+            events={fcEvents}
             selectable
-            eventPropGetter={eventPropGetter}
-            components={{ toolbar: () => null, event: CustomEvent }}
-            scrollToTime={new Date(2000, 0, 1, 8, 0, 0)}
-            style={{ flex: 1, minHeight: 0 }}
-            popup
+            selectMirror
+            scrollTime="08:00:00"
+            nowIndicator
+            height="100%"
+            select={({ start, end }) => {
+              setFormData(prev => ({ ...prev, start, end }));
+              setShowModal(true);
+            }}
+            eventClick={({ event }) => {
+              const resource = event.extendedProps;
+              if (typeof event.id === 'string' && event.id.startsWith('leave-')) return;
+              setSelectedEvent({ id: event.id, title: event.title, start: event.start, end: event.end, resource });
+              setShowDeleteConfirm(false);
+            }}
+            datesSet={({ start, view }) => {
+              setCurrentDate(start);
+              setCurrentView(view.type);
+            }}
+            eventContent={({ event }) => {
+              const resource = event.extendedProps || {};
+              const { engineer, engineerStatus } = resource;
+              const statusCfg = engineerStatus ? ENGINEER_STATUS_CONFIG[engineerStatus] : null;
+              return (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 3, overflow: 'hidden', padding: '1px 2px' }}>
+                  {statusCfg && <span style={{ width: 5, height: 5, borderRadius: '50%', background: statusCfg.color, flexShrink: 0 }} />}
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 11 }}>
+                    {event.title}{engineer ? ` — ${engineer.name}` : ''}
+                  </span>
+                </div>
+              );
+            }}
           />
         </div>
       </div>
