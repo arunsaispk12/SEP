@@ -1,11 +1,12 @@
 // src/components/CaseCalendarView.jsx
-import React, { useState, useMemo } from 'react';
-import { Calendar, momentLocalizer } from 'react-big-calendar';
+import React, { useState, useMemo, useRef } from 'react';
+import FullCalendar from '@fullcalendar/react';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin from '@fullcalendar/interaction';
 import moment from 'moment';
 import { STATUS_COLORS } from './dashboard/dashboardUtils';
 import MiniCalendar from './MiniCalendar';
-
-const localizer = momentLocalizer(moment);
 
 const STATUS_FILTERS = [
   { key: null,          label: 'All Cases',   color: '#a78bfa' },
@@ -19,8 +20,9 @@ const STATUS_FILTERS = [
 
 export default function CaseCalendarView({ cases, engineers = [], currentUserId, isEngineer, onSelectCase }) {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [currentView, setCurrentView] = useState('week');
+  const [currentView, setCurrentView] = useState('timeGridWeek');
   const [activeStatus, setActiveStatus] = useState(null); // null = all
+  const calendarRef = useRef(null);
 
   // Status counts
   const statusCounts = useMemo(() => {
@@ -32,74 +34,78 @@ export default function CaseCalendarView({ cases, engineers = [], currentUserId,
   }, [cases]);
 
   // Events
-  const events = useMemo(() => {
+  const fcEvents = useMemo(() => {
     const filtered = activeStatus ? cases.filter(c => c.status === activeStatus) : cases;
     return filtered
       .filter(c => c.scheduled_start)
-      .map(c => ({
-        id: c.id,
-        title: `${c.case_number || '#' + c.id.slice(0, 6)} — ${c.client_name || c.title || 'Case'}`,
-        start: new Date(c.scheduled_start),
-        end: c.scheduled_end
-          ? new Date(c.scheduled_end)
-          : new Date(new Date(c.scheduled_start).getTime() + 60 * 60 * 1000),
-        resource: c,
-      }));
-  }, [cases, activeStatus]);
+      .map(c => {
+        const colorObj = STATUS_COLORS[c.status];
+        const bgColor = colorObj ? colorObj.bar : 'rgba(107,114,128,0.3)';
+        const borderColor = colorObj ? colorObj.border : '#6b7280';
+        const isOwn = c.assigned_engineer_id === currentUserId;
+        const dimmed = isEngineer && !isOwn;
+        return {
+          id: String(c.id),
+          title: `${c.case_number || '#' + c.id.slice(0, 6)} — ${c.client_name || c.title || 'Case'}`,
+          start: new Date(c.scheduled_start),
+          end: c.scheduled_end
+            ? new Date(c.scheduled_end)
+            : new Date(new Date(c.scheduled_start).getTime() + 60 * 60 * 1000),
+          backgroundColor: bgColor,
+          borderColor,
+          textColor: dimmed ? 'rgba(255,255,255,0.4)' : '#fff',
+          extendedProps: { case: c },
+        };
+      });
+  }, [cases, activeStatus, currentUserId, isEngineer]);
 
   // Date label
   const dateLabel = useMemo(() => {
-    if (currentView === 'week') {
+    if (currentView === 'timeGridWeek') {
       const s = moment(currentDate).startOf('week');
       const e = moment(currentDate).endOf('week');
       return `${s.format('MMM D')} – ${e.format('D, YYYY')}`;
     }
-    if (currentView === 'day') return moment(currentDate).format('dddd, MMMM D, YYYY');
+    if (currentView === 'timeGridDay') return moment(currentDate).format('dddd, MMMM D, YYYY');
     return moment(currentDate).format('MMMM YYYY');
   }, [currentDate, currentView]);
 
   function navigate(direction) {
-    const unit = currentView === 'month' ? 'month' : currentView === 'week' ? 'week' : 'day';
-    setCurrentDate(moment(currentDate)[direction === 'PREV' ? 'subtract' : 'add'](1, unit).toDate());
+    const api = calendarRef.current?.getApi();
+    if (!api) return;
+    direction === 'PREV' ? api.prev() : api.next();
   }
 
-  const eventPropGetter = (event) => {
-    const colorObj = STATUS_COLORS[event.resource?.status];
-    const color = colorObj ? colorObj.border : '#6b7280';
-    const barColor = colorObj ? colorObj.bar : 'rgba(107,114,128,0.3)';
-    const isOwn = event.resource?.assigned_engineer_id === currentUserId;
-    const dimmed = isEngineer && !isOwn;
-    return {
-      style: {
-        backgroundColor: barColor,
-        borderLeft: `3px solid ${color}`,
-        opacity: dimmed ? 0.45 : 1,
-        borderRadius: 4,
-        color: '#fff',
-        fontSize: 11,
-      }
-    };
-  };
-
-  const CustomEvent = ({ event }) => (
-    <div style={{ overflow: 'hidden', padding: '1px 2px', fontSize: 11, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-      {event.title}
-    </div>
-  );
+  function handleToday() {
+    calendarRef.current?.getApi().today();
+    setCurrentDate(new Date());
+  }
 
   return (
     <div className="gcal-layout" style={{ height: 'calc(100vh - 180px)' }}>
 
       {/* ── TOP BAR ── */}
       <div className="gcal-topbar">
-        <button className="gcal-today-btn" onClick={() => setCurrentDate(new Date())}>Today</button>
+        <button className="gcal-today-btn" onClick={handleToday}>Today</button>
         <button className="gcal-nav-btn" onClick={() => navigate('PREV')}>‹</button>
         <button className="gcal-nav-btn" onClick={() => navigate('NEXT')}>›</button>
         <span className="gcal-date-label">{dateLabel}</span>
         <div className="gcal-view-switcher">
-          {['month', 'week', 'day', 'agenda'].map(v => (
-            <button key={v} className={`gcal-view-btn${currentView === v ? ' active' : ''}`} onClick={() => setCurrentView(v)}>
-              {v.charAt(0).toUpperCase() + v.slice(1)}
+          {[
+            { label: 'Month', value: 'dayGridMonth' },
+            { label: 'Week',  value: 'timeGridWeek' },
+            { label: 'Day',   value: 'timeGridDay' },
+            { label: 'Agenda', value: 'listWeek' },
+          ].map(({ label, value }) => (
+            <button
+              key={value}
+              className={`gcal-view-btn${currentView === value ? ' active' : ''}`}
+              onClick={() => {
+                setCurrentView(value);
+                calendarRef.current?.getApi().changeView(value);
+              }}
+            >
+              {label}
             </button>
           ))}
         </div>
@@ -131,19 +137,28 @@ export default function CaseCalendarView({ cases, engineers = [], currentUserId,
 
         {/* Main calendar */}
         <div className="gcal-main">
-          <Calendar
-            localizer={localizer}
-            events={events}
-            view={currentView}
-            date={currentDate}
-            onView={setCurrentView}
-            onNavigate={setCurrentDate}
-            onSelectEvent={event => onSelectCase?.(event.resource)}
-            eventPropGetter={eventPropGetter}
-            components={{ toolbar: () => null, event: CustomEvent }}
-            scrollToTime={new Date(2000, 0, 1, 8, 0, 0)}
-            style={{ flex: 1, minHeight: 0 }}
-            popup
+          <FullCalendar
+            ref={calendarRef}
+            plugins={[timeGridPlugin, dayGridPlugin, interactionPlugin]}
+            initialView={currentView}
+            initialDate={currentDate}
+            headerToolbar={false}
+            events={fcEvents}
+            scrollTime="08:00:00"
+            nowIndicator
+            height="100%"
+            eventClick={({ event }) => {
+              onSelectCase?.(event.extendedProps.case);
+            }}
+            datesSet={({ start, view }) => {
+              setCurrentDate(start);
+              setCurrentView(view.type);
+            }}
+            eventContent={({ event }) => (
+              <div style={{ overflow: 'hidden', padding: '1px 2px', fontSize: 11, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                {event.title}
+              </div>
+            )}
           />
         </div>
       </div>
