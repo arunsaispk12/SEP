@@ -17,27 +17,6 @@ const ENGINEER_COLORS = [
   '#ef4444', '#06b6d4', '#ec4899', '#f97316',
 ];
 
-const WeekHeader = ({ date }) => {
-  const isToday = moment(date).isSame(moment(), 'day');
-  return (
-    <div style={{ textAlign: 'center', padding: '4px 0' }}>
-      <div style={{ fontSize: 9, textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)', letterSpacing: '0.5px', marginBottom: 2 }}>
-        {moment(date).format('ddd')}
-      </div>
-      <div style={{
-        width: 28, height: 28, borderRadius: '50%',
-        background: isToday ? '#a78bfa' : 'transparent',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        margin: '0 auto',
-        fontSize: 15, fontWeight: isToday ? 700 : 400,
-        color: isToday ? '#fff' : 'rgba(255,255,255,0.75)',
-      }}>
-        {moment(date).format('D')}
-      </div>
-    </div>
-  );
-};
-
 // ── LocationCombobox (unchanged) ──────────────────────────────────────────────
 const LocationCombobox = ({ value, onChange, locations }) => {
   const [open, setOpen] = React.useState(false);
@@ -397,7 +376,7 @@ const ScheduleCalendar = () => {
             onSelectEvent={handleSelectEvent}
             selectable
             eventPropGetter={eventPropGetter}
-            components={{ toolbar: () => null, event: CustomEvent, header: WeekHeader }}
+            components={{ toolbar: () => null, event: CustomEvent }}
             scrollToTime={new Date(2000, 0, 1, 8, 0, 0)}
             style={{ height: '100%' }}
             popup
