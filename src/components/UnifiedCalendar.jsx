@@ -421,7 +421,6 @@ const UnifiedCalendar = () => {
             height="100%"
             select={!isEngineerRole ? ({ start, end }) => openNewForm(start, end) : undefined}
             eventClick={({ event }) => {
-              const c = event.extendedProps.case;
               setSelectedEvent(event);
               setShowDeleteConfirm(false);
             }}
