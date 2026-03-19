@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useEngineerContext } from '../context/EngineerContext';
 import { useAuth } from '../context/AuthContext';
 import googleCalendarService from '../services/googleCalendarService';
@@ -64,6 +64,57 @@ const GoogleCalendarSync = () => {
     checkAuthStatus();
   }, [setGoogleCalendarConnected]);
 
+  // Perform sync
+  const performSync = useCallback(async () => {
+    if (!isAuthenticated) {
+      toast.error('Please connect to Google Calendar first');
+      return;
+    }
+
+    setIsLoading(true);
+    let successCount = 0;
+    let errorCount = 0;
+
+    try {
+      // Sync schedules
+      if (syncSettings.syncSchedules) {
+        for (const schedule of schedules) {
+          if (!schedule.synced_to_calendar) {
+            const result = await googleCalendarService.syncScheduleToCalendar(schedule);
+            if (result.success) {
+              successCount++;
+            } else {
+              errorCount++;
+            }
+          }
+        }
+      }
+
+      // Update sync stats
+      setSyncStats(prev => ({
+        ...prev,
+        totalSynced: prev.totalSynced + successCount,
+        lastSyncSuccess: successCount,
+        lastSyncError: errorCount
+      }));
+
+      setLastSyncTime(new Date());
+
+      if (successCount > 0) {
+        toast.success(`Synced ${successCount} items to Google Calendar`);
+      }
+
+      if (errorCount > 0) {
+        toast.error(`Failed to sync ${errorCount} items`);
+      }
+    } catch (error) {
+      console.error('Sync error:', error);
+      toast.error('Sync failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isAuthenticated, syncSettings, schedules]);
+
   // Auto-sync functionality
   useEffect(() => {
     if (syncSettings.autoSync && isAuthenticated) {
@@ -73,7 +124,7 @@ const GoogleCalendarSync = () => {
 
       return () => clearInterval(interval);
     }
-  }, [syncSettings.autoSync, syncSettings.syncInterval, isAuthenticated]);
+  }, [syncSettings.autoSync, syncSettings.syncInterval, isAuthenticated, performSync]);
 
   // Connect to Google Calendar
   const connectToGoogleCalendar = async () => {
@@ -123,57 +174,6 @@ const GoogleCalendarSync = () => {
     } catch (error) {
       console.error('Google Calendar disconnection error:', error);
       toast.error('Failed to disconnect from Google Calendar');
-    }
-  };
-
-  // Perform sync
-  const performSync = async () => {
-    if (!isAuthenticated) {
-      toast.error('Please connect to Google Calendar first');
-      return;
-    }
-
-    setIsLoading(true);
-    let successCount = 0;
-    let errorCount = 0;
-
-    try {
-      // Sync schedules
-      if (syncSettings.syncSchedules) {
-        for (const schedule of schedules) {
-          if (!schedule.synced_to_calendar) {
-            const result = await googleCalendarService.syncScheduleToCalendar(schedule);
-            if (result.success) {
-              successCount++;
-            } else {
-              errorCount++;
-            }
-          }
-        }
-      }
-
-      // Update sync stats
-      setSyncStats(prev => ({
-        ...prev,
-        totalSynced: prev.totalSynced + successCount,
-        lastSyncSuccess: successCount,
-        lastSyncError: errorCount
-      }));
-
-      setLastSyncTime(new Date());
-
-      if (successCount > 0) {
-        toast.success(`Synced ${successCount} items to Google Calendar`);
-      }
-
-      if (errorCount > 0) {
-        toast.error(`Failed to sync ${errorCount} items`);
-      }
-    } catch (error) {
-      console.error('Sync error:', error);
-      toast.error('Sync failed. Please try again.');
-    } finally {
-      setIsLoading(false);
     }
   };
 

@@ -19,11 +19,8 @@ const CaseManager = () => {
     checkScheduleOverlap,
     isEngineerOnLeave
   } = useEngineerContext();
-  const { user, profile } = useAuth();
-  const isEngineer = profile?.role === 'engineer';
-  const currentUserId = user?.id;
+  const { user } = useAuth();
 
-  const [selectedCase, setSelectedCase] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -172,7 +169,6 @@ const CaseManager = () => {
     // Permission Check: Only Admin or assigned Engineer can update
     const isAssignedEngineer = user.role === 'engineer' && targetCase.assigned_engineer_id === user.id;
     const isAdmin = user.role === 'admin';
-    const isManager = user.role === 'manager'; // Requirements say Managers can view only, but let's confirm if they need update rights. The doc says: "Only Admin or particular Engineer... can edit or update... Executive and managers can only view"
 
     if (!isAdmin && !isAssignedEngineer) {
       toast.error('You do not have permission to update this case.');
