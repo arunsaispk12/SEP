@@ -139,9 +139,10 @@ class SupabaseService {
   }
 
   async createCase(caseData) {
+    const { data: { user } } = await supabase.auth.getUser();
     const { data, error } = await supabase
       .from(TABLES.CASES)
-      .insert(caseData)
+      .insert({ ...caseData, created_by: user?.id })
       .select()
       .single();
 

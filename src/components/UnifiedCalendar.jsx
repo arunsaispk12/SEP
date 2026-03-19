@@ -97,7 +97,7 @@ const UnifiedCalendar = () => {
     location: '',
     start: new Date(),
     end: new Date(),
-    priority: 'normal',
+    priority: 'medium',
     description: '',
   });
 
@@ -150,7 +150,7 @@ const UnifiedCalendar = () => {
         id: String(c.id),
         title: c.case_type === 'internal'
           ? `[Internal] ${c.title}`
-          : `#${c.id.slice(0, 6)} — ${c.client_name || 'No client'}`,
+          : `#${String(c.id).slice(0, 6)} — ${c.client_name || 'No client'}`,
         start: new Date(c.scheduled_start),
         end: c.scheduled_end
           ? new Date(c.scheduled_end)
@@ -211,7 +211,7 @@ const UnifiedCalendar = () => {
       location: '',
       start: start || new Date(),
       end: end || new Date(Date.now() + 60 * 60 * 1000),
-      priority: 'normal',
+      priority: 'medium',
       description: '',
     });
     setShowModal(true);
@@ -228,7 +228,7 @@ const UnifiedCalendar = () => {
       location: locationObj?.name || caseObj.location || '',
       start: caseObj.scheduled_start ? new Date(caseObj.scheduled_start) : new Date(),
       end: caseObj.scheduled_end ? new Date(caseObj.scheduled_end) : new Date(Date.now() + 60 * 60 * 1000),
-      priority: caseObj.priority || 'normal',
+      priority: caseObj.priority || 'medium',
       description: caseObj.description || '',
     });
     setShowModal(true);
@@ -510,7 +510,7 @@ const UnifiedCalendar = () => {
               <div style={{ marginBottom: 14 }}>
                 <div className="section-label">Priority</div>
                 <select value={formData.priority} onChange={e => setFormData(p => ({ ...p, priority: e.target.value }))} className="glass-select">
-                  {['low', 'normal', 'high', 'urgent'].map(p => <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
+                  {['low', 'medium', 'high', 'urgent'].map(p => <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
                 </select>
               </div>
 
@@ -556,7 +556,7 @@ const UnifiedCalendar = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
                 <div>
                   <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 3 }}>{c.title}</div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>#{c.id.slice(0, 6)}</div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>#{String(c.id).slice(0, 6)}</div>
                 </div>
                 <button onClick={() => setSelectedEvent(null)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: 20, lineHeight: 1, padding: 0 }}>×</button>
               </div>
