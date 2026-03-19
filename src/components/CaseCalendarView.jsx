@@ -4,6 +4,7 @@ import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
+import listPlugin from '@fullcalendar/list';
 import moment from 'moment';
 import { STATUS_COLORS } from './dashboard/dashboardUtils';
 import MiniCalendar from './MiniCalendar';
@@ -139,7 +140,7 @@ export default function CaseCalendarView({ cases, engineers = [], currentUserId,
         <div className="gcal-main">
           <FullCalendar
             ref={calendarRef}
-            plugins={[timeGridPlugin, dayGridPlugin, interactionPlugin]}
+            plugins={[timeGridPlugin, dayGridPlugin, interactionPlugin, listPlugin]}
             initialView={currentView}
             initialDate={currentDate}
             headerToolbar={false}

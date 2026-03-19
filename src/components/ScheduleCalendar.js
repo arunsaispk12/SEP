@@ -4,6 +4,7 @@ import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
+import listPlugin from '@fullcalendar/list';
 import moment from 'moment';
 import { useEngineerContext } from '../context/EngineerContext';
 import { useAuth } from '../context/AuthContext';
@@ -359,7 +360,7 @@ const ScheduleCalendar = () => {
         <div className="gcal-main">
           <FullCalendar
             ref={calendarRef}
-            plugins={[timeGridPlugin, dayGridPlugin, interactionPlugin]}
+            plugins={[timeGridPlugin, dayGridPlugin, interactionPlugin, listPlugin]}
             initialView={currentView}
             initialDate={currentDate}
             headerToolbar={false}
