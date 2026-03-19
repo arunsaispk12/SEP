@@ -524,6 +524,13 @@ export function EngineerProvider({ children }) {
     dispatch({ type: 'SET_GOOGLE_CALENDAR_CONNECTED', payload: connected });
   }, []);
 
+  // Auto-load data on mount when Supabase is configured
+  useEffect(() => {
+    if (isSupabaseConfigured()) {
+      loadData();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Save data to localStorage when not using Supabase
   useEffect(() => {
     if (!isSupabaseConfigured()) {
