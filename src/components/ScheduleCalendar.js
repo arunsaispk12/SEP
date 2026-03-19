@@ -119,7 +119,7 @@ const ScheduleCalendar = () => {
       end: new Date(schedule.end_time || schedule.end),
       resource: { schedule, engineer, engineerStatus, linkedCase },
     };
-  }), [schedules, cases]);
+  }), [schedules, cases, getEngineerById]);
 
   const leaveEvents = useMemo(() => (leaves || []).map(leave => {
     const engineer = getEngineerById(leave.engineer_id);
@@ -132,7 +132,7 @@ const ScheduleCalendar = () => {
       start, end, allDay: true,
       resource: { engineer, priority: 'low', description: leave.reason || 'Leave' },
     };
-  }), [leaves]);
+  }), [leaves, getEngineerById]);
 
   const filteredEvents = useMemo(() => {
     const filtered = scheduleEvents.filter(ev => {
