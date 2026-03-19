@@ -89,6 +89,9 @@ function engineerReducer(state, action) {
         )
       };
 
+    case 'DELETE_CASE':
+      return { ...state, cases: state.cases.filter(c => c.id !== action.payload) };
+
     case 'UPDATE_ENGINEER':
       return {
         ...state,
@@ -454,6 +457,18 @@ export function EngineerProvider({ children }) {
     }
   }, []);
 
+  const deleteCase = useCallback(async (caseId) => {
+    try {
+      if (isSupabaseConfigured()) {
+        await supabaseService.deleteCase(caseId);
+      }
+      dispatch({ type: 'DELETE_CASE', payload: caseId });
+      toast.success('Case deleted');
+    } catch (error) {
+      console.error('Error deleting case:', error);
+      toast.error('Failed to delete case');
+    }
+  }, []);
 
   const addSchedule = useCallback(async (scheduleData) => {
     try {
@@ -672,6 +687,7 @@ export function EngineerProvider({ children }) {
     locationObjects: state.locationObjects || [],
     addCase,
     updateCase,
+    deleteCase,
     updateEngineer,
     addEngineer,
     deleteEngineer,
@@ -697,7 +713,7 @@ export function EngineerProvider({ children }) {
     getAvailableEngineers,
     getEngineersByLocation,
     loadData
-  }), [state, addCase, updateCase, updateEngineer, addEngineer, deleteEngineer, addClient, updateClient, deleteClient, addSchedule, updateSchedule, deleteSchedule, addLeave, updateLeave, deleteLeave, isEngineerOnLeave, approveUser, checkLocationConflict, checkScheduleOverlap, setGoogleCalendarConnected, getEngineerById, getCasesByEngineer, getAvailableEngineers, getEngineersByLocation, loadData]);
+  }), [state, addCase, updateCase, deleteCase, updateEngineer, addEngineer, deleteEngineer, addClient, updateClient, deleteClient, addSchedule, updateSchedule, deleteSchedule, addLeave, updateLeave, deleteLeave, isEngineerOnLeave, approveUser, checkLocationConflict, checkScheduleOverlap, setGoogleCalendarConnected, getEngineerById, getCasesByEngineer, getAvailableEngineers, getEngineersByLocation, loadData]);
 
   return (
     <EngineerContext.Provider value={value}>
