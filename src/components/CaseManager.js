@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { useEngineerContext } from '../context/EngineerContext';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Search, User, MapPin, Clock, AlertCircle, RotateCcw } from 'lucide-react';
-import scheduleCaseSyncService from '../services/scheduleCaseSync';
+import { Plus, Search, User, MapPin, Clock, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import CaseCompletionModal from './CaseCompletionModal';
-import CaseCalendarView from './CaseCalendarView';
 
 const CaseManager = () => {
   const {
@@ -25,13 +23,11 @@ const CaseManager = () => {
   const isEngineer = profile?.role === 'engineer';
   const currentUserId = user?.id;
 
-  const [viewMode, setViewMode] = useState('list'); // 'list' | 'calendar'
   const [selectedCase, setSelectedCase] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
-  const [isSyncing, setIsSyncing] = useState(false);
   
   // Case Completion Modal State
   const [showCompletionModal, setShowCompletionModal] = useState(false);
@@ -131,23 +127,6 @@ const CaseManager = () => {
       status: 'open'
     });
     setShowModal(false);
-  };
-
-  const handleSyncWithSchedules = async () => {
-    setIsSyncing(true);
-    try {
-      const result = await scheduleCaseSyncService.syncAllCasesWithSchedules();
-      if (result.success) {
-        toast.success(`Successfully synced ${result.data.syncedCases}/${result.data.totalCases} cases with schedules!`);
-      } else {
-        toast.error('Failed to sync cases with schedules');
-      }
-    } catch (error) {
-      console.error('Sync error:', error);
-      toast.error('Error syncing cases with schedules');
-    } finally {
-      setIsSyncing(false);
-    }
   };
 
   const handleAssignCase = async (caseId, engineerId) => {
@@ -265,14 +244,6 @@ const CaseManager = () => {
         <h2>Case Manager</h2>
         <div className="header-actions">
           <button
-            className="btn secondary"
-            onClick={handleSyncWithSchedules}
-            disabled={isSyncing}
-          >
-            <RotateCcw size={16} />
-            {isSyncing ? 'Syncing...' : 'Sync with Schedules'}
-          </button>
-          <button
             className="btn"
             onClick={() => setShowModal(true)}
           >
@@ -282,8 +253,8 @@ const CaseManager = () => {
         </div>
       </div>
 
-      {/* Stats Cards — hidden in calendar view (calendar needs full height) */}
-      {viewMode === 'list' && <div className="stats-grid">
+      {/* Stats Cards */}
+      <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-number">{stats.total}</div>
           <div className="stat-label">Total Cases</div>
@@ -300,37 +271,10 @@ const CaseManager = () => {
           <div className="stat-number">{stats.completed}</div>
           <div className="stat-label">Completed</div>
         </div>
-      </div>}
-
-      {/* View mode toggle */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-        {['list', 'calendar'].map(mode => (
-          <button
-            key={mode}
-            onClick={() => setViewMode(mode)}
-            style={{
-              padding: '6px 16px',
-              borderRadius: 9,
-              border: '1px solid',
-              borderColor: viewMode === mode ? 'rgba(167,139,250,0.5)' : 'rgba(255,255,255,0.1)',
-              background: viewMode === mode ? 'rgba(167,139,250,0.15)' : 'rgba(255,255,255,0.05)',
-              color: viewMode === mode ? '#a78bfa' : 'rgba(255,255,255,0.5)',
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: 'pointer',
-              textTransform: 'capitalize',
-              fontFamily: 'inherit',
-              transition: 'all 0.15s',
-            }}
-          >
-            {mode === 'list' ? '☰ List' : '📅 Calendar'}
-          </button>
-        ))}
       </div>
 
-      {viewMode === 'list' ? (
-        <>
-          {/* Filters */}
+      <>
+        {/* Filters */}
           <div className="filters-section">
             <div className="search-box">
               <Search size={16} />
@@ -465,15 +409,7 @@ const CaseManager = () => {
             )}
           </div>
         </>
-      ) : (
-        <CaseCalendarView
-          cases={cases}
-          engineers={engineers}
-          currentUserId={currentUserId}
-          isEngineer={isEngineer}
-          onSelectCase={(caseObj) => setSelectedCase(caseObj)}
-        />
-      )}
+
 
       {/* Add Case Modal */}
       {showModal && (
