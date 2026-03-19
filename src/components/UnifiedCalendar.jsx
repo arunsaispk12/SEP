@@ -26,6 +26,8 @@ const STATUS_FILTERS = [
   { key: 'cancelled',   label: 'Cancelled',   color: '#6b7280' },
 ];
 
+const FC_PLUGINS = [timeGridPlugin, dayGridPlugin, interactionPlugin, listPlugin];
+
 // ── LocationCombobox ──────────────────────────────────────────────────────────
 const LocationCombobox = ({ value, onChange, locations }) => {
   const [open, setOpen] = React.useState(false);
@@ -177,6 +179,12 @@ const UnifiedCalendar = () => {
     const api = calendarRef.current?.getApi();
     if (!api) return;
     direction === 'PREV' ? api.prev() : api.next();
+    setCurrentDate(api.getDate());
+  }
+
+  function handleMiniCalendarDateClick(date) {
+    setCurrentDate(date);
+    calendarRef.current?.getApi().gotoDate(date);
   }
 
   function handleToday() {
@@ -322,7 +330,7 @@ const UnifiedCalendar = () => {
 
         {/* Sidebar */}
         <div className="gcal-sidebar">
-          <MiniCalendar currentDate={currentDate} onDateClick={setCurrentDate} currentView={currentView} />
+          <MiniCalendar currentDate={currentDate} onDateClick={handleMiniCalendarDateClick} currentView={currentView} />
 
           {/* Engineer filters */}
           <div>
@@ -401,7 +409,7 @@ const UnifiedCalendar = () => {
         <div className="gcal-main">
           <FullCalendar
             ref={calendarRef}
-            plugins={[timeGridPlugin, dayGridPlugin, interactionPlugin, listPlugin]}
+            plugins={FC_PLUGINS}
             initialView={currentView}
             initialDate={currentDate}
             headerToolbar={false}
