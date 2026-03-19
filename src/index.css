@@ -998,6 +998,7 @@ select:focus {
   display: flex;
   flex: 1;
   overflow: hidden;
+  min-height: 0;
 }
 
 .gcal-sidebar {
@@ -1016,6 +1017,7 @@ select:focus {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
 /* Mini Calendar */
