@@ -260,7 +260,7 @@ const CaseManager = () => {
   const stats = getCaseStats();
 
   return (
-    <div className="case-manager">
+    <div className="case-manager" style={{ padding: 20 }}>
       <div className="case-manager-header">
         <h2>Case Manager</h2>
         <div className="header-actions">
@@ -282,8 +282,8 @@ const CaseManager = () => {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="stats-grid">
+      {/* Stats Cards — hidden in calendar view (calendar needs full height) */}
+      {viewMode === 'list' && <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-number">{stats.total}</div>
           <div className="stat-label">Total Cases</div>
@@ -300,7 +300,7 @@ const CaseManager = () => {
           <div className="stat-number">{stats.completed}</div>
           <div className="stat-label">Completed</div>
         </div>
-      </div>
+      </div>}
 
       {/* View mode toggle */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
