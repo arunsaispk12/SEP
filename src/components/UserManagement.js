@@ -8,7 +8,7 @@ import {
 import toast from 'react-hot-toast';
 
 const UserManagement = () => {
-  const { user } = useAuth();
+  useAuth();
   const { engineers, approveUser, updateEngineer, loadData, locationObjects } = useEngineerContext();
 
   const [searchTerm, setSearchTerm] = useState('');

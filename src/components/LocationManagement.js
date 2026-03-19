@@ -5,7 +5,6 @@ import {
   Search,
   Edit2,
   Trash2,
-  Map as MapIcon,
   Navigation,
   Globe,
   Building,

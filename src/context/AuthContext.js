@@ -391,7 +391,7 @@ export function AuthProvider({ children }) {
         };
 
         // Insert with a temporary constraint check bypass
-        const { data: profileData, error: profileError } = await supabase
+        const { error: profileError } = await supabase
           .from('profiles')
           .insert(profileInsertData)
           .select()
@@ -435,7 +435,7 @@ export function AuthProvider({ children }) {
             is_active: true
           };
 
-          const { data: profileData, error: profileError } = await supabase
+          const { error: profileError } = await supabase
             .from('profiles')
             .upsert(profileInsertData, { onConflict: 'id' })
             .select()
@@ -444,7 +444,7 @@ export function AuthProvider({ children }) {
           if (profileError) {
             // Try a simple insert without upsert
             try {
-              const { data: simpleProfile, error: simpleError } = await supabase
+              const { error: simpleError } = await supabase
                 .from('profiles')
                 .insert(profileInsertData)
                 .select()

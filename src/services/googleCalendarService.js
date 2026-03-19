@@ -118,7 +118,6 @@ class GoogleCalendarService {
   async saveTokens(user) {
     try {
       const authResponse = user.getAuthResponse();
-      const profile = user.getBasicProfile();
       
       // Get current user from Supabase
       const { data: { user: currentUser } } = await supabase.auth.getUser();
@@ -511,4 +510,5 @@ class GoogleCalendarService {
   }
 }
 
-export default new GoogleCalendarService();
+const googleCalendarService = new GoogleCalendarService();
+export default googleCalendarService;

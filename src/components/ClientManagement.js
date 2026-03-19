@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Users,
   Plus,
   Search,
   MapPin,
@@ -13,7 +12,6 @@ import {
   Filter,
   CheckCircle2,
   Building2,
-  ChevronRight,
   X
 } from 'lucide-react';
 import toast from 'react-hot-toast';

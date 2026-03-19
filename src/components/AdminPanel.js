@@ -8,15 +8,12 @@ import {
   Shield,
   Activity,
   BarChart3,
-  Key,
   AlertTriangle,
   CheckCircle,
-  XCircle,
   Edit,
   Trash2,
   Plus,
-  Search,
-  Filter
+  Search
 } from 'lucide-react';
 
 const AdminPanel = () => {
@@ -25,17 +22,11 @@ const AdminPanel = () => {
   const {
     engineers,
     cases,
-    schedules,
-    locations,
-    updateEngineer,
-    updateCase,
-    updateSchedule
+    schedules
   } = engineerContext;
 
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [showUserModal, setShowUserModal] = useState(false);
 
   const handleUserAction = useCallback((action, userId) => {
     // Handle user management actions
