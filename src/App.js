@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import GlassSidebar from './components/GlassSidebar';
 import GlassTopBar from './components/GlassTopBar';
 import UnifiedDashboard from './components/UnifiedDashboard';
-import ScheduleCalendar from './components/ScheduleCalendar';
+import UnifiedCalendar from './components/UnifiedCalendar';
 import CaseManager from './components/CaseManager';
 import ClientManagement from './components/ClientManagement';
 import LocationManagement from './components/LocationManagement';
@@ -133,7 +133,7 @@ function AppContent() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            style={{ padding: '24px' }}
+            style={{ padding: '0' }}
           >
             {activeTab === 'admin' && <AdminPanel />}
             {activeTab === 'dashboard' && <UnifiedDashboard />}
@@ -143,7 +143,7 @@ function AppContent() {
             {activeTab === 'users' && <UserManagement />}
             {activeTab === 'clients' && <ClientManagement />}
             {activeTab === 'locations' && <LocationManagement />}
-            {activeTab === 'calendar' && <ScheduleCalendar />}
+            {activeTab === 'calendar' && <UnifiedCalendar />}
             {activeTab === 'cases' && <CaseManager />}
             {activeTab === 'sync' && <GoogleCalendarSync />}
           </motion.div>
