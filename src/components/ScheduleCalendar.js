@@ -418,9 +418,9 @@ const ScheduleCalendar = () => {
                 <input type="text" value={formData.title} onChange={e => setFormData(p => ({ ...p, title: e.target.value }))} required className="glass-input" />
               </div>
               <div style={{ marginBottom: 14 }}>
-                <div className="section-label">Engineer *</div>
+                <div className="section-label">Engineer <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, fontWeight: 400 }}>(optional)</span></div>
                 <select value={formData.engineerId} onChange={e => setFormData(p => ({ ...p, engineerId: e.target.value }))} className="glass-select">
-                  <option value="">Select Engineer</option>
+                  <option value="">Unassigned</option>
                   {engineers.map(eng => <option key={eng.id} value={eng.id}>{eng.name} — {eng.location}</option>)}
                 </select>
               </div>
@@ -429,16 +429,18 @@ const ScheduleCalendar = () => {
                 <LocationCombobox value={formData.location} onChange={val => setFormData(p => ({ ...p, location: val }))} locations={locations} />
               </div>
               <div style={{ marginBottom: 14 }}>
-                <div className="section-label">Client</div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <div className="section-label" style={{ marginBottom: 0 }}>Client</div>
+                  {!showInlineAdd && (
+                    <button type="button" onClick={() => setShowInlineAdd(true)} style={{ background: 'none', border: 'none', color: '#a78bfa', fontSize: 12, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 3 }}>
+                      + New client
+                    </button>
+                  )}
+                </div>
                 <select value={formData.client_id || ''} onChange={e => { setFormData(p => ({ ...p, client_id: e.target.value ? parseInt(e.target.value) : null })); setShowInlineAdd(false); }} className="glass-select">
-                  <option value="">Select Client (optional)</option>
+                  <option value="">No client</option>
                   {(clients || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
-                {!showInlineAdd && (
-                  <button type="button" onClick={() => setShowInlineAdd(true)} style={{ marginTop: 8, background: 'none', border: 'none', color: '#a78bfa', fontSize: 12, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
-                    + Add new client
-                  </button>
-                )}
                 {showInlineAdd && (
                   <div style={{ marginTop: 12, padding: 14, background: 'rgba(167,139,250,0.06)', border: '1px solid rgba(167,139,250,0.15)', borderRadius: 10 }}>
                     <div style={{ marginBottom: 10 }}>
