@@ -263,7 +263,7 @@ code {
 
 /* ===== TopBar base + mobile ===== */
 .glass-topbar {
-  left: 240px;
+  left: 280px;
 }
 
 @media (max-width: 768px) {

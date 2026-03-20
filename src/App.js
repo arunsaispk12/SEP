@@ -125,7 +125,7 @@ function AppContent() {
       />
 
       {/* Main content area */}
-      <div style={{ marginLeft: 240, paddingTop: 48 }} className="content-area">
+      <div style={{ marginLeft: 280, paddingTop: 48 }} className="content-area">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}

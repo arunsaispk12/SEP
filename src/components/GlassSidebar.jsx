@@ -7,7 +7,6 @@ import {
   LogOut, ChevronRight, X,
 } from 'lucide-react';
 
-const SIDEBAR_W = 240;
 const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif';
 
 const ICON_MAP = {
