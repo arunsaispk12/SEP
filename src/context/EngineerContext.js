@@ -49,7 +49,8 @@ const initialState = {
   clients: [],
   googleCalendarConnected: false,
   loading: false,
-  error: null
+  error: null,
+  automationConfig: null,
 };
 
 function engineerReducer(state, action) {
@@ -181,6 +182,9 @@ function engineerReducer(state, action) {
         ...state,
         googleCalendarConnected: action.payload
       };
+
+    case 'SET_AUTOMATION_CONFIG':
+      return { ...state, automationConfig: action.payload };
 
     default:
       return state;
@@ -619,8 +623,7 @@ export function EngineerProvider({ children }) {
       toast.success('User approved successfully!');
     } catch (error) {
       console.error('Approve user error:', error);
-      toast.error('Failed to approve user');
-      throw error;
+      toast.error(error?.message || 'Failed to approve user');
     }
   }, []);
 
@@ -689,6 +692,35 @@ export function EngineerProvider({ children }) {
     return { hasOverlap: false };
   }, [state.cases]);
 
+  const loadAutomationConfig = useCallback(async () => {
+    if (!isSupabaseConfigured()) return;
+    try {
+      const { data, error } = await supabase
+        .from('automation_config')
+        .select('*')
+        .eq('id', 1)
+        .single();
+      if (!error && data) {
+        dispatch({ type: 'SET_AUTOMATION_CONFIG', payload: data });
+      }
+    } catch (err) {
+      console.error('Failed to load automation config:', err);
+    }
+  }, []);
+
+  const saveAutomationConfig = useCallback(async (updates) => {
+    if (!isSupabaseConfigured()) throw new Error('Supabase not configured');
+    const { data, error } = await supabase
+      .from('automation_config')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', 1)
+      .select()
+      .single();
+    if (error) throw error;
+    dispatch({ type: 'SET_AUTOMATION_CONFIG', payload: data });
+    return data;
+  }, []);
+
   const value = useMemo(() => ({
     ...state,
     locationObjects: state.locationObjects || [],
@@ -719,8 +751,11 @@ export function EngineerProvider({ children }) {
     getCasesByEngineer,
     getAvailableEngineers,
     getEngineersByLocation,
-    loadData
-  }), [state, addCase, updateCase, deleteCase, updateEngineer, addEngineer, deleteEngineer, addClient, updateClient, deleteClient, addSchedule, updateSchedule, deleteSchedule, addLeave, updateLeave, deleteLeave, isEngineerOnLeave, approveUser, checkLocationConflict, checkScheduleOverlap, setGoogleCalendarConnected, getEngineerById, getCasesByEngineer, getAvailableEngineers, getEngineersByLocation, loadData]);
+    loadData,
+    automationConfig: state.automationConfig,
+    loadAutomationConfig,
+    saveAutomationConfig,
+  }), [state, addCase, updateCase, deleteCase, updateEngineer, addEngineer, deleteEngineer, addClient, updateClient, deleteClient, addSchedule, updateSchedule, deleteSchedule, addLeave, updateLeave, deleteLeave, isEngineerOnLeave, approveUser, checkLocationConflict, checkScheduleOverlap, setGoogleCalendarConnected, getEngineerById, getCasesByEngineer, getAvailableEngineers, getEngineersByLocation, loadData, loadAutomationConfig, saveAutomationConfig]);
 
   return (
     <EngineerContext.Provider value={value}>
