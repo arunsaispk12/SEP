@@ -56,7 +56,7 @@ export default function EngineerDashboard({ onGoToCases }) {
     return (
       <div style={{ background: BG, minHeight: '100vh', padding: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
         <SkeletonPanel height={80} />
-        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 10 }}>
+        <div className="engineer-dashboard-grid" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 10 }}>
           <SkeletonPanel height={240} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <SkeletonPanel height={110} />
@@ -77,7 +77,7 @@ export default function EngineerDashboard({ onGoToCases }) {
       <ActiveCaseHero activeCase={activeCase} onUpdateCase={handleUpdateCase} />
 
       {/* Row 2: Week schedule (left) + Status controls + Team (right) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 10 }}>
+      <div className="engineer-dashboard-grid" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 10 }}>
         <MyWeekTimeline
           schedules={schedules}
           cases={cases}

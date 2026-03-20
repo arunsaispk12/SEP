@@ -1651,3 +1651,10 @@ select:focus {
     padding: 20px !important;
   }
 }
+
+/* ===== EngineerDashboard mobile ===== */
+@media (max-width: 480px) {
+  .engineer-dashboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

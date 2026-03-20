@@ -34,7 +34,8 @@ export default function WeeklyGantt({ engineers, schedules, cases, leaves, weekS
   const weekDays = getWeekDays(weekStart);
 
   return (
-    <GlassPanel style={{ padding: '14px 16px' }}>
+    <div style={{ overflowX: 'auto' }}>
+    <GlassPanel style={{ padding: '14px 16px', minWidth: 320 }}>
       {/* Header: nav + day labels */}
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10, gap: 8 }}>
         <button
@@ -143,5 +144,6 @@ export default function WeeklyGantt({ engineers, schedules, cases, leaves, weekS
         })}
       </div>
     </GlassPanel>
+    </div>
   );
 }
