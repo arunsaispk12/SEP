@@ -79,8 +79,9 @@ const CaseManager = () => {
       
       // Handle Client Logic: Find or Create
       let clientId = null;
+      let isNewClient = false;
       const existingClient = (clients || []).find(c => c.name.toLowerCase() === formData.clientName.toLowerCase());
-      
+
       if (existingClient) {
         clientId = existingClient.id;
       } else if (formData.clientName) {
@@ -92,6 +93,7 @@ const CaseManager = () => {
           is_disclosed: true
         });
         clientId = newClient.id;
+        isNewClient = true;
       }
 
       const caseData = {
@@ -110,7 +112,7 @@ const CaseManager = () => {
       // WhatsApp trigger
       const waTrigger = automationConfig?.whatsapp_triggers?.case_created;
       const waTemplate = automationConfig?.whatsapp_templates?.case_created;
-      if (waTrigger && waTemplate) {
+      if (waTrigger && waTemplate && !isNewClient) {
         const assignedEngineer = engineers.find(e => e.id === formData.assignedEngineer);
         const msg = waTemplate
           .replace('{{client}}', formData.clientName || '')
