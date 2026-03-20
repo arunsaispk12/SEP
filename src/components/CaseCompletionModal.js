@@ -161,7 +161,8 @@ const CaseCompletionModal = ({ caseData, onClose, onSave, automationConfig }) =>
     } else {
       text = buildTextReport(); // fallback to existing format
     }
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    const waNumber = (automationConfig?.whatsapp_number || '').replace(/[^\d]/g, '');
+    window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const handleSubmit = (e) => {

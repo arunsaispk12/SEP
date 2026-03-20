@@ -578,6 +578,7 @@ create table if not exists public.automation_config (
   default_priority text default 'medium',
   whatsapp_triggers jsonb default '{"case_created":false,"schedule_added":false,"case_completed":false}',
   whatsapp_templates jsonb default '{"case_created":"🆕 *New Case*\n🏥 {{client}}\n📍 {{location}}\n⚡ Priority: {{priority}}\n\n_via SEP_","schedule_added":"📅 *Schedule Added*\n👨‍🔧 {{engineer}}\n📍 {{location}}\n🗓 {{date}}\n\n_via SEP_","case_completed":"✅ *Case Completed*\n🏥 {{client}}\n📍 {{location}}\n📅 {{date}}\n👨‍🔬 Embryologist: {{embryologist}}\n\n_via SEP_"}',
+  whatsapp_number text default '',
   updated_at timestamptz default now()
 );
 

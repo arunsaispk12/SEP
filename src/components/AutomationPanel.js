@@ -194,6 +194,7 @@ function WhatsAppSection({ config, onSave }) {
 
   const [localTriggers, setLocalTriggers] = useState(triggers);
   const [localTemplates, setLocalTemplates] = useState({ ...DEFAULT_TEMPLATES, ...templates });
+  const [whatsappNumber, setWhatsappNumber] = useState(config?.whatsapp_number || '');
   const [editingKey, setEditingKey] = useState(null);
   const [saving, setSaving] = useState(false);
 
@@ -201,13 +202,14 @@ function WhatsAppSection({ config, onSave }) {
     if (config) {
       setLocalTriggers(config.whatsapp_triggers || { case_created: false, schedule_added: false, case_completed: false });
       setLocalTemplates({ ...DEFAULT_TEMPLATES, ...(config.whatsapp_templates || {}) });
+      setWhatsappNumber(config.whatsapp_number || '');
     }
   }, [config]);
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      await onSave({ whatsapp_triggers: localTriggers, whatsapp_templates: localTemplates });
+      await onSave({ whatsapp_triggers: localTriggers, whatsapp_templates: localTemplates, whatsapp_number: whatsappNumber });
       toast.success('WhatsApp settings saved');
       setEditingKey(null);
     } catch {
@@ -221,6 +223,19 @@ function WhatsAppSection({ config, onSave }) {
     <div style={styles.section}>
       <h2 style={styles.sectionTitle}>💬 WhatsApp Notifications</h2>
       <p style={styles.sectionDesc}>Auto-prompt WhatsApp shares when key events occur. Uses your device's WhatsApp — one tap to send.</p>
+
+      <div style={styles.field}>
+        <label style={styles.label}>Recipient WhatsApp Number</label>
+        <div style={styles.copyRow}>
+          <input
+            value={whatsappNumber}
+            onChange={e => setWhatsappNumber(e.target.value.replace(/[^\d+]/g, ''))}
+            placeholder="+919876543210"
+            style={styles.input}
+          />
+        </div>
+        <p style={styles.hint}>International format with country code (e.g. +919876543210). Messages will open WhatsApp pre-addressed to this number.</p>
+      </div>
 
       {Object.keys(TRIGGER_LABELS).map(key => (
         <div key={key} style={{ marginBottom: 20, background: 'rgba(0,0,0,0.2)', borderRadius: 12, padding: 16 }}>
@@ -325,7 +340,7 @@ Phone: 98765 43210`;
 
           <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
             <button
-              onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`Use this link to submit a service request: ${formUrl}`)}`, '_blank')}
+              onClick={() => { const n = (config?.whatsapp_number || '').replace(/[^\d]/g, ''); window.open(`https://wa.me/${n}?text=${encodeURIComponent(`Use this link to submit a laser service request: ${formUrl}`)}`, '_blank'); }}
               style={{ ...styles.saveBtn, background: 'linear-gradient(135deg,#128c7e,#25d366)', fontSize: 13, padding: '9px 18px' }}
             >
               💬 Share via WhatsApp

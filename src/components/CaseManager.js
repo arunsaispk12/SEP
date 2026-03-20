@@ -121,7 +121,8 @@ const CaseManager = () => {
           .replace('{{date}}', new Date().toLocaleDateString('en-IN'))
           .replace('{{priority}}', formData.priority || 'medium')
           .replace('{{status}}', 'open');
-        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        const waNumber = (automationConfig?.whatsapp_number || '').replace(/[^\d]/g, '');
+        window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`, '_blank');
       }
       resetForm();
     } catch (error) {
