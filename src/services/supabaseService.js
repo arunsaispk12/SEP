@@ -25,10 +25,13 @@ class SupabaseService {
     return data;
   }
 
-  async completeInviteProfile({ name, phone }) {
+  async completeInviteProfile({ name, phone, laser_type, serial_number }) {
     const { data: { user } } = await supabase.auth.getUser();
 
     const profileUpdates = { name, phone, is_active: true, is_approved: true, updated_at: new Date().toISOString() };
+    if (laser_type !== undefined) profileUpdates.laser_type = laser_type;
+    if (serial_number !== undefined) profileUpdates.serial_number = serial_number;
+
     const { data, error } = await supabase
       .from(TABLES.PROFILES)
       .update(profileUpdates)
