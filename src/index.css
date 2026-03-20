@@ -1685,11 +1685,6 @@ select:focus {
     flex-direction: column !important;
     gap: 10px !important;
   }
-  .profile-header-actions > div .glass-btn-primary,
-  .profile-header-actions > div .glass-btn-secondary {
-    width: 100% !important;
-    justify-content: center !important;
-  }
 }
 
 /* ===== GoogleCalendarSync mobile ===== */
