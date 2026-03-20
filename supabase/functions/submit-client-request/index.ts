@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
   );
 
   try {
-    const { hospital, contact, phone, description, preferredDate } = await req.json();
+    const { hospital, location, address, contact, phone, description, preferredDate } = await req.json();
 
     if (!hospital || !contact || !phone || !description) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
@@ -34,7 +34,8 @@ Deno.serve(async (req) => {
     }
 
     const emailBody = `Hospital: ${hospital}
-Location: (not specified)
+Location: ${location || '(not specified)'}
+Address: ${address || '(not specified)'}
 Priority: medium
 Date: ${preferredDate || 'Not specified'}
 
@@ -66,7 +67,7 @@ Phone: ${phone}`;
     await adminClient.from('automation_logs').insert({
       type: 'form_submission',
       source: 'form',
-      payload: { hospital, contact, phone },
+      payload: { hospital, location, address, contact, phone },
       result: 'created',
     });
 

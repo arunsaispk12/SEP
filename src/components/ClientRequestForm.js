@@ -5,7 +5,7 @@ import { Toaster } from 'react-hot-toast';
 
 const ClientRequestForm = () => {
   const [form, setForm] = useState({
-    hospital: '', contact: '', phone: '', description: '', preferredDate: ''
+    hospital: '', location: '', address: '', contact: '', phone: '', description: '', preferredDate: ''
   });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -51,6 +51,8 @@ const ClientRequestForm = () => {
           <form onSubmit={handleSubmit}>
             {[
               { name: 'hospital', label: 'Hospital / Clinic Name', type: 'text', placeholder: 'City IVF Centre', required: true },
+              { name: 'location', label: 'City / Location', type: 'text', placeholder: 'Bangalore', required: true },
+              { name: 'address', label: 'Address', type: 'text', placeholder: '123 MG Road, Indiranagar', required: false },
               { name: 'contact', label: 'Contact Person', type: 'text', placeholder: 'Dr. Name', required: true },
               { name: 'phone', label: 'Phone Number', type: 'tel', placeholder: '+91 98765 43210', required: true },
             ].map(f => (
