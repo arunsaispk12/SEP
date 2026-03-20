@@ -266,8 +266,10 @@ code {
   left: 280px;
 }
 
+.topbar-menu-btn { display: none; }
+
 @media (max-width: 768px) {
-  .topbar-menu-btn { display: flex !important; }
+  .topbar-menu-btn { display: flex; }
   .glass-topbar { left: 0 !important; }
 }
 

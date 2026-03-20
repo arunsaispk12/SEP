@@ -46,7 +46,7 @@ export default function GlassTopBar({ activeTab, onMenuClick }) {
       <button
         onClick={onMenuClick}
         className="topbar-menu-btn"
-        style={{ display: 'none', background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', padding: 4, alignItems: 'center' }}
+        style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', padding: 4, alignItems: 'center' }}
       >
         <Menu size={20} />
       </button>
