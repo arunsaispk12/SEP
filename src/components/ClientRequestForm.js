@@ -5,7 +5,7 @@ import { Toaster } from 'react-hot-toast';
 
 const ClientRequestForm = () => {
   const [form, setForm] = useState({
-    hospital: '', location: '', address: '', contact: '', phone: '', description: '', preferredDate: ''
+    hospital: '', location: '', address: '', contact: '', phone: '', description: '', preferredDate: '', preferredTime: ''
   });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -37,8 +37,8 @@ const ClientRequestForm = () => {
       <div style={s.card}>
         <div style={s.header}>
           <div style={s.logo}>⚙️</div>
-          <h1 style={s.title}>Service Request</h1>
-          <p style={s.subtitle}>Submit a service request and our team will get back to you shortly.</p>
+          <h1 style={s.title}>Laser Service Request</h1>
+          <p style={s.subtitle}>Submit a laser service request and our team will get back to you shortly.</p>
         </div>
 
         {submitted ? (
@@ -83,15 +83,27 @@ const ClientRequestForm = () => {
               />
             </div>
 
-            <div style={s.field}>
-              <label style={s.label}>Preferred Date <span style={{ color: '#64748b', fontWeight: 400 }}>(optional)</span></label>
-              <input
-                type="date"
-                name="preferredDate"
-                value={form.preferredDate}
-                onChange={handleChange}
-                style={s.input}
-              />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={s.field}>
+                <label style={s.label}>Preferred Date <span style={{ color: '#64748b', fontWeight: 400 }}>(optional)</span></label>
+                <input
+                  type="date"
+                  name="preferredDate"
+                  value={form.preferredDate}
+                  onChange={handleChange}
+                  style={s.input}
+                />
+              </div>
+              <div style={s.field}>
+                <label style={s.label}>Preferred Time <span style={{ color: '#64748b', fontWeight: 400 }}>(optional)</span></label>
+                <input
+                  type="time"
+                  name="preferredTime"
+                  value={form.preferredTime}
+                  onChange={handleChange}
+                  style={s.input}
+                />
+              </div>
             </div>
 
             <button type="submit" disabled={submitting} style={s.btn}>

@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
   );
 
   try {
-    const { hospital, location, address, contact, phone, description, preferredDate } = await req.json();
+    const { hospital, location, address, contact, phone, description, preferredDate, preferredTime } = await req.json();
 
     if (!hospital || !contact || !phone || !description) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
@@ -38,6 +38,7 @@ Location: ${location || '(not specified)'}
 Address: ${address || '(not specified)'}
 Priority: medium
 Date: ${preferredDate || 'Not specified'}
+Time: ${preferredTime || 'Not specified'}
 
 ${description}
 
