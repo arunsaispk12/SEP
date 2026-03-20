@@ -166,9 +166,9 @@ const ProfileManagement = () => {
   const roleInfo = getRoleInfo(profile?.role);
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: 20, color: '#f1f5f9' }}>
+    <div className="profile-layout" style={{ maxWidth: 800, margin: '0 auto', padding: 20, color: '#f1f5f9' }}>
       {/* Profile Header */}
-      <div className="glass-panel" style={{ padding: 30, display: 'flex', alignItems: 'center', gap: 20, marginBottom: 30, flexWrap: 'wrap' }}>
+      <div className="glass-panel profile-header" style={{ padding: 30, display: 'flex', alignItems: 'center', gap: 20, marginBottom: 30, flexWrap: 'wrap' }}>
         <div style={{ width: 80, height: 80, borderRadius: '50%', overflow: 'hidden', border: '2px solid rgba(255,255,255,0.12)', background: profileData.avatar_url ? 'transparent' : 'linear-gradient(135deg,#a78bfa,#ec4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, flexShrink: 0 }}>
           {profileData.avatar_url ? (
             <img
@@ -188,7 +188,7 @@ const ProfileManagement = () => {
             {roleInfo.icon} {roleInfo.label}
           </span>
         </div>
-        <div style={{ display: 'flex', gap: 12 }}>
+        <div className="profile-header-actions" style={{ display: 'flex', gap: 12 }}>
           {!isEditing ? (
             <button
               className="glass-btn-primary"

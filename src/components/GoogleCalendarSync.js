@@ -204,9 +204,9 @@ const GoogleCalendarSync = () => {
   };
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: 20, color: '#f1f5f9' }}>
+    <div className="gcal-sync-layout" style={{ maxWidth: 800, margin: '0 auto', padding: 20, color: '#f1f5f9' }}>
       {/* Header */}
-      <div className="glass-panel" style={{ padding: '16px 20px', marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+      <div className="glass-panel gcal-header" style={{ padding: '16px 20px', marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <Calendar size={24} style={{ color: '#a78bfa' }} />
           <h2 style={{ margin: 0, color: '#f1f5f9', fontSize: 24, fontWeight: 700 }}>Google Calendar Integration</h2>
@@ -254,7 +254,7 @@ const GoogleCalendarSync = () => {
                   </button>
                 </div>
               ) : (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                <div className="gcal-connected-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
                     <div style={{ width: 50, height: 50, borderRadius: '50%', background: 'rgba(123,97,255,0.15)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', color: '#a78bfa', flexShrink: 0 }}>
                       {userProfile?.getImageUrl ? (

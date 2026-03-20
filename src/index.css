@@ -1658,3 +1658,59 @@ select:focus {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* ===== ProfileManagement mobile ===== */
+@media (max-width: 480px) {
+  .profile-layout {
+    padding: 12px !important;
+  }
+  .profile-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+    padding: 20px !important;
+  }
+  .profile-header-actions {
+    width: 100% !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+  .profile-header-actions .glass-btn-primary,
+  .profile-header-actions .glass-btn-secondary {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  .profile-header-actions > div {
+    width: 100% !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+  .profile-header-actions > div .glass-btn-primary,
+  .profile-header-actions > div .glass-btn-secondary {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+/* ===== GoogleCalendarSync mobile ===== */
+@media (max-width: 480px) {
+  .gcal-sync-layout {
+    padding: 12px !important;
+  }
+  .gcal-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+  .gcal-header h2 {
+    font-size: 18px !important;
+  }
+  .gcal-connected-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+  .gcal-connected-row .glass-btn-danger {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
