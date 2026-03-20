@@ -16,6 +16,9 @@ import AdminPanel from './components/AdminPanel';
 import EngineerDashboard from './components/EngineerDashboard';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
+import AcceptInvitePage from './components/AcceptInvitePage';
+import AutomationPanel from './components/AutomationPanel';
+import ClientRequestForm from './components/ClientRequestForm';
 import { EngineerProvider } from './context/EngineerContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { getMiddlewareManager } from './middlewares';
@@ -42,11 +45,13 @@ function AppContent() {
     );
   }
 
-  // Show login/signup pages if not authenticated
+  // Show login/signup/accept-invite pages if not authenticated
   if (!isAuthenticated) {
     return (
       <Routes>
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/accept-invite" element={<AcceptInvitePage />} />
+        <Route path="/client-request" element={<ClientRequestForm />} />
         <Route path="*" element={<LoginPage />} />
       </Routes>
     );
@@ -63,7 +68,8 @@ function AppContent() {
         { id: 'locations', label: 'Locations', icon: '📍' },
         { id: 'calendar', label: 'Schedule', icon: '📅' },
         { id: 'cases', label: 'Cases', icon: '📋' },
-        { id: 'sync', label: 'Google Calendar', icon: '🔄' }
+        { id: 'sync', label: 'Google Calendar', icon: '🔄' },
+        { id: 'automation', label: 'Automation', icon: '⚡' }
       ];
     } else if (profile?.role === 'manager') {
       return [
@@ -146,6 +152,7 @@ function AppContent() {
             {activeTab === 'calendar' && <UnifiedCalendar />}
             {activeTab === 'cases' && <CaseManager />}
             {activeTab === 'sync' && <GoogleCalendarSync />}
+            {activeTab === 'automation' && <AutomationPanel />}
           </motion.div>
         </AnimatePresence>
       </div>
