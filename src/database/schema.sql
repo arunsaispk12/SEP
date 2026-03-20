@@ -581,7 +581,7 @@ create table if not exists public.automation_config (
   updated_at timestamptz default now()
 );
 
-insert into public.automation_config (id) values (1) on conflict do nothing;
+insert into public.automation_config (id) values (1) on conflict (id) do nothing;
 
 alter table public.automation_config enable row level security;
 
@@ -590,11 +590,11 @@ drop policy if exists "admins_update_automation_config" on public.automation_con
 
 create policy "admins_read_automation_config" on public.automation_config
   for select using (
-    exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
+    exists (select 1 from public.profiles where id = auth.uid() and (role = 'admin' or is_admin = true))
   );
 create policy "admins_update_automation_config" on public.automation_config
   for update using (
-    exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
+    exists (select 1 from public.profiles where id = auth.uid() and (role = 'admin' or is_admin = true))
   );
 
 -- ============================================================
@@ -616,5 +616,5 @@ drop policy if exists "admins_read_automation_logs" on public.automation_logs;
 
 create policy "admins_read_automation_logs" on public.automation_logs
   for select using (
-    exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
+    exists (select 1 from public.profiles where id = auth.uid() and (role = 'admin' or is_admin = true))
   );
