@@ -31,13 +31,16 @@ const CaseManager = () => {
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completingCase, setCompletingCase] = useState(null);
 
+  const LASER_TYPES = ['HT Lykos SS', 'HT Lykos DTS'];
+
   const [formData, setFormData] = useState({
     clientName: '',
     description: '',
     location: '',
     priority: 'medium',
     assignedEngineer: '',
-    status: 'open'
+    status: 'open',
+    laser_type: ''
   });
 
   const priorities = [
@@ -104,7 +107,8 @@ const CaseManager = () => {
         priority: formData.priority,
         status: formData.status || 'open',
         assigned_engineer_id: formData.assignedEngineer || null,
-        created_by: user?.id
+        created_by: user?.id,
+        laser_type: formData.laser_type || null
       };
       
       await addCase(caseData);
@@ -138,7 +142,8 @@ const CaseManager = () => {
       location: '',
       priority: 'medium',
       assignedEngineer: '',
-      status: 'open'
+      status: 'open',
+      laser_type: ''
     });
     setShowModal(false);
   };
@@ -465,13 +470,23 @@ const CaseManager = () => {
               </div>
 
               <div className="form-group">
-                <label>Description *</label>
+                <label>Description</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   rows="3"
-                  required
                 />
+              </div>
+
+              <div className="form-group">
+                <label>Laser Type</label>
+                <select
+                  value={formData.laser_type}
+                  onChange={(e) => setFormData(prev => ({ ...prev, laser_type: e.target.value }))}
+                >
+                  <option value="">Select laser type</option>
+                  {LASER_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
               </div>
 
               <div className="form-row">

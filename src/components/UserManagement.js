@@ -3,9 +3,11 @@ import { useAuth } from '../context/AuthContext';
 import { useEngineerContext } from '../context/EngineerContext';
 import { supabase } from '../config/supabase';
 import {
-  Edit, Trash2, Mail, CheckCircle, X, Save
+  Edit, Trash2, Mail, CheckCircle, X, Save, Zap
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+const LASER_TYPES = ['HT Lykos SS', 'HT Lykos DTS'];
 
 const UserManagement = () => {
   useAuth();
@@ -21,6 +23,7 @@ const UserManagement = () => {
 
   const [showEditForm, setShowEditForm] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [magicLinkLoading, setMagicLinkLoading] = useState(null);
 
   const [deletingId, setDeletingId] = useState(null);
 
@@ -132,6 +135,33 @@ const UserManagement = () => {
       setEditingUser(null);
     } catch {
       toast.error('Failed to update user');
+    }
+  };
+
+  // ── Magic Link ──────────────────────────────────────────────────
+  const handleSendMagicLink = async (engineer) => {
+    setMagicLinkLoading(engineer.id);
+    try {
+      const { error } = await supabase.auth.admin.generateLink({
+        type: 'magiclink',
+        email: engineer.email,
+      });
+      if (error) throw error;
+      toast.success(`Magic link sent to ${engineer.email}`);
+    } catch {
+      // Fallback: send OTP magic link via standard method
+      try {
+        const { error } = await supabase.auth.signInWithOtp({
+          email: engineer.email,
+          options: { shouldCreateUser: false },
+        });
+        if (error) throw error;
+        toast.success(`Magic link sent to ${engineer.email}`);
+      } catch (err) {
+        toast.error(err.message || 'Failed to send magic link');
+      }
+    } finally {
+      setMagicLinkLoading(null);
     }
   };
 
@@ -248,6 +278,11 @@ const UserManagement = () => {
                     <Mail size={13} /> {status === 'pending' ? 'Resend' : 'Send Invite'}
                   </button>
                 )}
+                <button onClick={() => handleSendMagicLink(engineer)} title="Send Magic Link"
+                  disabled={magicLinkLoading === engineer.id}
+                  style={iconBtn({ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.25)', color: '#fbbf24', opacity: magicLinkLoading === engineer.id ? 0.5 : 1 })}>
+                  <Zap size={15} />
+                </button>
                 <button onClick={() => { setEditingUser({ ...engineer }); setShowEditForm(true); }} title="Edit"
                   style={iconBtn({ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8' })}>
                   <Edit size={15} />
@@ -381,8 +416,11 @@ const UserManagement = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
                 <div>
                   <div className="section-label">Laser Type</div>
-                  <input className="glass-input" value={editingUser.laser_type || ''}
-                    onChange={e => setEditingUser(p => ({ ...p, laser_type: e.target.value }))} />
+                  <select className="glass-select" value={editingUser.laser_type || ''}
+                    onChange={e => setEditingUser(p => ({ ...p, laser_type: e.target.value }))}>
+                    <option value="">Not specified</option>
+                    {LASER_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
                 </div>
                 <div>
                   <div className="section-label">Serial Number</div>
