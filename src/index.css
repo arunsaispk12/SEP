@@ -1575,13 +1575,6 @@ select:focus {
   }
 }
 
-/* ===== Management pages mobile ===== */
-@media (max-width: 480px) {
-  .form-row {
-    grid-template-columns: 1fr !important;
-  }
-}
-
 /* ===== Calendar mobile ===== */
 @media (max-width: 768px) {
   .gcal-sidebar {

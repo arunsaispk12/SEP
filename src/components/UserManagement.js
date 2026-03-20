@@ -197,7 +197,7 @@ const UserManagement = () => {
 
       {/* ── User list ── */}
       <div style={{ overflowX: 'auto' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minWidth: 400 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minWidth: 400 }}>
         {filteredUsers.length === 0 && (
           <div style={{ textAlign: 'center', padding: 32, color: '#475569' }}>No users found</div>
         )}
@@ -275,7 +275,7 @@ const UserManagement = () => {
             </div>
           );
         })}
-      </div>
+        </div>
       </div>
 
       {/* ── Invite Modal ── */}
