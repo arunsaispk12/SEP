@@ -298,7 +298,8 @@
   cursor: not-allowed;
 }
 
-/* NOTE: .summary-stats, .dashboard-header, .view-controls, .header-controls,
-   .tab-navigation, .tab-btn, .header, .header-left, .user-info, .user-details,
-   .logout-btn were removed — these classes are no longer used in any JSX component.
+/* NOTE: Removed stale responsive overrides for .summary-stats, .dashboard-header,
+   .view-controls, .header-controls, .tab-navigation, .tab-btn, .header, .header-left,
+   .user-info, .user-details, .logout-btn — their @media blocks were dead (no JSX usage).
+   Base CSS rules for actively-used classes (e.g. .header-actions) remain.
    Dashboard responsive overrides now live in index.css (dashboard-kpi-grid etc.). */
