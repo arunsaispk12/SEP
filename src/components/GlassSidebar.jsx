@@ -78,7 +78,7 @@ export default function GlassSidebar({ activeTab, setActiveTab, tabs, user, prof
         position: 'fixed',
         top: 0,
         left: 0,
-        width: SIDEBAR_W,
+        width: 'min(280px, 85vw)',
         height: '100vh',
         background: 'rgba(255,255,255,0.05)',
         backdropFilter: 'blur(20px)',

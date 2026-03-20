@@ -261,7 +261,11 @@ code {
   }
 }
 
-/* ===== TopBar mobile ===== */
+/* ===== TopBar base + mobile ===== */
+.glass-topbar {
+  left: 240px;
+}
+
 @media (max-width: 768px) {
   .topbar-menu-btn { display: flex !important; }
   .glass-topbar { left: 0 !important; }

@@ -27,7 +27,6 @@ export default function GlassTopBar({ activeTab, onMenuClick }) {
       style={{
         position: 'fixed',
         top: 0,
-        left: 240,
         right: 0,
         height: 48,
         background: 'rgba(255,255,255,0.03)',
