@@ -1601,3 +1601,53 @@ select:focus {
     font-size: 14px;
   }
 }
+
+/* ===== Modals mobile ===== */
+@media (max-width: 480px) {
+  .glass-modal,
+  .glass-modal-wide {
+    padding: 20px !important;
+    border-radius: 14px !important;
+  }
+  .completion-modal-content {
+    border-radius: 12px !important;
+  }
+  .modal-body {
+    padding: 16px !important;
+  }
+  .modal-header {
+    padding: 16px !important;
+  }
+}
+
+/* ===== General panel padding mobile ===== */
+@media (max-width: 480px) {
+  .glass-panel,
+  .glass-panel-sm {
+    padding: 16px !important;
+  }
+  .card {
+    padding: 16px !important;
+  }
+}
+
+/* ===== Container padding mobile ===== */
+@media (max-width: 480px) {
+  .container {
+    padding: 12px !important;
+  }
+}
+
+/* ===== SignupPage mobile ===== */
+@media (max-width: 480px) {
+  .signup-password-row {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ===== LoginPage form panel mobile ===== */
+@media (max-width: 600px) {
+  .login-form-panel {
+    padding: 20px !important;
+  }
+}

@@ -227,7 +227,7 @@ export default function SignupPage() {
                 <DarkInput type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@company.com" {...fld('email')} />
                 <FieldError msg={errors.email} />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+              <div className="signup-password-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
                 <div>
                   <div style={LBL}>Password</div>
                   <DarkInput type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" {...fld('password')} />
