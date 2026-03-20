@@ -1574,3 +1574,10 @@ select:focus {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* ===== Management pages mobile ===== */
+@media (max-width: 480px) {
+  .form-row {
+    grid-template-columns: 1fr !important;
+  }
+}

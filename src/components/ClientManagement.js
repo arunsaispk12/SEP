@@ -186,7 +186,8 @@ const ClientManagement = () => {
       </div>
 
       {/* Clients Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
+      <div style={{ overflowX: 'auto' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20, minWidth: 500 }}>
         {filteredClients.map(client => (
           <div key={client.id} className="glass-panel-sm" style={{ padding: 20, display: 'flex', flexDirection: 'column', transition: 'transform 0.2s, border-color 0.2s' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
@@ -244,6 +245,7 @@ const ClientManagement = () => {
             </div>
           </div>
         ))}
+      </div>
       </div>
 
       {showModal && (

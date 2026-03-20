@@ -179,7 +179,8 @@ const LocationManagement = () => {
       {loading ? (
         <div style={{ textAlign: 'center', padding: 48, color: '#94a3b8', fontSize: '1.125rem' }}>Loading locations...</div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 24 }}>
+        <div style={{ overflowX: 'auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 24, minWidth: 400 }}>
           {filteredLocations.map(location => (
             <div key={location.id} className="glass-panel-sm" style={{ overflow: 'hidden', transition: 'all 0.2s' }}>
               <div style={{ padding: 20, display: 'flex', gap: 16, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
@@ -220,6 +221,7 @@ const LocationManagement = () => {
               </div>
             </div>
           ))}
+        </div>
         </div>
       )}
 
