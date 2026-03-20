@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
-import { 
-  X, 
-  Plus, 
-  Trash2, 
-  User, 
-  Calendar, 
-  FileText, 
-  MapPin, 
+import {
+  X,
+  Plus,
+  Trash2,
+  User,
+  Calendar,
+  FileText,
+  MapPin,
   Users,
   Save,
-  Download
+  Download,
+  MessageCircle,
+  AlignLeft
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const CaseCompletionModal = ({ caseData, onClose, onSave }) => {
+const CaseCompletionModal = ({ caseData, onClose, onSave, automationConfig }) => {
   const [formData, setFormData] = useState({
     clientName: caseData.title || '',
     location: caseData.location || '',
@@ -101,6 +103,65 @@ const CaseCompletionModal = ({ caseData, onClose, onSave }) => {
       console.error('Export error:', error);
       toast.error('Failed to export report');
     }
+  };
+
+  const buildTextReport = () => {
+    const dateFormatted = formData.date
+      ? new Date(formData.date + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+      : '';
+
+    const patientLines = formData.patients
+      .map((p, i) => {
+        const parts = [p.name || '—', p.age ? `${p.age} yrs` : '', p.test || '', p.embryos ? `${p.embryos} embryo${p.embryos !== '1' ? 's' : ''}` : ''];
+        return `${i + 1}. ${parts.filter(Boolean).join(' | ')}`;
+      })
+      .join('\n');
+
+    let report = `✅ *Case Completed*\n`;
+    report += `🏥 Client: ${formData.clientName || '—'}\n`;
+    report += `📍 Location: ${formData.location || '—'}\n`;
+    report += `📅 Date: ${dateFormatted}\n`;
+    report += `👨‍🔬 Embryologist: ${formData.embryologistName || '—'}\n`;
+    report += `\n*Patient Details:*\n${patientLines}`;
+    if (formData.notes) report += `\n\n📝 Notes: ${formData.notes}`;
+    report += `\n\n_Reported via SEP_`;
+    return report;
+  };
+
+  const handleExportText = () => {
+    try {
+      const text = buildTextReport();
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `Case_Report_${formData.clientName}_${formData.date}.txt`;
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success('Report exported as text');
+    } catch (error) {
+      console.error('Text export error:', error);
+      toast.error('Failed to export text report');
+    }
+  };
+
+  const handleWhatsApp = () => {
+    const configTemplate = automationConfig?.whatsapp_triggers?.case_completed
+      ? automationConfig?.whatsapp_templates?.case_completed
+      : null;
+
+    let text;
+    if (configTemplate) {
+      text = configTemplate
+        .replace('{{client}}', formData.clientName || '')
+        .replace('{{location}}', formData.location || '')
+        .replace('{{date}}', formData.date || '')
+        .replace('{{embryologist}}', formData.embryologistName || '');
+    } else {
+      text = buildTextReport(); // fallback to existing format
+    }
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const handleSubmit = (e) => {
@@ -274,13 +335,29 @@ const CaseCompletionModal = ({ caseData, onClose, onSave }) => {
 
           <div className="modal-actions">
             <div className="export-options">
-              <button 
-                type="button" 
-                className="btn-export active" 
+              <button
+                type="button"
+                className="btn-export active"
                 onClick={handleExport}
               >
                 <Download size={18} />
-                Export CSV Report
+                Export CSV
+              </button>
+              <button
+                type="button"
+                className="btn-export"
+                onClick={handleExportText}
+              >
+                <AlignLeft size={18} />
+                Export Text
+              </button>
+              <button
+                type="button"
+                className="btn-export whatsapp"
+                onClick={handleWhatsApp}
+              >
+                <MessageCircle size={18} />
+                WhatsApp
               </button>
             </div>
             <div className="submit-actions">

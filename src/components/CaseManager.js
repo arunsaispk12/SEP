@@ -17,7 +17,8 @@ const CaseManager = () => {
     locationObjects,
     checkLocationConflict,
     checkScheduleOverlap,
-    isEngineerOnLeave
+    isEngineerOnLeave,
+    automationConfig
   } = useEngineerContext();
   const { user, profile } = useAuth();
 
@@ -31,7 +32,6 @@ const CaseManager = () => {
   const [completingCase, setCompletingCase] = useState(null);
 
   const [formData, setFormData] = useState({
-    title: '',
     clientName: '',
     description: '',
     location: '',
@@ -95,7 +95,7 @@ const CaseManager = () => {
       }
 
       const caseData = {
-        title: formData.title,
+        title: formData.clientName,
         description: formData.description,
         location_id: locationObj?.id || null,
         client_id: clientId,
@@ -107,6 +107,20 @@ const CaseManager = () => {
       
       await addCase(caseData);
       toast.success('Case created successfully');
+      // WhatsApp trigger
+      const waTrigger = automationConfig?.whatsapp_triggers?.case_created;
+      const waTemplate = automationConfig?.whatsapp_templates?.case_created;
+      if (waTrigger && waTemplate) {
+        const assignedEngineer = engineers.find(e => e.id === formData.assignedEngineer);
+        const msg = waTemplate
+          .replace('{{client}}', formData.clientName || '')
+          .replace('{{location}}', formData.location || '')
+          .replace('{{engineer}}', assignedEngineer?.name || 'Unassigned')
+          .replace('{{date}}', new Date().toLocaleDateString('en-IN'))
+          .replace('{{priority}}', formData.priority || 'medium')
+          .replace('{{status}}', 'open');
+        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+      }
       resetForm();
     } catch (error) {
       console.error('Error creating case:', error);
@@ -116,7 +130,7 @@ const CaseManager = () => {
 
   const resetForm = () => {
     setFormData({
-      title: '',
+      clientName: '',
       description: '',
       location: '',
       priority: 'medium',
@@ -431,16 +445,6 @@ const CaseManager = () => {
 
             <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <label>Case Title *</label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
                 <label>Client (Hospital) *</label>
                 <input
                   type="text"
@@ -535,6 +539,7 @@ const CaseManager = () => {
       {showCompletionModal && completingCase && (
         <CaseCompletionModal
           caseData={completingCase}
+          automationConfig={automationConfig}
           onClose={() => {
             setShowCompletionModal(false);
             setCompletingCase(null);
