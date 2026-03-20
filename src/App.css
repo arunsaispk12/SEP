@@ -222,12 +222,6 @@
   min-width: 0;
 }
 
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
 .logout-btn {
   display: flex;
   align-items: center;
