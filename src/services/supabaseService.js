@@ -25,6 +25,27 @@ class SupabaseService {
     return data;
   }
 
+  async completeInviteProfile({ name, phone }) {
+    const { data: { user } } = await supabase.auth.getUser();
+
+    const profileUpdates = { name, phone, is_active: true, is_approved: true, updated_at: new Date().toISOString() };
+    const { data, error } = await supabase
+      .from(TABLES.PROFILES)
+      .update(profileUpdates)
+      .eq('id', user.id)
+      .select()
+      .single();
+    if (error) throw error;
+
+    // Sync to engineers table
+    const engineerUpdates = { is_active: true, is_approved: true };
+    if (name) engineerUpdates.name = name;
+    if (phone) engineerUpdates.phone = phone;
+    await supabase.from(TABLES.ENGINEERS).update(engineerUpdates).eq('id', user.id);
+
+    return data;
+  }
+
   async createProfile(profile) {
     const { data, error } = await supabase
       .from(TABLES.PROFILES)
@@ -385,6 +406,14 @@ class SupabaseService {
 
     if (error) throw error;
     return data;
+  }
+
+  async deleteLocation(id) {
+    const { error } = await supabase
+      .from(TABLES.LOCATIONS)
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
   }
 
   // User Sessions

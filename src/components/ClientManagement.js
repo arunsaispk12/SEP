@@ -30,6 +30,7 @@ const ClientManagement = () => {
   const [formData, setFormData] = useState({
     name: '',
     location_id: '',
+    location_text: '',
     contact_person: '',
     designation: '',
     mobile: '',
@@ -49,14 +50,16 @@ const ClientManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // eslint-disable-next-line no-unused-vars
+      const { location_text, ...clientData } = formData;
       if (editingClient) {
-        await updateClient(editingClient.id, formData);
+        await updateClient(editingClient.id, clientData);
         toast.success('Client updated successfully');
       } else {
         await addClient({
-          ...formData,
+          ...clientData,
           created_by: user.id,
-          assigned_executive_id: formData.assigned_executive_id || user.id
+          assigned_executive_id: clientData.assigned_executive_id || user.id
         });
         toast.success('Client added successfully');
       }
@@ -71,6 +74,7 @@ const ClientManagement = () => {
     setFormData({
       name: '',
       location_id: '',
+      location_text: '',
       contact_person: '',
       designation: '',
       mobile: '',
@@ -87,6 +91,7 @@ const ClientManagement = () => {
     setFormData({
       name: client.name,
       location_id: client.location_id || '',
+      location_text: locationObjects.find(l => l.id === client.location_id)?.name || '',
       contact_person: client.contact_person || '',
       designation: client.designation || '',
       mobile: client.mobile || '',
@@ -276,19 +281,29 @@ const ClientManagement = () => {
                   />
                 </div>
                 <div>
-                  <div className="section-label">Location *</div>
-                  <select
-                    name="location_id"
-                    value={formData.location_id}
-                    onChange={handleInputChange}
-                    required
-                    className="glass-select"
-                  >
-                    <option value="">Select Location</option>
+                  <div className="section-label">Location</div>
+                  <input
+                    type="text"
+                    list="client-locations-list"
+                    name="location_text"
+                    value={formData.location_text || (locationObjects.find(l => l.id === parseInt(formData.location_id))?.name || '')}
+                    onChange={(e) => {
+                      const typed = e.target.value;
+                      const match = locationObjects.find(l => l.name.toLowerCase() === typed.toLowerCase());
+                      setFormData(prev => ({
+                        ...prev,
+                        location_text: typed,
+                        location_id: match ? match.id : ''
+                      }));
+                    }}
+                    placeholder="Type or select a location"
+                    className="glass-input"
+                  />
+                  <datalist id="client-locations-list">
                     {locationObjects.map(loc => (
-                      <option key={loc.id} value={loc.id}>{loc.name}</option>
+                      <option key={loc.id} value={loc.name} />
                     ))}
-                  </select>
+                  </datalist>
                 </div>
               </div>
 

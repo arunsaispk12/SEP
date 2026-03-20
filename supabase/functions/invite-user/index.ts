@@ -52,9 +52,12 @@ Deno.serve(async (req) => {
       });
     }
 
+    const redirectTo = `${Deno.env.get('APP_URL') || 'http://localhost:3000'}/accept-invite`;
+
     if (resend) {
       // Resend: re-invite unaccepted user
       const { error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {
+        redirectTo,
         data: { name, role, location_id }
       });
       if (inviteError) {
@@ -77,7 +80,7 @@ Deno.serve(async (req) => {
     // New invite
     const { data: inviteData, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(
       email,
-      { data: { name, role, location_id } }
+      { redirectTo, data: { name, role, location_id } }
     );
     if (inviteError) throw inviteError;
 

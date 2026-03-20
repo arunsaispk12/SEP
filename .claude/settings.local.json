@@ -34,7 +34,16 @@
       "Bash(npm info:*)",
       "Bash(grep:*)",
       "mcp__supabase__search_docs",
-      "WebFetch(domain:fullcalendar.io)"
+      "WebFetch(domain:fullcalendar.io)",
+      "Bash(npm test:*)",
+      "Bash(git push:*)",
+      "Bash(node:*)",
+      "Bash(git:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
+      "Bash(npx react-scripts:*)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(echo \"Exit code: $?\")",
+      "Bash(echo \"EXIT: $?\")"
     ]
   },
   "enableAllProjectMcpServers": true,

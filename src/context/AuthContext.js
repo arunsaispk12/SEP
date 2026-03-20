@@ -14,7 +14,8 @@ const initialState = {
   sessionExpiry: null,
   lastActivity: null,
   loginAttempts: 0,
-  isLocked: false
+  isLocked: false,
+  pendingSetup: false
 };
 
 function authReducer(state, action) {
@@ -93,6 +94,17 @@ function authReducer(state, action) {
         isLocked: action.payload
       };
 
+    case 'SET_PENDING_SETUP':
+      return {
+        ...state,
+        pendingSetup: true,
+        user: action.payload.user || state.user,
+        profile: action.payload.profile || state.profile,
+        session: action.payload.session || state.session,
+        isAuthenticated: false,
+        loading: false
+      };
+
     case 'CLEAR_ERROR':
       return {
         ...state,
@@ -134,14 +146,17 @@ export function AuthProvider({ children }) {
               return;
             }
 
-            dispatch({
-              type: 'LOGIN_SUCCESS',
-              payload: {
-                user: session.user,
-                profile: profile,
-                session
-              }
-            });
+            if (!profile.is_active) {
+              dispatch({
+                type: 'SET_PENDING_SETUP',
+                payload: { user: session.user, profile, session }
+              });
+            } else {
+              dispatch({
+                type: 'LOGIN_SUCCESS',
+                payload: { user: session.user, profile, session }
+              });
+            }
           } else {
             dispatch({ type: 'SET_LOADING', payload: false });
           }
@@ -163,21 +178,23 @@ export function AuthProvider({ children }) {
     const { data: { subscription } } = realtimeHelpers.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_IN' && session?.user) {
-          // Get user profile
           const { data: profile } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
             .single();
 
-          dispatch({ 
-            type: 'LOGIN_SUCCESS', 
-            payload: { 
-              user: session.user, 
-              profile, 
-              session 
-            } 
-          });
+          if (profile && !profile.is_active) {
+            dispatch({
+              type: 'SET_PENDING_SETUP',
+              payload: { user: session.user, profile, session }
+            });
+          } else {
+            dispatch({
+              type: 'LOGIN_SUCCESS',
+              payload: { user: session.user, profile, session }
+            });
+          }
         } else if (event === 'SIGNED_OUT') {
           dispatch({ type: 'LOGOUT' });
         }
@@ -561,6 +578,17 @@ export function AuthProvider({ children }) {
     dispatch({ type: 'UPDATE_ACTIVITY' });
   };
 
+  const completeInviteSetup = (updatedProfile) => {
+    dispatch({
+      type: 'LOGIN_SUCCESS',
+      payload: {
+        user: state.user,
+        profile: updatedProfile,
+        session: state.session
+      }
+    });
+  };
+
   const value = {
     ...state,
     login,
@@ -569,7 +597,8 @@ export function AuthProvider({ children }) {
     resetPassword,
     changePassword,
     updateProfile,
-    updateActivity
+    updateActivity,
+    completeInviteSetup
   };
 
   return (
