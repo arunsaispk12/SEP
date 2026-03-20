@@ -142,7 +142,8 @@ const AdminPanel = () => {
         </div>
       </div>
 
-      <div style={{ background: 'rgba(13,17,23,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, overflow: 'hidden' }}>
+      <div style={{ overflowX: 'auto', borderRadius: 12 }}>
+      <div style={{ background: 'rgba(13,17,23,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, overflow: 'hidden', minWidth: 560 }}>
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1fr 1fr 1fr', gap: 16, padding: '14px 20px', background: 'rgba(13,17,23,0.6)', fontWeight: 600, color: '#94a3b8', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
           <div>Name</div>
           <div>Email</div>
@@ -167,6 +168,7 @@ const AdminPanel = () => {
             <div />
           </div>
         ))}
+      </div>
       </div>
     </div>
   );
@@ -235,7 +237,7 @@ const AdminPanel = () => {
       </div>
 
       {/* Content Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 24 }}>
+      <div className="admin-layout-grid" style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 24 }}>
         {/* Nav */}
         <nav className="glass-panel" style={{ padding: 20, height: 'fit-content' }}>
           {adminTabs.map(tab => (

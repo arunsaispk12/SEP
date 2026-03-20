@@ -1567,3 +1567,10 @@ select:focus {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* ===== AdminPanel mobile ===== */
+@media (max-width: 768px) {
+  .admin-layout-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
