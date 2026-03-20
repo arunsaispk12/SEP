@@ -567,3 +567,54 @@ drop trigger if exists on_user_confirmed on auth.users;
 create trigger on_user_confirmed
   after update on auth.users
   for each row execute procedure public.handle_user_confirmed();
+
+-- ============================================================
+-- Automation Config (singleton row, id always = 1)
+-- ============================================================
+create table if not exists public.automation_config (
+  id integer primary key default 1 check (id = 1),
+  inbound_email text default '',
+  allowed_senders text[] default '{}',
+  default_priority text default 'medium',
+  whatsapp_triggers jsonb default '{"case_created":false,"schedule_added":false,"case_completed":false}',
+  whatsapp_templates jsonb default '{"case_created":"🆕 *New Case*\n🏥 {{client}}\n📍 {{location}}\n⚡ Priority: {{priority}}\n\n_via SEP_","schedule_added":"📅 *Schedule Added*\n👨‍🔧 {{engineer}}\n📍 {{location}}\n🗓 {{date}}\n\n_via SEP_","case_completed":"✅ *Case Completed*\n🏥 {{client}}\n📍 {{location}}\n📅 {{date}}\n👨‍🔬 Embryologist: {{embryologist}}\n\n_via SEP_"}',
+  updated_at timestamptz default now()
+);
+
+insert into public.automation_config (id) values (1) on conflict do nothing;
+
+alter table public.automation_config enable row level security;
+
+drop policy if exists "admins_read_automation_config" on public.automation_config;
+drop policy if exists "admins_update_automation_config" on public.automation_config;
+
+create policy "admins_read_automation_config" on public.automation_config
+  for select using (
+    exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
+  );
+create policy "admins_update_automation_config" on public.automation_config
+  for update using (
+    exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
+  );
+
+-- ============================================================
+-- Automation Logs
+-- ============================================================
+create table if not exists public.automation_logs (
+  id bigserial primary key,
+  type text not null,
+  source text,
+  payload jsonb,
+  result text,
+  error text,
+  created_at timestamptz default now()
+);
+
+alter table public.automation_logs enable row level security;
+
+drop policy if exists "admins_read_automation_logs" on public.automation_logs;
+
+create policy "admins_read_automation_logs" on public.automation_logs
+  for select using (
+    exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
+  );
