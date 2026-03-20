@@ -292,10 +292,11 @@ Subject: [SEP Request] Your Hospital Name
 
 Hospital: City Hospital
 Location: Bangalore
-Priority: medium
+Address: 123 MG Road, Indiranagar
 Date: DD/MM/YYYY
+Time: HH:MM
 
-Please describe the service request in detail here.
+Please describe the laser service request in detail here.
 
 ---
 Contact: Dr. Name

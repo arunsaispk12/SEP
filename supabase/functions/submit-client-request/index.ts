@@ -36,7 +36,6 @@ Deno.serve(async (req) => {
     const emailBody = `Hospital: ${hospital}
 Location: ${location || '(not specified)'}
 Address: ${address || '(not specified)'}
-Priority: medium
 Date: ${preferredDate || 'Not specified'}
 Time: ${preferredTime || 'Not specified'}
 
