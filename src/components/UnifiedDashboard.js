@@ -88,10 +88,10 @@ export default function UnifiedDashboard() {
   if (loading) {
     return (
       <div style={{ background: BG, minHeight: '100vh', padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
+        <div className="dashboard-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
           {[1,2,3,4].map(i => <SkeletonPanel key={i} height={56} />)}
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr 1fr', gap: 8 }}>
+        <div className="dashboard-command-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr 1fr', gap: 8 }}>
           <SkeletonPanel height={180} />
           <SkeletonPanel height={180} />
           <SkeletonPanel height={180} />
@@ -111,7 +111,7 @@ export default function UnifiedDashboard() {
       <DashboardKPIBar counts={counts} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
 
       {/* Row 2: Command Center */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr 1fr', gap: 14 }}>
+      <div className="dashboard-command-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr 1fr', gap: 14 }}>
         <TeamStatusPanel engineers={engineers} schedules={schedules} currentUserId={user?.id} activeFilter={activeFilter} />
         <CasesPanel
           upcomingCases={upcomingCases}
@@ -132,7 +132,7 @@ export default function UnifiedDashboard() {
       </div>
 
       {/* Row 3: Gantt + Case Detail */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr', gap: 14 }}>
+      <div className="dashboard-gantt-grid" style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr', gap: 14 }}>
         <WeeklyGantt
           engineers={engineers}
           schedules={schedules}

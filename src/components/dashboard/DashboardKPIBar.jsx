@@ -11,7 +11,7 @@ const CARDS = [
 export default function DashboardKPIBar({ counts, activeFilter, onFilterChange }) {
   // counts: { total, upcoming, unassigned, available }
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 10 }}>
+    <div className="dashboard-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 10 }}>
       {CARDS.map(card => {
         const isActive = activeFilter === card.id;
         return (

@@ -1543,3 +1543,27 @@ select:focus {
   }
   /* Right panel (flex: 1) becomes full-width naturally */
 }
+
+/* ===== Dashboard mobile ===== */
+@media (max-width: 768px) {
+  .dashboard-kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .dashboard-command-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .dashboard-gantt-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+@media (max-width: 480px) {
+  .dashboard-kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+}
+@media (max-width: 360px) {
+  .dashboard-kpi-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
