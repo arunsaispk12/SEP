@@ -102,10 +102,10 @@ export default function LoginPage() {
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ minHeight: '100vh', background: BG, display: 'flex', fontFamily: FONT }}>
+    <motion.div className="login-layout" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ minHeight: '100vh', background: BG, display: 'flex', fontFamily: FONT }}>
 
       {/* ── LEFT PANEL ── */}
-      <div style={{ width: 300, flexShrink: 0, padding: '40px 28px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: '1px solid rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.15)' }}>
+      <div className="login-brand-panel" style={{ width: 300, flexShrink: 0, padding: '40px 28px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: '1px solid rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.15)' }}>
         <LogoMark />
         <div style={{ fontSize: 14, fontWeight: 800, color: '#fff', lineHeight: 1.3, marginBottom: 3, letterSpacing: '-0.3px' }}>Service Engineer<br/>Planner</div>
         <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 24 }}>Field Operations Platform</div>

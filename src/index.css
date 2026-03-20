@@ -1531,3 +1531,15 @@ select:focus {
   }
 }
       
+
+/* ===== Auth pages mobile ===== */
+@media (max-width: 600px) {
+  .login-brand-panel {
+    display: none !important;
+  }
+  .login-layout {
+    align-items: flex-start;
+    padding-top: 40px;
+  }
+  /* Right panel (flex: 1) becomes full-width naturally */
+}
