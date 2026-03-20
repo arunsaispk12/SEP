@@ -95,10 +95,11 @@ class SupabaseService {
       .from(TABLES.ENGINEERS)
       .update({ ...updates, updated_at: new Date().toISOString() })
       .eq('id', id)
-      .select()
-      .single();
+      .select();
 
     if (error) throw error;
+    if (!data || data.length === 0) throw new Error('Update failed: no rows affected. You may not have permission to edit this user.');
+    const updated = data[0];
 
     // Sync writable fields to profiles to keep both tables consistent
     const profileUpdates = {};
@@ -109,7 +110,7 @@ class SupabaseService {
       await supabase.from('profiles').update(profileUpdates).eq('id', id);
     }
 
-    return data;
+    return updated;
   }
 
   async createEngineer(engineer) {

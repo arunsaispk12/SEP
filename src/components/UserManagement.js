@@ -124,17 +124,16 @@ const UserManagement = () => {
       await updateEngineer(editingUser.id, {
         name: editingUser.name,
         role: editingUser.role,
-        location_id: editingUser.location_id || null,
+        location_id: editingUser.location_id ? Number(editingUser.location_id) : null,
         phone: editingUser.phone || null,
         laser_type: editingUser.laser_type || null,
         serial_number: editingUser.serial_number || null,
         tracker_status: editingUser.tracker_status || null,
       });
-      toast.success('User updated');
       setShowEditForm(false);
       setEditingUser(null);
-    } catch {
-      toast.error('Failed to update user');
+    } catch (err) {
+      toast.error(err?.message || 'Failed to update user');
     }
   };
 
