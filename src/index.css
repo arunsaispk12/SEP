@@ -1927,6 +1927,21 @@ select:focus {
   }
 }
 
+@media (max-width: 767px) {
+  .location-card-grid {
+    grid-template-columns: 1fr;
+  }
+  .location-card-header {
+    padding: 14px;
+  }
+  .location-card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    flex-shrink: 0;
+  }
+}
+
 /* ===== GoogleCalendarSync mobile ===== */
 @media (max-width: 480px) {
   .gcal-sync-layout {
