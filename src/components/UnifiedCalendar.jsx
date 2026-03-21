@@ -420,6 +420,11 @@ const UnifiedCalendar = () => {
             nowIndicator
             height="100%"
             select={!isEngineerRole ? ({ start, end }) => openNewForm(start, end) : undefined}
+            dateClick={!isEngineerRole ? ({ date, jsEvent }) => {
+  if (jsEvent.pointerType === 'touch' || jsEvent.pointerType === 'pen') {
+    openNewForm(date, new Date(date.getTime() + 60 * 60 * 1000));
+  }
+} : undefined}
             eventClick={({ event }) => {
               setSelectedEvent(event);
               setShowDeleteConfirm(false);
