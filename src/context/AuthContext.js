@@ -130,38 +130,60 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
 
-    const { data: { subscription } } = realtimeHelpers.onAuthStateChange(
-      async (event, session) => {
-        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session?.user) {
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
+    // Fallback: if loading hasn't resolved in 10s, force it to false
+    const timeout = setTimeout(() => {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }, 10000);
 
-          if (profileError) {
+    let subscription;
+    try {
+      const { data } = realtimeHelpers.onAuthStateChange(
+        async (event, session) => {
+          clearTimeout(timeout);
+          try {
+            if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session?.user) {
+              const { data: profile, error: profileError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+
+              if (profileError) {
+                dispatch({ type: 'SET_LOADING', payload: false });
+                return;
+              }
+
+              if (profile && !profile.is_active) {
+                dispatch({
+                  type: 'SET_PENDING_SETUP',
+                  payload: { user: session.user, profile, session }
+                });
+              } else {
+                dispatch({
+                  type: 'LOGIN_SUCCESS',
+                  payload: { user: session.user, profile, session }
+                });
+              }
+            } else if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session)) {
+              dispatch({ type: 'LOGOUT' });
+            }
+          } catch (err) {
+            console.error('Auth state change error:', err);
             dispatch({ type: 'SET_LOADING', payload: false });
-            return;
           }
-
-          if (profile && !profile.is_active) {
-            dispatch({
-              type: 'SET_PENDING_SETUP',
-              payload: { user: session.user, profile, session }
-            });
-          } else {
-            dispatch({
-              type: 'LOGIN_SUCCESS',
-              payload: { user: session.user, profile, session }
-            });
-          }
-        } else if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session)) {
-          dispatch({ type: 'LOGOUT' });
         }
-      }
-    );
+      );
+      subscription = data.subscription;
+    } catch (err) {
+      console.error('Failed to set up auth listener:', err);
+      clearTimeout(timeout);
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
 
-    return () => subscription?.unsubscribe();
+    return () => {
+      clearTimeout(timeout);
+      subscription?.unsubscribe();
+    };
   }, []);
 
   // Session management - disabled for now
