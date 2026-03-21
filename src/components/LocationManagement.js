@@ -183,7 +183,7 @@ const LocationManagement = () => {
           <div className="location-card-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 24, minWidth: 0 }}>
           {filteredLocations.map(location => (
             <div key={location.id} className="glass-panel-sm" style={{ overflow: 'hidden', transition: 'all 0.2s' }}>
-              <div className="location-card-header" style={{ padding: 20, display: 'flex', gap: 16, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+              <div className="location-card-header" style={{ display: 'flex', gap: 16, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                 <div className="location-card-icon" style={{ width: 48, height: 48, background: 'rgba(123,97,255,0.15)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a78bfa', flexShrink: 0 }}>
                   <MapPin size={24} />
                 </div>

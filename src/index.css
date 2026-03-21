@@ -1927,6 +1927,10 @@ select:focus {
   }
 }
 
+.location-card-header {
+  padding: 20px;
+}
+
 @media (max-width: 767px) {
   .location-card-grid {
     grid-template-columns: 1fr;
