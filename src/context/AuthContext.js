@@ -126,85 +126,40 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  // Initialize auth state on mount using getSession (reads localStorage, no network needed)
+  // Listen for auth state changes
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
 
     let mounted = true;
 
-    // Timeout fallback: if profile fetch hangs, unblock the app after 10s
+    // Fallback: if loading hasn't resolved after 10s (e.g. profile fetch hanging), unblock the app
     const timeout = setTimeout(() => {
       if (mounted) dispatch({ type: 'SET_LOADING', payload: false });
     }, 10000);
 
-    const initAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-
-        if (!mounted) return;
-
-        if (!session?.user) {
-          clearTimeout(timeout);
-          dispatch({ type: 'LOGOUT' });
-          return;
-        }
-
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-
-        if (!mounted) return;
-        clearTimeout(timeout);
-
-        if (profileError || !profile) {
-          dispatch({ type: 'SET_LOADING', payload: false });
-          return;
-        }
-
-        if (!profile.is_active) {
-          dispatch({
-            type: 'SET_PENDING_SETUP',
-            payload: { user: session.user, profile, session }
-          });
-        } else {
-          dispatch({
-            type: 'LOGIN_SUCCESS',
-            payload: { user: session.user, profile, session }
-          });
-        }
-      } catch (err) {
-        console.error('Auth init error:', err);
-        if (mounted) {
-          clearTimeout(timeout);
-          dispatch({ type: 'SET_LOADING', payload: false });
-        }
-      }
-    };
-
-    initAuth();
-
-    // Listen for subsequent auth changes (sign in, sign out, token refresh)
     let subscription;
     try {
       const { data } = realtimeHelpers.onAuthStateChange(
         async (event, session) => {
-          if (event === 'INITIAL_SESSION') return; // handled by initAuth above
+          if (!mounted) return;
           try {
-            if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
+            if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session?.user) {
               const { data: profile, error: profileError } = await supabase
                 .from('profiles')
                 .select('*')
                 .eq('id', session.user.id)
                 .single();
 
-              if (profileError) {
+              if (!mounted) return;
+              // Clear timeout AFTER profile fetch so it still fires if the fetch hangs
+              clearTimeout(timeout);
+
+              if (profileError || !profile) {
                 dispatch({ type: 'SET_LOADING', payload: false });
                 return;
               }
 
-              if (profile && !profile.is_active) {
+              if (!profile.is_active) {
                 dispatch({
                   type: 'SET_PENDING_SETUP',
                   payload: { user: session.user, profile, session }
@@ -215,18 +170,24 @@ export function AuthProvider({ children }) {
                   payload: { user: session.user, profile, session }
                 });
               }
-            } else if (event === 'SIGNED_OUT') {
+            } else if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session)) {
+              clearTimeout(timeout);
               dispatch({ type: 'LOGOUT' });
             }
           } catch (err) {
             console.error('Auth state change error:', err);
-            dispatch({ type: 'SET_LOADING', payload: false });
+            if (mounted) {
+              clearTimeout(timeout);
+              dispatch({ type: 'SET_LOADING', payload: false });
+            }
           }
         }
       );
       subscription = data.subscription;
     } catch (err) {
       console.error('Failed to set up auth listener:', err);
+      clearTimeout(timeout);
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
 
     return () => {
