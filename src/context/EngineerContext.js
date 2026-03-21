@@ -215,14 +215,20 @@ export function EngineerProvider({ children }) {
 
       if (isSupabaseConfigured()) {
         console.log('Supabase is configured, fetching data from Supabase...');
-        // Use Supabase
-        const [engineers, cases, schedules, locations, leaves, clients] = await Promise.all([
-          supabaseService.getEngineers(),
-          supabaseService.getCases(),
-          supabaseService.getSchedules(),
-          supabaseService.getLocations(),
-          supabaseService.getLeavesOverlappingRange('1900-01-01', '2999-12-31'),
-          supabaseService.getClients()
+        // Use Supabase — race against a 20s timeout to prevent infinite loading on cold start
+        const fetchTimeout = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Data fetch timed out — Supabase may be waking up')), 20000)
+        );
+        const [engineers, cases, schedules, locations, leaves, clients] = await Promise.race([
+          Promise.all([
+            supabaseService.getEngineers(),
+            supabaseService.getCases(),
+            supabaseService.getSchedules(),
+            supabaseService.getLocations(),
+            supabaseService.getLeavesOverlappingRange('1900-01-01', '2999-12-31'),
+            supabaseService.getClients()
+          ]),
+          fetchTimeout
         ]);
 
         if (logger) {
@@ -534,6 +540,18 @@ export function EngineerProvider({ children }) {
       loadData();
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Re-load data when the auth token is refreshed (SIGNED_IN fires after Supabase cold start).
+  // This retries the fetch that may have timed out while the project was waking up.
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        loadData();
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [loadData]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Save data to localStorage when not using Supabase
   useEffect(() => {
