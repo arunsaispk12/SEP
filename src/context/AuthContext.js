@@ -126,22 +126,73 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  // Listen for auth state changes
+  // Initialize auth state on mount using getSession (reads localStorage, no network needed)
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
 
-    // Fallback: if loading hasn't resolved in 10s, force it to false
+    let mounted = true;
+
+    // Timeout fallback: if profile fetch hangs, unblock the app after 10s
     const timeout = setTimeout(() => {
-      dispatch({ type: 'SET_LOADING', payload: false });
+      if (mounted) dispatch({ type: 'SET_LOADING', payload: false });
     }, 10000);
 
+    const initAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (!mounted) return;
+
+        if (!session?.user) {
+          clearTimeout(timeout);
+          dispatch({ type: 'LOGOUT' });
+          return;
+        }
+
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (!mounted) return;
+        clearTimeout(timeout);
+
+        if (profileError || !profile) {
+          dispatch({ type: 'SET_LOADING', payload: false });
+          return;
+        }
+
+        if (!profile.is_active) {
+          dispatch({
+            type: 'SET_PENDING_SETUP',
+            payload: { user: session.user, profile, session }
+          });
+        } else {
+          dispatch({
+            type: 'LOGIN_SUCCESS',
+            payload: { user: session.user, profile, session }
+          });
+        }
+      } catch (err) {
+        console.error('Auth init error:', err);
+        if (mounted) {
+          clearTimeout(timeout);
+          dispatch({ type: 'SET_LOADING', payload: false });
+        }
+      }
+    };
+
+    initAuth();
+
+    // Listen for subsequent auth changes (sign in, sign out, token refresh)
     let subscription;
     try {
       const { data } = realtimeHelpers.onAuthStateChange(
         async (event, session) => {
-          clearTimeout(timeout);
+          if (event === 'INITIAL_SESSION') return; // handled by initAuth above
           try {
-            if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session?.user) {
+            if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
               const { data: profile, error: profileError } = await supabase
                 .from('profiles')
                 .select('*')
@@ -164,7 +215,7 @@ export function AuthProvider({ children }) {
                   payload: { user: session.user, profile, session }
                 });
               }
-            } else if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session)) {
+            } else if (event === 'SIGNED_OUT') {
               dispatch({ type: 'LOGOUT' });
             }
           } catch (err) {
@@ -176,11 +227,10 @@ export function AuthProvider({ children }) {
       subscription = data.subscription;
     } catch (err) {
       console.error('Failed to set up auth listener:', err);
-      clearTimeout(timeout);
-      dispatch({ type: 'SET_LOADING', payload: false });
     }
 
     return () => {
+      mounted = false;
       clearTimeout(timeout);
       subscription?.unsubscribe();
     };
