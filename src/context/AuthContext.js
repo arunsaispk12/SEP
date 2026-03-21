@@ -132,10 +132,47 @@ export function AuthProvider({ children }) {
 
     let mounted = true;
 
-    // Fallback: if loading hasn't resolved after 10s (e.g. profile fetch hanging), unblock the app
-    const timeout = setTimeout(() => {
-      if (mounted) dispatch({ type: 'SET_LOADING', payload: false });
-    }, 10000);
+    // --- Optimistic auth from cache ---
+    // When the access token is expired, Supabase fires SIGNED_IN only AFTER
+    // completing a token-refresh network call (can take 5–30s on free tier cold start).
+    // To avoid a long loading spinner, we immediately restore auth from the cached
+    // session + profile in localStorage, then silently update when SIGNED_IN arrives.
+    const PROFILE_CACHE_KEY = 'sep-cached-profile';
+    const SESSION_STORAGE_KEY = 'service-engineer-planner-auth';
+
+    const restoreFromCache = () => {
+      try {
+        const sessionRaw = localStorage.getItem(SESSION_STORAGE_KEY);
+        const profileRaw = localStorage.getItem(PROFILE_CACHE_KEY);
+        if (!sessionRaw || !profileRaw) return false;
+        const session = JSON.parse(sessionRaw);
+        const profile = JSON.parse(profileRaw);
+        if (session?.user?.id && profile?.id) {
+          dispatch({ type: 'LOGIN_SUCCESS', payload: { user: session.user, profile, session } });
+          return true;
+        }
+      } catch {}
+      return false;
+    };
+
+    const restoredFromCache = restoreFromCache();
+
+    // Fallback: if loading still hasn't resolved (no cache, no INITIAL_SESSION),
+    // force it off so the login page appears instead of an infinite spinner.
+    // Only needed when there was no cache to restore from.
+    let timeout;
+    if (!restoredFromCache) {
+      timeout = setTimeout(() => {
+        if (mounted) dispatch({ type: 'SET_LOADING', payload: false });
+      }, 10000);
+    }
+
+    const cacheProfile = (profile) => {
+      try { localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile)); } catch {}
+    };
+    const clearProfileCache = () => {
+      try { localStorage.removeItem(PROFILE_CACHE_KEY); } catch {}
+    };
 
     let subscription;
     try {
@@ -151,32 +188,29 @@ export function AuthProvider({ children }) {
                 .single();
 
               if (!mounted) return;
-              // Clear timeout AFTER profile fetch so it still fires if the fetch hangs
               clearTimeout(timeout);
 
               if (profileError || !profile) {
-                dispatch({ type: 'SET_LOADING', payload: false });
+                if (!restoredFromCache) dispatch({ type: 'SET_LOADING', payload: false });
                 return;
               }
 
+              cacheProfile(profile);
+
               if (!profile.is_active) {
-                dispatch({
-                  type: 'SET_PENDING_SETUP',
-                  payload: { user: session.user, profile, session }
-                });
+                clearProfileCache();
+                dispatch({ type: 'SET_PENDING_SETUP', payload: { user: session.user, profile, session } });
               } else {
-                dispatch({
-                  type: 'LOGIN_SUCCESS',
-                  payload: { user: session.user, profile, session }
-                });
+                dispatch({ type: 'LOGIN_SUCCESS', payload: { user: session.user, profile, session } });
               }
             } else if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session)) {
               clearTimeout(timeout);
+              clearProfileCache();
               dispatch({ type: 'LOGOUT' });
             }
           } catch (err) {
             console.error('Auth state change error:', err);
-            if (mounted) {
+            if (mounted && !restoredFromCache) {
               clearTimeout(timeout);
               dispatch({ type: 'SET_LOADING', payload: false });
             }
@@ -187,7 +221,7 @@ export function AuthProvider({ children }) {
     } catch (err) {
       console.error('Failed to set up auth listener:', err);
       clearTimeout(timeout);
-      dispatch({ type: 'SET_LOADING', payload: false });
+      if (!restoredFromCache) dispatch({ type: 'SET_LOADING', payload: false });
     }
 
     return () => {
@@ -305,13 +339,14 @@ export function AuthProvider({ children }) {
             return false;
           }
 
-          dispatch({ 
-            type: 'LOGIN_SUCCESS', 
-            payload: { 
-              user: data.user, 
-              profile, 
-              session: data.session 
-            } 
+          try { localStorage.setItem('sep-cached-profile', JSON.stringify(profile)); } catch {}
+          dispatch({
+            type: 'LOGIN_SUCCESS',
+            payload: {
+              user: data.user,
+              profile,
+              session: data.session
+            }
           });
           toast.success(`Welcome back, ${profile?.name || data.user.email}!`);
           return true;
@@ -331,9 +366,11 @@ export function AuthProvider({ children }) {
         await authHelpers.signOut();
       }
 
+      try { localStorage.removeItem('sep-cached-profile'); } catch {}
       dispatch({ type: 'LOGOUT' });
       toast.success('Logged out successfully');
     } catch (error) {
+      try { localStorage.removeItem('sep-cached-profile'); } catch {}
       dispatch({ type: 'LOGOUT' });
     }
   };
