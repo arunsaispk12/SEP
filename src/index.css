@@ -1927,6 +1927,10 @@ select:focus {
   }
 }
 
+.location-card-grid {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
 .location-card-header {
   padding: 20px;
 }

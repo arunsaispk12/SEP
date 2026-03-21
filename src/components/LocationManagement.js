@@ -180,7 +180,7 @@ const LocationManagement = () => {
         <div style={{ textAlign: 'center', padding: 48, color: '#94a3b8', fontSize: '1.125rem' }}>Loading locations...</div>
       ) : (
         <div style={{ overflowX: 'auto' }}>
-          <div className="location-card-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 24, minWidth: 0 }}>
+          <div className="location-card-grid" style={{ display: 'grid', gap: 24, minWidth: 0 }}>
           {filteredLocations.map(location => (
             <div key={location.id} className="glass-panel-sm" style={{ overflow: 'hidden', transition: 'all 0.2s' }}>
               <div className="location-card-header" style={{ display: 'flex', gap: 16, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
