@@ -125,7 +125,7 @@ const ClientManagement = () => {
   return (
     <div style={{ padding: 20, color: '#f1f5f9' }}>
       {/* Page Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30 }}>
+      <div className="mobile-page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30 }}>
         <div>
           <h1 style={{ fontSize: '1.875rem', fontWeight: 700, margin: '0 0 4px 0', background: 'linear-gradient(135deg, #fff 0%, #94a3b8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             Client Management
@@ -164,8 +164,8 @@ const ClientManagement = () => {
       </div>
 
       {/* Filters Bar */}
-      <div style={{ display: 'flex', gap: 16, marginBottom: 24, flexWrap: 'wrap' }}>
-        <div style={{ flex: 1, minWidth: 300, display: 'flex', alignItems: 'center', gap: 12, background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: '0 16px' }}>
+      <div className="mobile-filter-bar" style={{ display: 'flex', gap: 16, marginBottom: 24, flexWrap: 'wrap' }}>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 12, background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: '0 16px' }}>
           <Search size={18} style={{ color: '#64748b', flexShrink: 0 }} />
           <input
             type="text"
