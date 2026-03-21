@@ -119,56 +119,11 @@ function authReducer(state, action) {
 export function AuthProvider({ children }) {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Check for existing session on mount
+  // Supabase is not configured — clear loading state immediately
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        if (isSupabaseConfigured()) {
-          // Use Supabase authentication
-          const { session, error } = await authHelpers.getCurrentSession();
-
-          if (error) {
-            dispatch({ type: 'SET_LOADING', payload: false });
-            return;
-          }
-
-          if (session?.user) {
-            // Get user profile
-            const { data: profile, error: profileError } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-
-            if (profileError) {
-              // If profile doesn't exist, user needs to complete registration
-              dispatch({ type: 'SET_LOADING', payload: false });
-              return;
-            }
-
-            if (!profile.is_active) {
-              dispatch({
-                type: 'SET_PENDING_SETUP',
-                payload: { user: session.user, profile, session }
-              });
-            } else {
-              dispatch({
-                type: 'LOGIN_SUCCESS',
-                payload: { user: session.user, profile, session }
-              });
-            }
-          } else {
-            dispatch({ type: 'SET_LOADING', payload: false });
-          }
-        } else {
-          dispatch({ type: 'SET_LOADING', payload: false });
-        }
-      } catch (error) {
-        dispatch({ type: 'SET_LOADING', payload: false });
-      }
-    };
-
-    checkAuth();
+    if (!isSupabaseConfigured()) {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
   }, []);
 
   // Listen for auth state changes
@@ -177,12 +132,17 @@ export function AuthProvider({ children }) {
 
     const { data: { subscription } } = realtimeHelpers.onAuthStateChange(
       async (event, session) => {
-        if (event === 'SIGNED_IN' && session?.user) {
-          const { data: profile } = await supabase
+        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session?.user) {
+          const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
             .single();
+
+          if (profileError) {
+            dispatch({ type: 'SET_LOADING', payload: false });
+            return;
+          }
 
           if (profile && !profile.is_active) {
             dispatch({
@@ -195,7 +155,7 @@ export function AuthProvider({ children }) {
               payload: { user: session.user, profile, session }
             });
           }
-        } else if (event === 'SIGNED_OUT') {
+        } else if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session)) {
           dispatch({ type: 'LOGOUT' });
         }
       }
