@@ -1281,6 +1281,28 @@ select:focus {
 @media (min-width: 768px) {
   .stats-grid { grid-template-columns: repeat(4, 1fr); }
 }
+@media (max-width: 767px) {
+  .stats-grid {
+    grid-template-columns: unset;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(72px, 80px);
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .stat-card {
+    padding: 10px 12px;
+    text-align: center;
+  }
+  .stat-number {
+    font-size: 1.25rem;
+  }
+  .stat-label {
+    font-size: 0.65rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
 .stat-card {
   background: rgba(22, 27, 34, 0.85);
   padding: 20px;
