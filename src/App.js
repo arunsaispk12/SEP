@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Toaster } from 'react-hot-toast';
+import { Toaster, toast } from 'react-hot-toast';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import GlassSidebar from './components/GlassSidebar';
@@ -25,6 +25,8 @@ import { getMiddlewareManager } from './middlewares';
 import middlewareConfig from './config/middleware';
 import './App.css';
 
+const DESKTOP_NOTICE_SESSION_KEY = 'sep-desktop-optimised-notice-shown';
+
 function AppContent() {
   const { user, profile, isAuthenticated, loading, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -34,6 +36,27 @@ function AppContent() {
   useEffect(() => {
     setSidebarOpen(false);
   }, [activeTab]);
+
+  useEffect(() => {
+    if (loading || !isAuthenticated) {
+      return;
+    }
+
+    try {
+      if (sessionStorage.getItem(DESKTOP_NOTICE_SESSION_KEY)) {
+        return;
+      }
+
+      toast('Best experience on desktop. This workspace is optimized for larger screens for scheduling, case management, and administration.', {
+        id: 'desktop-optimised-notice',
+        duration: 6000,
+        icon: 'i',
+      });
+      sessionStorage.setItem(DESKTOP_NOTICE_SESSION_KEY, 'true');
+    } catch (error) {
+      console.warn('Failed to persist desktop experience notice state:', error);
+    }
+  }, [isAuthenticated, loading]);
 
   // Show loading spinner while checking authentication
   if (loading) {
