@@ -21,6 +21,15 @@ const STEPS = [
   { n: 3, label: 'Review' },
 ];
 
+const DEFAULT_LOCATIONS = [
+  { id: 1, name: 'Hyderabad' },
+  { id: 2, name: 'Bangalore' },
+  { id: 3, name: 'Coimbatore' },
+  { id: 4, name: 'Chennai' },
+];
+const SIGNUP_SUCCESS_STORAGE_KEY = 'sep-signup-success';
+const SIGNUP_SUCCESS_TTL_MS = 10 * 60 * 1000;
+
 const LBL = { fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '.7px', marginBottom: 6 };
 const SECTION = { marginBottom: 14 };
 
@@ -87,17 +96,44 @@ export default function SignupPage() {
   const [focused, setFocused] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [completedEmail, setCompletedEmail] = useState('');
   const [locationsLoading, setLocationsLoading] = useState(true);
 
   useEffect(() => {
     supabaseService.getLocations()
-      .then(data => { setLocations(data.map(l => ({ id: l.id, name: l.name }))); setLocationsLoading(false); })
-      .catch(() => { setLocations([
-        { id: 1, name: 'Hyderabad' },
-        { id: 2, name: 'Bangalore' },
-        { id: 3, name: 'Coimbatore' },
-        { id: 4, name: 'Chennai' },
-      ]); setLocationsLoading(false); });
+      .then(data => {
+        const mappedLocations = (data || [])
+          .map(l => ({ id: l.id, name: l.name }))
+          .filter(l => l.id != null && l.name);
+
+        setLocations(mappedLocations.length > 0 ? mappedLocations : DEFAULT_LOCATIONS);
+        setLocationsLoading(false);
+      })
+      .catch(() => {
+        setLocations(DEFAULT_LOCATIONS);
+        setLocationsLoading(false);
+      });
+  }, []);
+
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(SIGNUP_SUCCESS_STORAGE_KEY);
+      if (!saved) return;
+
+      const parsed = JSON.parse(saved);
+      if (!parsed?.createdAt || Date.now() - parsed.createdAt > SIGNUP_SUCCESS_TTL_MS) {
+        sessionStorage.removeItem(SIGNUP_SUCCESS_STORAGE_KEY);
+        return;
+      }
+
+      if (parsed?.email) {
+        setCompletedEmail(parsed.email);
+      }
+      setDone(true);
+    } catch (error) {
+      console.warn('Failed to restore signup success state:', error);
+      sessionStorage.removeItem(SIGNUP_SUCCESS_STORAGE_KEY);
+    }
   }, []);
 
   const validateStep1 = () => {
@@ -138,7 +174,14 @@ export default function SignupPage() {
         is_available: true,
         is_active: true,
       });
-      if (ok) setDone(true);
+      if (ok) {
+        sessionStorage.setItem(SIGNUP_SUCCESS_STORAGE_KEY, JSON.stringify({
+          email,
+          createdAt: Date.now()
+        }));
+        setCompletedEmail(email);
+        setDone(true);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -161,7 +204,7 @@ export default function SignupPage() {
           <div style={{ fontSize: 48, marginBottom: 16 }}>✅</div>
           <div style={{ fontSize: 22, fontWeight: 800, color: '#fff', marginBottom: 8 }}>Account created!</div>
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.7, marginBottom: 28 }}>
-            Your request is pending admin approval.<br/>You'll receive an email once your access is activated.
+            We sent a confirmation to <span style={{ color: '#fff' }}>{completedEmail || email}</span>.<br/>Verify your email to activate your account, then wait for admin approval.
           </div>
           <Link to="/login" style={{ display: 'inline-block', background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', borderRadius: 10, padding: '12px 28px', color: '#fff', fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>← Back to Sign In</Link>
         </div>
