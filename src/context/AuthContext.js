@@ -355,7 +355,7 @@ export function AuthProvider({ children }) {
     } catch (error) {
       const errorMessage = errorHandler.parseError(error);
       dispatch({ type: 'LOGIN_FAILURE', payload: errorMessage });
-      toast.error('Login failed. Please try again.');
+      toast.error(errorMessage);
       return false;
     }
   };

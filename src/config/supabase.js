@@ -138,6 +138,10 @@ export const realtimeHelpers = {
 // Error handling utilities
 export const errorHandler = {
   parseError(error) {
+    if (this.isNetworkError(error)) {
+      return 'Unable to reach the sign-in service. Please check your internet connection or network access and try again.';
+    }
+
     if (error?.message) {
       return error.message;
     }
@@ -154,8 +158,15 @@ export const errorHandler = {
   },
 
   isNetworkError(error) {
-    return error?.message?.includes('network') ||
-           error?.message?.includes('fetch') ||
+    const message = error?.message?.toLowerCase?.() || '';
+    return message.includes('network') ||
+           message.includes('fetch') ||
+           message.includes('failed to fetch') ||
+           message.includes('networkerror') ||
+           error?.code === 'NETWORK_ERROR' ||
+           error?.name === 'TypeError' ||
+           error?.cause?.code === 'ERR_INTERNET_DISCONNECTED' ||
+           error?.cause?.message?.includes?.('ERR_INTERNET_DISCONNECTED') ||
            error?.code === 'NETWORK_ERROR';
   }
 };
