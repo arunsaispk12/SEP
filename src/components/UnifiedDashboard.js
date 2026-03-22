@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useEngineerContext } from '../context/EngineerContext';
 import supabaseService from '../services/supabaseService';
+import { isSupabaseConfigured } from '../config/supabase';
 import { getWeekStart } from './dashboard/dashboardUtils';
 import DashboardKPIBar from './dashboard/DashboardKPIBar';
 import TeamStatusPanel from './dashboard/TeamStatusPanel';
@@ -17,7 +18,7 @@ import SkeletonPanel from './dashboard/SkeletonPanel';
 const BG = 'linear-gradient(135deg,#0f0c29,#302b63,#24243e)';
 
 export default function UnifiedDashboard() {
-  const { user, profile } = useAuth();
+  const { user, profile, isAuthenticated } = useAuth();
   const { engineers, cases, schedules, leaves, loading, updateCase, updateLeave } = useEngineerContext();
 
   const [activeFilter, setActiveFilter] = useState('total');
@@ -28,10 +29,25 @@ export default function UnifiedDashboard() {
 
   // Load pending leaves directly (context only loads approved)
   useEffect(() => {
+    if (!isSupabaseConfigured() || !isAuthenticated) {
+      setPendingLeaves([]);
+      return;
+    }
+
+    let active = true;
+
     supabaseService.getLeavesByStatus('pending')
-      .then(setPendingLeaves)
-      .catch(() => setPendingLeaves([]));
-  }, []);
+      .then((data) => {
+        if (active) setPendingLeaves(data);
+      })
+      .catch(() => {
+        if (active) setPendingLeaves([]);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [isAuthenticated]);
 
   // Stable date anchors (recomputed once per mount)
   const today = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d; }, []);

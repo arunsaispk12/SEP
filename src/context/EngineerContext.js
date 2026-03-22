@@ -1,10 +1,12 @@
-import React, { createContext, useContext, useReducer, useEffect, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useMemo, useCallback, useRef } from 'react';
 import toast from 'react-hot-toast';
 import supabaseService from '../services/supabaseService';
 import { isSupabaseConfigured, supabase } from '../config/supabase';
 import { getMiddlewareManager } from '../middlewares';
+import { useAuth } from './AuthContext';
 
 const EngineerContext = createContext();
+const DATA_CACHE_KEY = 'sep-engineer-data-cache';
 
 const initialState = {
   engineers: [
@@ -193,24 +195,63 @@ function engineerReducer(state, action) {
 
 export function EngineerProvider({ children }) {
   const [state, dispatch] = useReducer(engineerReducer, initialState);
+  const { loading: authLoading, isAuthenticated, user } = useAuth();
+  const loadRequestRef = useRef(0);
+  const hydratedUserRef = useRef(null);
 
   // Get middleware manager
   const middlewareManager = getMiddlewareManager();
 
-  const loadData = useCallback(async () => {
+  const restoreCachedData = useCallback((userId) => {
+    try {
+      const raw = localStorage.getItem(DATA_CACHE_KEY);
+      if (!raw) return false;
+
+      const parsed = JSON.parse(raw);
+      if (!parsed?.userId || parsed.userId !== userId || !parsed.payload) {
+        return false;
+      }
+
+      dispatch({ type: 'LOAD_DATA', payload: parsed.payload });
+      return true;
+    } catch (error) {
+      console.warn('Failed to restore cached engineer data:', error);
+      return false;
+    }
+  }, []);
+
+  const cacheLoadedData = useCallback((userId, payload) => {
+    if (!userId) return;
+
+    try {
+      localStorage.setItem(DATA_CACHE_KEY, JSON.stringify({
+        userId,
+        payload,
+        cachedAt: new Date().toISOString()
+      }));
+    } catch (error) {
+      console.warn('Failed to cache engineer data:', error);
+    }
+  }, []);
+
+  const loadData = useCallback(async ({ background = false } = {}) => {
     const logger = middlewareManager.get('logging');
     const errorHandler = middlewareManager.get('error');
+    const requestId = ++loadRequestRef.current;
 
     if (logger) {
-      logger.info('EngineerContext.loadData called');
+      logger.info('EngineerContext.loadData called', { background, requestId });
     } else {
       console.warn('Logger middleware not available');
     }
 
     try {
-      dispatch({ type: 'SET_LOADING', payload: true });
+      if (!background) {
+        dispatch({ type: 'SET_LOADING', payload: true });
+      }
+
       if (logger) {
-        logger.debug('Set loading to true');
+        logger.debug('Starting engineer data load', { background, requestId });
       }
 
       if (isSupabaseConfigured()) {
@@ -276,10 +317,21 @@ export function EngineerProvider({ children }) {
           });
         }
 
+        if (requestId !== loadRequestRef.current) {
+          if (logger) {
+            logger.debug('Ignoring stale engineer data response', {
+              requestId,
+              latestRequestId: loadRequestRef.current
+            });
+          }
+          return;
+        }
+
         dispatch({
           type: 'LOAD_DATA',
           payload
         });
+        cacheLoadedData(user?.id, payload);
       } else {
         if (logger) {
           logger.info('Supabase not configured, using localStorage fallback');
@@ -294,6 +346,11 @@ export function EngineerProvider({ children }) {
               casesCount: parsedData.cases?.length || 0,
               schedulesCount: parsedData.schedules?.length || 0
             });
+
+            if (requestId !== loadRequestRef.current) {
+              return;
+            }
+
             dispatch({ type: 'LOAD_DATA', payload: parsedData });
           } catch (error) {
             if (logger) {
@@ -320,7 +377,7 @@ export function EngineerProvider({ children }) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
       toast.error('Failed to load data from database');
     }
-  }, [middlewareManager]);
+  }, [cacheLoadedData, middlewareManager, user?.id]);
 
   const addLeave = useCallback(async (leaveData) => {
     try {
@@ -534,24 +591,41 @@ export function EngineerProvider({ children }) {
     dispatch({ type: 'SET_GOOGLE_CALENDAR_CONNECTED', payload: connected });
   }, []);
 
-  // Auto-load data on mount when Supabase is configured
+  // Wait for auth to settle before loading shared dashboard data on refresh.
   useEffect(() => {
-    if (isSupabaseConfigured()) {
+    if (!isSupabaseConfigured()) {
       loadData();
+      return;
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    if (authLoading) {
+      return;
+    }
+
+    if (!isAuthenticated || !user?.id) {
+      dispatch({ type: 'SET_LOADING', payload: false });
+      hydratedUserRef.current = null;
+      return;
+    }
+
+    if (hydratedUserRef.current !== user.id) {
+      const restored = restoreCachedData(user.id);
+      hydratedUserRef.current = user.id;
+      loadData({ background: restored });
+    }
+  }, [authLoading, isAuthenticated, loadData, restoreCachedData, user?.id]);
 
   // Re-load data when the auth token is refreshed (SIGNED_IN fires after Supabase cold start).
   // This retries the fetch that may have timed out while the project was waking up.
   useEffect(() => {
-    if (!isSupabaseConfigured()) return;
+    if (!isSupabaseConfigured() || authLoading || !isAuthenticated) return;
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        loadData();
+        loadData({ background: true });
       }
     });
     return () => subscription.unsubscribe();
-  }, [loadData]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [authLoading, isAuthenticated, loadData]);
 
   // Save data to localStorage when not using Supabase
   useEffect(() => {
